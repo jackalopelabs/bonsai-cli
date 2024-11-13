@@ -14,6 +14,38 @@ class SectionCommand extends Command
     {
         // Define component schemas with their expected data structure
         $schemas = [
+            'hero' => [
+                'title' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter hero title',
+                    'default' => 'Welcome to Our Site'
+                ],
+                'description' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter hero description',
+                    'default' => 'Your journey starts here'
+                ],
+                'imagePath' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter hero image path (relative to assets, e.g. images/hero.jpg)',
+                    'default' => 'images/hero.jpg'
+                ],
+                'cta' => [
+                    'type' => 'object',
+                    'schema' => [
+                        'text' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA button text',
+                            'default' => 'Learn More'
+                        ],
+                        'url' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA button URL',
+                            'default' => '#'
+                        ]
+                    ]
+                ]
+            ],
             'faq' => [
                 'title' => [
                     'type' => 'string',
@@ -31,32 +63,6 @@ class SectionCommand extends Command
                         'answer' => [
                             'type' => 'string',
                             'prompt' => 'Enter answer'
-                        ]
-                    ]
-                ]
-            ],
-            'hero' => [
-                'title' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter hero title',
-                    'default' => 'Welcome to Our Site'
-                ],
-                'description' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter hero description'
-                ],
-                'cta' => [
-                    'type' => 'object',
-                    'schema' => [
-                        'text' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter CTA text',
-                            'default' => 'Learn More'
-                        ],
-                        'url' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter CTA URL',
-                            'default' => '#'
                         ]
                     ]
                 ]
