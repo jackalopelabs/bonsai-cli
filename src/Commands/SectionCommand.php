@@ -23,7 +23,6 @@ class SectionCommand extends Command
         $name = strtolower($this->argument('name'));
         $sectionPath = resource_path("views/bonsai/sections/{$name}.blade.php");
 
-        // Ensure the sections directory exists
         $this->files->ensureDirectoryExists(resource_path('views/bonsai/sections'));
 
         if ($this->files->exists($sectionPath)) {
@@ -31,13 +30,9 @@ class SectionCommand extends Command
             return;
         }
 
-        // Gather default data values with prompts for custom values
         $data = $this->gatherSectionData($name);
-
-        // Gather page-specific conditions
         $pageConditions = $this->gatherPageConditions();
 
-        // Write the final section file content
         $stubContent = $this->getSectionStubContent($name, $data, $pageConditions);
         $this->files->put($sectionPath, $stubContent);
 
@@ -46,14 +41,10 @@ class SectionCommand extends Command
 
     protected function gatherSectionData($componentType)
     {
-        // Default props for known components
         $defaultProps = $this->getComponentProps($componentType);
-
-        // Prompt the user to override each default value
         foreach ($defaultProps as $key => $default) {
             $defaultProps[$key] = $this->ask("Enter value for {$key} (default: {$default})", $default);
         }
-
         return $defaultProps;
     }
 
@@ -61,16 +52,13 @@ class SectionCommand extends Command
     {
         $pageConditions = [];
 
-        // Ask if the user wants to add page-specific conditions
         if ($this->confirm('Do you want to add specific conditions for certain pages?', true)) {
             while (true) {
                 $pagePath = $this->ask("Enter page path (e.g., /cypress) or press ENTER to finish");
                 if (empty($pagePath)) {
                     break;
                 }
-
-                // Gather custom values for this page condition
-                $pageData = $this->gatherSectionData('hero'); // Customize per component type if necessary
+                $pageData = $this->gatherSectionData('hero');
                 $pageConditions[$pagePath] = $pageData;
             }
         }
@@ -80,44 +68,30 @@ class SectionCommand extends Command
 
     protected function getSectionStubContent($name, $data, $pageConditions)
     {
-        // Default component content
         $defaultContent = $this->formatComponent($name, $data);
 
-        // Start building the Blade content with conditions
         $content = <<<BLADE
 {{-- Section: {$name} --}}
 
 @if (Request::is('/'))
     {{-- Default section content for the homepage --}}
     {$defaultContent}
-@endif
-BLADE;
-
-        foreach ($pageConditions as $path => $pageData) {
-            $pageContent = $this->formatComponent($name, $pageData);
-            $content .= <<<BLADE
-
-@elseif (Request::is('{$path}'))
-    {{-- Section content for the {$path} page --}}
-    {$pageContent}
-BLADE;
-        }
-
-        // Add a final else condition for fallback, with a single @endif at the end
-        $content .= <<<BLADE
-
 @else
     {{-- Default section content for other pages --}}
     {$defaultContent}
 @endif
 BLADE;
 
+        foreach ($pageConditions as $path => $pageData) {
+            $pageContent = $this->formatComponent($name, $pageData);
+            $content = str_replace("@else", "@elseif (Request::is('{$path}'))\n    {{-- Section content for {$path} page --}}\n    {$pageContent}\n@else", $content);
+        }
+
         return $content;
     }
 
     protected function formatComponent($name, $data)
     {
-        // Generate the component with props
         $props = collect($data)
             ->map(fn($value, $key) => "{$key}=\"{$value}\"")
             ->implode(' ');
@@ -127,7 +101,6 @@ BLADE;
 
     protected function getComponentProps($componentType)
     {
-        // Define default props for each component type
         $components = [
             'accordion' => [
                 'item' => "['id' => 'example', 'title' => 'Accordion Title', 'content' => 'Accordion content here']",

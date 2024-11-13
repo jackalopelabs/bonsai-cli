@@ -81,13 +81,6 @@ class PageCommand extends Command
     Template Name: Custom Template for {$layout} layout
 --}}
 @extends('bonsai.layouts.{$layout}')
-
-@section('content')
-    <div class="container mx-auto">
-        <h1 class="text-4xl font-bold mb-6">{$layout} Layout Page</h1>
-        {{-- Content goes here --}}
-    </div>
-@endsection
 BLADE;
     }
 }
