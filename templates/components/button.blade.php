@@ -1,3 +1,4 @@
+{{-- bonsai-cli/templates/components/button.blade.php --}}
 @php
 $element = $attributes->get('element', 'a');
 if ($element === 'a' && !$attributes->has('href')) {

@@ -1,3 +1,4 @@
+{{-- bonsai-cli/templates/components/alert.blade.php --}}
 @props([
     'type' => null,
     'message' => null,

@@ -1,3 +1,4 @@
+{{-- bonsai-cli/templates/components/faq.blade.php --}}
 @props([
     'faqs' => []
 ])

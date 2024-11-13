@@ -1,3 +1,4 @@
+{{-- bonsai-cli/templates/components/accordion.blade.php --}}
 @props(['item', 'open' => false])
 
 <div x-data="{ open: {{ $open ? 'true' : 'false' }} }" class="my-4">

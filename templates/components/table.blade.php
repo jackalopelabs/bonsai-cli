@@ -1,3 +1,4 @@
+{{-- bonsai-cli/templates/components/table.blade.php --}}
 @props([
     'rows' => [],
     'columns' => [],

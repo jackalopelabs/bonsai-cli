@@ -1,3 +1,4 @@
+{{-- bonsai-cli/templates/components/modal.blade.php --}}
 <div
     x-data="{ open: @entangle($attributes->wire('open')) }"
     x-show="open"

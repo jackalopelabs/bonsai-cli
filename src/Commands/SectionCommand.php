@@ -32,7 +32,7 @@ class SectionCommand extends Command
         }
 
         // Gather default data values with prompts for custom values
-        $data = $this->gatherSectionData();
+        $data = $this->gatherSectionData($name);
 
         // Gather page-specific conditions
         $pageConditions = $this->gatherPageConditions();
@@ -44,29 +44,17 @@ class SectionCommand extends Command
         $this->info("Section {$name} created at {$sectionPath}");
     }
 
-    protected function gatherSectionData()
+    protected function gatherSectionData($componentType)
     {
-        // Set default values for section data
-        $data = [
-            'title' => 'Default Title',
-            'subtitle' => 'Default subtitle',
-            'l1' => 'Default feature 1',
-            'l2' => 'Default feature 2',
-            'l3' => 'Default feature 3',
-            'l4' => 'Default feature 4',
-            'primaryText' => 'Default primary text',
-            'primaryLink' => '#primary-link',
-            'secondaryText' => 'Default secondary text',
-            'secondaryLink' => '#secondary-link',
-            'imagePath' => 'images/default-hero.png',
-        ];
+        // Default props for known components
+        $defaultProps = $this->getComponentProps($componentType);
 
         // Prompt the user to override each default value
-        foreach ($data as $key => $default) {
-            $data[$key] = $this->ask("Enter value for {$key} (default: {$default})", $default);
+        foreach ($defaultProps as $key => $default) {
+            $defaultProps[$key] = $this->ask("Enter value for {$key} (default: {$default})", $default);
         }
 
-        return $data;
+        return $defaultProps;
     }
 
     protected function gatherPageConditions()
@@ -82,7 +70,7 @@ class SectionCommand extends Command
                 }
 
                 // Gather custom values for this page condition
-                $pageData = $this->gatherSectionData();
+                $pageData = $this->gatherSectionData('hero'); // Customize per component type if necessary
                 $pageConditions[$pagePath] = $pageData;
             }
         }
@@ -92,24 +80,25 @@ class SectionCommand extends Command
 
     protected function getSectionStubContent($name, $data, $pageConditions)
     {
-        // Default hero component content
-        $defaultContent = $this->formatHeroComponent($data);
+        // Default component content
+        $defaultContent = $this->formatComponent($name, $data);
 
         // Start building the Blade content with conditions
         $content = <<<BLADE
 {{-- Section: {$name} --}}
 
 @if (Request::is('/'))
-    {{-- Default hero section for the homepage --}}
+    {{-- Default section content for the homepage --}}
     {$defaultContent}
+@endif
 BLADE;
 
         foreach ($pageConditions as $path => $pageData) {
-            $pageContent = $this->formatHeroComponent($pageData);
+            $pageContent = $this->formatComponent($name, $pageData);
             $content .= <<<BLADE
 
 @elseif (Request::is('{$path}'))
-    {{-- Hero section for the {$path} page --}}
+    {{-- Section content for the {$path} page --}}
     {$pageContent}
 BLADE;
         }
@@ -118,7 +107,7 @@ BLADE;
         $content .= <<<BLADE
 
 @else
-    {{-- Default hero section for other pages --}}
+    {{-- Default section content for other pages --}}
     {$defaultContent}
 @endif
 BLADE;
@@ -126,23 +115,58 @@ BLADE;
         return $content;
     }
 
-    protected function formatHeroComponent($data)
+    protected function formatComponent($name, $data)
     {
-        // Generate the <x-hero> component with data
-        return <<<BLADE
-<x-hero 
-    title="{$data['title']}"
-    subtitle="{$data['subtitle']}"
-    l1="{$data['l1']}"
-    l2="{$data['l2']}"
-    l3="{$data['l3']}"
-    l4="{$data['l4']}"
-    primaryText="{$data['primaryText']}"
-    primaryLink="{$data['primaryLink']}"
-    secondaryText="{$data['secondaryText']}"
-    secondaryLink="{$data['secondaryLink']}"
-    imagePath="{$data['imagePath']}"
-/>
-BLADE;
+        // Generate the component with props
+        $props = collect($data)
+            ->map(fn($value, $key) => "{$key}=\"{$value}\"")
+            ->implode(' ');
+
+        return "<x-{$name} {$props} />";
+    }
+
+    protected function getComponentProps($componentType)
+    {
+        // Define default props for each component type
+        $components = [
+            'accordion' => [
+                'item' => "['id' => 'example', 'title' => 'Accordion Title', 'content' => 'Accordion content here']",
+                'open' => 'false',
+            ],
+            'alert' => [
+                'type' => 'success',
+                'message' => 'Alert message here',
+            ],
+            'button' => [
+                'variant' => 'primary',
+                'size' => 'base',
+                'element' => 'button',
+            ],
+            'faq' => [
+                'faqs' => "[['question' => 'Sample question?', 'answer' => 'Sample answer']]",
+            ],
+            'hero' => [
+                'title' => 'Sample Title',
+                'subtitle' => 'Sample subtitle',
+                'l1' => 'Feature 1',
+                'l2' => 'Feature 2',
+                'l3' => 'Feature 3',
+                'l4' => 'Feature 4',
+                'primaryText' => 'Primary CTA',
+                'primaryLink' => '#',
+                'secondaryText' => 'Secondary CTA',
+                'secondaryLink' => '#',
+                'imagePath' => 'images/sample-hero.png',
+            ],
+            'modal' => [
+                'title' => 'Modal Title',
+            ],
+            'table' => [
+                'rows' => "[['Column 1', 'Column 2', 'Column 3']]",
+                'columns' => "['Column 1', 'Column 2', 'Column 3']",
+            ],
+        ];
+
+        return $components[$componentType] ?? [];
     }
 }
