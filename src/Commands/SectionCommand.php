@@ -31,8 +31,8 @@ class SectionCommand extends Command
             return;
         }
 
-        // Gather default data values for the component
-        $data = $this->getComponentProps($name);
+        // Prompt for default data values for the component
+        $data = $this->gatherSectionData($name);
 
         // Define page-specific conditions if needed
         $pageConditions = $this->gatherPageConditions();
@@ -42,6 +42,19 @@ class SectionCommand extends Command
         $this->files->put($sectionPath, $stubContent);
 
         $this->info("Section {$name} created at {$sectionPath}");
+    }
+
+    protected function gatherSectionData($name)
+    {
+        // Get default component properties for each component type
+        $data = $this->getComponentProps($name);
+
+        // Prompt the user to override each default value
+        foreach ($data as $key => $default) {
+            $data[$key] = $this->ask("Enter value for {$key} (default: {$default})", $default);
+        }
+
+        return $data;
     }
 
     protected function getSectionStubContent($name, $data, $pageConditions)
@@ -143,7 +156,7 @@ BLADE;
                 }
 
                 // Gather custom values for this page condition
-                $pageData = $this->getComponentProps($this->argument('name'));
+                $pageData = $this->gatherSectionData($this->argument('name'));
                 $pageConditions[$pagePath] = $pageData;
             }
         }
