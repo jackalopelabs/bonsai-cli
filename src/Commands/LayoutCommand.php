@@ -63,13 +63,10 @@ class LayoutCommand extends Command
 
     protected function getLayoutStubContent($name, $sections)
     {
-        // Generate @include directives for each specified section
-        $sectionIncludes = '';
-        foreach ($sections as $section) {
-            $sectionIncludes .= "@include('bonsai.sections.{$section}')\n";
-        }
+        $sectionIncludes = collect($sections)
+            ->map(fn($section) => "@include('bonsai.sections.{$section}')")
+            ->implode("\n        ");
 
-        // Build the Blade layout content
         return <<<BLADE
 {{-- Layout: {$name} --}}
 @extends('layouts.app')
@@ -78,6 +75,7 @@ class LayoutCommand extends Command
     <div class="layout-{$name}">
         {{-- Include sections in specified order --}}
         {$sectionIncludes}
+        {{-- Add other sections as needed --}}
     </div>
 @endsection
 BLADE;

@@ -25,12 +25,12 @@ class PageCommand extends Command
         $title = implode(' ', $titleArray);
         $layout = strtolower($this->option('layout') ?? 'default');
         $slug = strtolower(str_replace(' ', '-', $title));
-    
-        // Step 1: Ensure the template directory exists
+
+        // Ensure the template directory exists
         $templateDirectory = resource_path("views/templates");
         $this->files->ensureDirectoryExists($templateDirectory);
-    
-        // Create the Blade template
+
+        // Step 1: Create the Blade template
         $templatePath = "{$templateDirectory}/template-{$slug}.blade.php";
         if (!$this->files->exists($templatePath)) {
             $stubContent = $this->getTemplateStubContent($layout);
@@ -39,19 +39,19 @@ class PageCommand extends Command
         } else {
             $this->warn("Template file already exists at: {$templatePath}");
         }
-    
+
         // Step 2: Register the template with WordPress
         add_filter('theme_page_templates', function ($templates) use ($slug) {
             $templates["templates/template-{$slug}.blade.php"] = ucfirst(str_replace('-', ' ', $slug)) . ' Template';
             return $templates;
         });
-    
+
         // Step 3: Create the WordPress page
         $pageId = DB::table('posts')
             ->where('post_type', 'page')
             ->where('post_name', $slug)
             ->value('ID');
-    
+
         if ($pageId) {
             $this->warn("Page '{$title}' already exists with ID: {$pageId}");
         } else {
@@ -64,19 +64,18 @@ class PageCommand extends Command
                     '_wp_page_template' => "templates/template-{$slug}.blade.php"
                 ],
             ]);
-    
+
             if (is_wp_error($pageId)) {
                 $this->error("Failed to create page: " . $pageId->get_error_message());
                 return;
             }
-    
+
             $this->info("Page '{$title}' created with ID: {$pageId}");
         }
-    }    
+    }
 
     protected function getTemplateStubContent($layout)
     {
-        // Return the Blade content, extending the chosen layout
         return <<<BLADE
 {{--
     Template Name: Custom Template for {$layout} layout
