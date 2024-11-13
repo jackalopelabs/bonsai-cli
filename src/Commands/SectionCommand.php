@@ -80,9 +80,10 @@ class SectionCommand extends Command
                     'prompt' => 'Enter FAQ section title',
                     'default' => 'Frequently Asked Questions'
                 ],
-                'items' => [
+                'faqs' => [
                     'type' => 'array',
                     'prompt' => 'How many FAQ items?',
+                    'default' => 3,
                     'schema' => [
                         'question' => [
                             'type' => 'string',
@@ -111,8 +112,10 @@ class SectionCommand extends Command
                     $field['default'] ?? null
                 );
             } elseif ($field['type'] === 'array') {
-                $count = (int) $this->ask($field['prompt']);
+                $count = (int) $this->ask($field['prompt'] ?? 'How many items?', $field['default'] ?? 3);
                 $data[$key] = [];
+                
+                $this->info("\nEntering details for {$count} items:");
                 
                 for ($i = 0; $i < $count; $i++) {
                     $item = [];
@@ -126,6 +129,28 @@ class SectionCommand extends Command
                         $item[$subKey] = $this->ask($prompt);
                     }
                     $data[$key][] = $item;
+                }
+                
+                // Verify data was collected
+                if (empty($data[$key])) {
+                    $this->warn("No items were added to {$key}. Using sample data.");
+                    // Add sample data for FAQ
+                    if ($key === 'faqs') {
+                        $data[$key] = [
+                            [
+                                'question' => 'What is your return policy?',
+                                'answer' => 'We offer a 30-day money-back guarantee.'
+                            ],
+                            [
+                                'question' => 'How long does shipping take?',
+                                'answer' => 'Shipping typically takes 2-5 business days.'
+                            ],
+                            [
+                                'question' => 'Do you ship internationally?',
+                                'answer' => 'Yes, we ship to most countries worldwide.'
+                            ]
+                        ];
+                    }
                 }
             } elseif ($field['type'] === 'object') {
                 $data[$key] = [];
@@ -145,6 +170,7 @@ class SectionCommand extends Command
     {
         $dataVarName = Str::camel($name) . 'Data';
         
+        // Start template with props
         $template = <<<BLADE
 @props([
     'class' => ''
@@ -158,7 +184,9 @@ BLADE;
         // Handle each data field
         foreach ($data as $key => $value) {
             if (is_array($value)) {
-                $template .= "    '{$key}' => " . $this->arrayToPhpString($value, 1) . ",\n";
+                $arrayStr = $this->arrayToPhpString($value, 1);
+                // Ensure the array string is properly formatted
+                $template .= "    '{$key}' => " . $arrayStr . ",\n";
             } else {
                 $template .= "    '{$key}' => '" . addslashes($value) . "',\n";
             }
