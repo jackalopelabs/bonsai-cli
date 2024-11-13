@@ -1,15 +1,14 @@
 <?php
 
-namespace Bonsai\Providers;
+namespace Jackalopelabs\BonsaiCli\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Bonsai\Commands\ComponentCommand;
+use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
 
 class BonsaiServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->singleton(ComponentCommand::class);
         $this->commands([
             ComponentCommand::class,
         ]);
