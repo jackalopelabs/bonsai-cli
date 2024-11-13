@@ -21,15 +21,17 @@ class PageCommand extends Command
 
     public function handle()
     {
-        // Combine array elements of title into a single string with spaces
         $titleArray = $this->argument('title');
         $title = implode(' ', $titleArray);
-        
         $layout = strtolower($this->option('layout') ?? 'default');
         $slug = strtolower(str_replace(' ', '-', $title));
     
-        // Step 1: Create the Blade template
-        $templatePath = resource_path("views/templates/template-{$slug}.blade.php");
+        // Step 1: Ensure the template directory exists
+        $templateDirectory = resource_path("views/templates");
+        $this->files->ensureDirectoryExists($templateDirectory);
+    
+        // Create the Blade template
+        $templatePath = "{$templateDirectory}/template-{$slug}.blade.php";
         if (!$this->files->exists($templatePath)) {
             $stubContent = $this->getTemplateStubContent($layout);
             $this->files->put($templatePath, $stubContent);
