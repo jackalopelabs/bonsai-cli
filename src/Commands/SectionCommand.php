@@ -31,7 +31,7 @@ class SectionCommand extends Command
             return;
         }
 
-        // Gather default data values, with prompts for custom values
+        // Gather default data values with prompts for custom values
         $data = $this->gatherSectionData();
 
         // Gather page-specific conditions
@@ -100,9 +100,8 @@ class SectionCommand extends Command
 {{-- Section: {$name} --}}
 
 @if (Request::is('/'))
-    {{-- Default hero section --}}
+    {{-- Default hero section for the homepage --}}
     {$defaultContent}
-@endif
 BLADE;
 
         foreach ($pageConditions as $path => $pageData) {
@@ -115,7 +114,7 @@ BLADE;
 BLADE;
         }
 
-        // Add a final else condition for fallback
+        // Add a final else condition for fallback, with a single @endif at the end
         $content .= <<<BLADE
 
 @else
