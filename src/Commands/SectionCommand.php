@@ -4,15 +4,23 @@ namespace JackalopeLabs\BonsaiCli\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
+use Illuminate\Filesystem\Filesystem;
 
 class SectionCommand extends Command
 {
     protected $signature = 'bonsai:section {name} {--component=} {--template=}';
     protected $description = 'Create a new Bonsai section with dynamic component data';
 
+    protected $files;
+
+    public function __construct(Filesystem $files)
+    {
+        parent::__construct();
+        $this->files = $files;
+    }
+
     protected function getComponentSchema($componentName)
     {
-        // Define component schemas with their expected data structure
         $schemas = [
             'hero' => [
                 'title' => [
@@ -20,30 +28,50 @@ class SectionCommand extends Command
                     'prompt' => 'Enter hero title',
                     'default' => 'Welcome to Our Site'
                 ],
-                'description' => [
+                'subtitle' => [
                     'type' => 'string',
-                    'prompt' => 'Enter hero description',
-                    'default' => 'Your journey starts here'
+                    'prompt' => 'Enter hero subtitle',
+                    'default' => 'Discover what makes us unique'
                 ],
                 'imagePath' => [
                     'type' => 'string',
-                    'prompt' => 'Enter hero image path (relative to assets, e.g. images/hero.jpg)',
+                    'prompt' => 'Enter hero image path (relative to assets)',
                     'default' => 'images/hero.jpg'
                 ],
-                'cta' => [
-                    'type' => 'object',
-                    'schema' => [
-                        'text' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter CTA button text',
-                            'default' => 'Learn More'
-                        ],
-                        'url' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter CTA button URL',
-                            'default' => '#'
-                        ]
-                    ]
+                'l1' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter first list item',
+                    'default' => 'Feature one description'
+                ],
+                'l2' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter second list item',
+                    'default' => 'Feature two description'
+                ],
+                'l3' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter third list item',
+                    'default' => 'Feature three description'
+                ],
+                'l4' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter fourth list item',
+                    'default' => 'Feature four description'
+                ],
+                'primaryText' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter primary button text',
+                    'default' => 'Get Started'
+                ],
+                'primaryLink' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter primary button link target',
+                    'default' => '#features'
+                ],
+                'secondaryText' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter secondary button text',
+                    'default' => 'Watch Video'
                 ]
             ],
             'faq' => [
@@ -89,13 +117,13 @@ class SectionCommand extends Command
                 for ($i = 0; $i < $count; $i++) {
                     $item = [];
                     foreach ($field['schema'] as $subKey => $subField) {
-                        $item[$subKey] = $this->ask(
-                            sprintf("%s #%d: %s", 
-                                Str::title($key), 
-                                $i + 1, 
-                                $subField['prompt']
-                            )
+                        $prompt = sprintf(
+                            "%s #%d: %s", 
+                            Str::title($key), 
+                            $i + 1, 
+                            $subField['prompt']
                         );
+                        $item[$subKey] = $this->ask($prompt);
                     }
                     $data[$key][] = $item;
                 }
@@ -115,10 +143,13 @@ class SectionCommand extends Command
 
     protected function generateBladeTemplate($name, $componentName, $data)
     {
-        // Create a safe variable name for PHP
         $dataVarName = Str::camel($name) . 'Data';
         
         $template = <<<BLADE
+@props([
+    'class' => ''
+])
+
 @php
 \${$dataVarName} = [
 
@@ -137,16 +168,17 @@ BLADE;
 ];
 @endphp
 
-<x-{$componentName}
+<div class="{{ \$class }}">
+    <x-{$componentName}
 
 BLADE;
 
         // Add props
         foreach ($data as $key => $value) {
-            $template .= "    :{$key}=\"\${$dataVarName}['{$key}']\"\n";
+            $template .= "        :{$key}=\"\${$dataVarName}['{$key}']\"\n";
         }
 
-        $template .= "/>\n";
+        $template .= "    />\n</div>\n";
 
         return $template;
     }
@@ -176,6 +208,13 @@ BLADE;
         return $output;
     }
 
+    protected function createDirectory($path)
+    {
+        if (!$this->files->isDirectory($path)) {
+            $this->files->makeDirectory($path, 0755, true);
+        }
+    }
+
     public function handle()
     {
         $name = $this->argument('name');
@@ -189,20 +228,28 @@ BLADE;
         }
 
         // Collect data through CLI prompts
+        $this->info("Configuring {$componentName} section...");
         $data = $this->promptForData($schema);
 
         // Generate Blade template
         $template = $this->generateBladeTemplate($name, $componentName, $data);
 
+        // Create directories if they don't exist
+        $directory = resource_path('views/bonsai/sections');
+        $this->createDirectory($directory);
+
         // Save to file
-        $path = resource_path("views/bonsai/sections/{$name}.blade.php");
-        if (!file_exists(dirname($path))) {
-            mkdir(dirname($path), 0755, true);
-        }
+        $path = "{$directory}/{$name}.blade.php";
+        $this->files->put($path, $template);
 
-        file_put_contents($path, $template);
-
-        $this->info("Section created successfully: {$path}");
+        $this->info("✓ Section created successfully: {$path}");
+        
+        // Show next steps
+        $this->info("\nNext steps:");
+        $this->line(" - Review the generated section at: {$path}");
+        $this->line(" - Include it in your layout using: @include('bonsai.sections.{$name}')");
+        $this->line(" - Customize the section's appearance by passing a class prop");
+        
         return 0;
     }
 }
