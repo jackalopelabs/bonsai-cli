@@ -3,6 +3,7 @@
 namespace Jackalopelabs\BonsaiCli\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
 
 class ComponentCommand extends Command
 {
