@@ -19,6 +19,32 @@ class SectionCommand extends Command
         $this->files = $files;
     }
 
+    protected function getDefaultFaqs()
+    {
+        return [
+            [
+                'question' => 'What services do you offer?',
+                'answer' => 'We offer a comprehensive range of digital solutions including web development, design, and digital marketing strategies tailored to your business needs.'
+            ],
+            [
+                'question' => 'How long does a typical project take?',
+                'answer' => 'Project timelines vary based on complexity and scope. A typical website project takes 6-8 weeks from concept to launch, while smaller projects might take 2-4 weeks.'
+            ],
+            [
+                'question' => 'Do you provide ongoing support?',
+                'answer' => 'Yes, we offer various support and maintenance packages to ensure your digital presence remains optimal after launch.'
+            ],
+            [
+                'question' => 'What is your pricing structure?',
+                'answer' => 'We provide customized quotes based on your specific requirements. Each project is unique, and we will work with you to find a solution that fits your budget.'
+            ],
+            [
+                'question' => 'Can you help with existing websites?',
+                'answer' => 'Absolutely! We can help optimize, update, or completely redesign existing websites to improve their performance and user experience.'
+            ]
+        ];
+    }
+
     protected function getComponentSchema($componentName)
     {
         $schemas = [
@@ -82,12 +108,12 @@ class SectionCommand extends Command
                 ],
                 'faqs' => [
                     'type' => 'array',
-                    'prompt' => 'How many FAQ items?',
-                    'default' => 3,
+                    'prompt' => 'How many FAQ items? (Press enter to use defaults)',
+                    'default' => 5,
                     'schema' => [
                         'question' => [
                             'type' => 'string',
-                            'prompt' => 'Enter question'
+                            'prompt' => 'Enter question (or press enter to use defaults)'
                         ],
                         'answer' => [
                             'type' => 'string',
@@ -112,44 +138,59 @@ class SectionCommand extends Command
                     $field['default'] ?? null
                 );
             } elseif ($field['type'] === 'array') {
-                $count = (int) $this->ask($field['prompt'] ?? 'How many items?', $field['default'] ?? 3);
-                $data[$key] = [];
-                
-                $this->info("\nEntering details for {$count} items:");
-                
-                for ($i = 0; $i < $count; $i++) {
-                    $item = [];
-                    foreach ($field['schema'] as $subKey => $subField) {
-                        $prompt = sprintf(
-                            "%s #%d: %s", 
-                            Str::title($key), 
-                            $i + 1, 
-                            $subField['prompt']
-                        );
-                        $item[$subKey] = $this->ask($prompt);
+                if ($key === 'faqs') {
+                    $useDefaults = !$this->ask('Would you like to enter custom FAQs? (yes/no)', 'no');
+                    
+                    if ($useDefaults) {
+                        $data[$key] = $this->getDefaultFaqs();
+                        $this->info('Using default FAQs.');
+                    } else {
+                        $count = (int) $this->ask($field['prompt'], $field['default'] ?? 3);
+                        $data[$key] = [];
+                        
+                        $this->info("\nEntering details for {$count} items:");
+                        
+                        for ($i = 0; $i < $count; $i++) {
+                            $item = [];
+                            foreach ($field['schema'] as $subKey => $subField) {
+                                $prompt = sprintf(
+                                    "%s #%d: %s", 
+                                    Str::title($key), 
+                                    $i + 1, 
+                                    $subField['prompt']
+                                );
+                                $item[$subKey] = $this->ask($prompt);
+                            }
+                            
+                            // Only add the item if both question and answer are provided
+                            if (!empty($item['question']) && !empty($item['answer'])) {
+                                $data[$key][] = $item;
+                            }
+                        }
+                        
+                        // If no valid FAQs were entered, use defaults
+                        if (empty($data[$key])) {
+                            $data[$key] = $this->getDefaultFaqs();
+                            $this->info('No valid FAQs entered. Using default FAQs.');
+                        }
                     }
-                    $data[$key][] = $item;
-                }
-                
-                // Verify data was collected
-                if (empty($data[$key])) {
-                    $this->warn("No items were added to {$key}. Using sample data.");
-                    // Add sample data for FAQ
-                    if ($key === 'faqs') {
-                        $data[$key] = [
-                            [
-                                'question' => 'What is your return policy?',
-                                'answer' => 'We offer a 30-day money-back guarantee.'
-                            ],
-                            [
-                                'question' => 'How long does shipping take?',
-                                'answer' => 'Shipping typically takes 2-5 business days.'
-                            ],
-                            [
-                                'question' => 'Do you ship internationally?',
-                                'answer' => 'Yes, we ship to most countries worldwide.'
-                            ]
-                        ];
+                } else {
+                    // Handle other array types if needed
+                    $count = (int) $this->ask($field['prompt'] ?? 'How many items?', $field['default'] ?? 3);
+                    $data[$key] = [];
+                    
+                    for ($i = 0; $i < $count; $i++) {
+                        $item = [];
+                        foreach ($field['schema'] as $subKey => $subField) {
+                            $prompt = sprintf(
+                                "%s #%d: %s", 
+                                Str::title($key), 
+                                $i + 1, 
+                                $subField['prompt']
+                            );
+                            $item[$subKey] = $this->ask($prompt);
+                        }
+                        $data[$key][] = $item;
                     }
                 }
             } elseif ($field['type'] === 'object') {
