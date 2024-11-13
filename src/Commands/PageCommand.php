@@ -8,7 +8,7 @@ use Illuminate\Filesystem\Filesystem;
 
 class PageCommand extends Command
 {
-    protected $signature = 'bonsai:page {title} {--layout=}';
+    protected $signature = 'bonsai:page {title*} {--layout=}';
     protected $description = 'Create a new WordPress page with a custom template and layout';
 
     protected $files;
@@ -21,7 +21,10 @@ class PageCommand extends Command
 
     public function handle()
     {
-        $title = is_array($this->argument('title')) ? implode(' ', $this->argument('title')) : $this->argument('title');
+        // Combine array elements of title into a single string with spaces
+        $titleArray = $this->argument('title');
+        $title = implode(' ', $titleArray);
+        
         $layout = strtolower($this->option('layout') ?? 'default');
         $slug = strtolower(str_replace(' ', '-', $title));
     
