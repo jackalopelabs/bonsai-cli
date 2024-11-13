@@ -23,20 +23,22 @@ class ComponentCommand extends Command
         $name = strtolower($this->argument('name'));
         $templatePath = __DIR__ . "/../../templates/components/{$name}.blade.php";
         $componentPath = resource_path("views/bonsai/components/{$name}.blade.php");
-
+    
         if (!$this->files->exists($templatePath)) {
             $this->error("Component {$name} does not have a template defined in Bonsai CLI.");
             return;
         }
-
+    
+        // Ensure the target directory exists
+        $this->files->ensureDirectoryExists(resource_path('views/bonsai/components'));
+    
         if ($this->files->exists($componentPath)) {
             $this->error("Component {$name} already exists at {$componentPath}");
             return;
         }
-
-        $this->files->ensureDirectoryExists(resource_path('views/bonsai/components'));
+    
         $this->files->copy($templatePath, $componentPath);
-
+    
         $this->info("Component {$name} created at {$componentPath}");
     }
 }
