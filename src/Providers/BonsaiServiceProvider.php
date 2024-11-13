@@ -5,6 +5,7 @@ namespace Jackalopelabs\BonsaiCli\Providers;
 use Illuminate\Support\ServiceProvider;
 use Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand;
 use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
+use Jackalopelabs\BonsaiCli\Commands\LayoutCommand;
 use Jackalopelabs\BonsaiCli\Commands\SectionCommand;
 
 
@@ -18,6 +19,7 @@ class BonsaiServiceProvider extends ServiceProvider
         $this->commands([
             BonsaiInitCommand::class,
             ComponentCommand::class,
+            LayoutCommand::class,
             SectionCommand::class,
         ]);
     }
