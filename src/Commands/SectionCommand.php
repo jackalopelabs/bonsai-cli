@@ -1,172 +1,194 @@
 <?php
 
-namespace Jackalopelabs\BonsaiCli\Commands;
+namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 
-class SectionCommand extends Command
+class BonsaiSectionCommand extends Command
 {
-    protected $signature = 'bonsai:section {name}';
-    protected $description = 'Create a new section with custom data and page-specific logic';
+    protected $signature = 'bonsai:section {name} {--component=} {--template=}';
+    protected $description = 'Create a new Bonsai section with dynamic component data';
 
-    protected $files;
-
-    public function __construct(Filesystem $files)
+    protected function getComponentSchema($componentName)
     {
-        parent::__construct();
-        $this->files = $files;
+        // Define component schemas with their expected data structure
+        $schemas = [
+            'faq' => [
+                'title' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter FAQ section title',
+                    'default' => 'Frequently Asked Questions'
+                ],
+                'items' => [
+                    'type' => 'array',
+                    'prompt' => 'How many FAQ items?',
+                    'schema' => [
+                        'question' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter question'
+                        ],
+                        'answer' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter answer'
+                        ]
+                    ]
+                ]
+            ],
+            'hero' => [
+                'title' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter hero title',
+                    'default' => 'Welcome to Our Site'
+                ],
+                'description' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter hero description'
+                ],
+                'cta' => [
+                    'type' => 'object',
+                    'schema' => [
+                        'text' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA text',
+                            'default' => 'Learn More'
+                        ],
+                        'url' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA URL',
+                            'default' => '#'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        return $schemas[$componentName] ?? [];
     }
 
-    public function handle()
+    protected function promptForData($schema)
     {
-        $name = strtolower($this->argument('name'));
-        $sectionPath = resource_path("views/bonsai/sections/{$name}.blade.php");
+        $data = [];
 
-        // Ensure the sections directory exists
-        $this->files->ensureDirectoryExists(resource_path('views/bonsai/sections'));
-
-        if ($this->files->exists($sectionPath)) {
-            $this->error("Section {$name} already exists at {$sectionPath}");
-            return;
-        }
-
-        // Prompt for default data values for the component
-        $data = $this->gatherSectionData($name);
-
-        // Define page-specific conditions if needed
-        $pageConditions = $this->gatherPageConditions();
-
-        // Generate and write section file content
-        $stubContent = $this->getSectionStubContent($name, $data, $pageConditions);
-        $this->files->put($sectionPath, $stubContent);
-
-        $this->info("Section {$name} created at {$sectionPath}");
-    }
-
-    protected function gatherSectionData($name)
-    {
-        // Get default component properties for each component type
-        $data = $this->getComponentProps($name);
-
-        // Prompt the user to override each default value
-        foreach ($data as $key => $default) {
-            if (is_array($default)) {
-                $default = json_encode($default);
-                $response = $this->ask("Enter value for {$key} as JSON (default: {$default})", $default);
-                $data[$key] = json_decode($response, true);
-            } else {
-                $data[$key] = $this->ask("Enter value for {$key} (default: {$default})", $default);
+        foreach ($schema as $key => $field) {
+            if ($field['type'] === 'string') {
+                $data[$key] = $this->ask(
+                    $field['prompt'],
+                    $field['default'] ?? null
+                );
+            } elseif ($field['type'] === 'array') {
+                $count = $this->ask($field['prompt']);
+                $data[$key] = [];
+                
+                for ($i = 0; $i < $count; $i++) {
+                    $item = [];
+                    foreach ($field['schema'] as $subKey => $subField) {
+                        $item[$subKey] = $this->ask(
+                            sprintf("%s #%d: %s", 
+                                Str::title($key), 
+                                $i + 1, 
+                                $subField['prompt']
+                            )
+                        );
+                    }
+                    $data[$key][] = $item;
+                }
+            } elseif ($field['type'] === 'object') {
+                $data[$key] = [];
+                foreach ($field['schema'] as $subKey => $subField) {
+                    $data[$key][$subKey] = $this->ask(
+                        $subField['prompt'],
+                        $subField['default'] ?? null
+                    );
+                }
             }
         }
 
         return $data;
     }
 
-    protected function getSectionStubContent($name, $data, $pageConditions)
+    protected function generateBladeTemplate($name, $componentName, $data)
     {
-        $defaultContent = $this->formatComponent($name, $data);
+        // Create a safe variable name for PHP
+        $dataVarName = Str::camel($name) . 'Data';
+        
+        $template = <<<BLADE
+@php
+\${$dataVarName} = [
+    'title' => '{$data['title']}',
 
-        // Start Blade content with default content and conditions
-        $content = <<<BLADE
-{{-- Section: {$name} --}}
-
-@if (Request::is('/'))
-    {{-- Default section content for the homepage --}}
-    {$defaultContent}
-@else
-    {{-- Default section content for other pages --}}
-    {$defaultContent}
-@endif
 BLADE;
 
-        foreach ($pageConditions as $path => $pageData) {
-            $pageContent = $this->formatComponent($name, $pageData);
-            $content = str_replace(
-                "@else",
-                "@elseif (Request::is('{$path}'))\n    {{-- Section content for {$path} page --}}\n    {$pageContent}\n@else",
-                $content
-            );
-        }
-
-        return $content;
-    }
-
-    protected function formatComponent($name, $data)
-    {
-        // If the component has array data, use :attribute syntax
-        $props = collect($data)->map(function ($value, $key) {
-            return is_array($value)
-                ? ":{$key}=" . json_encode($value)
-                : "{$key}=\"{$value}\"";
-        })->implode(' ');
-
-        return "<x-{$name} {$props} />";
-    }
-
-    protected function getComponentProps($componentType)
-    {
-        // Default component properties for each component type
-        $components = [
-            'accordion' => [
-                'item' => ["id" => 'example', 'title' => 'Accordion Title', 'content' => 'Accordion content here'],
-                'open' => false,
-            ],
-            'alert' => [
-                'type' => 'success',
-                'message' => 'Alert message here',
-            ],
-            'button' => [
-                'variant' => 'primary',
-                'size' => 'base',
-                'element' => 'button',
-            ],
-            'faq' => [
-                'faqs' => [['question' => 'Sample question?', 'answer' => 'Sample answer']],
-            ],
-            'hero' => [
-                'title' => 'Sample Title',
-                'subtitle' => 'Sample subtitle',
-                'l1' => 'Feature 1',
-                'l2' => 'Feature 2',
-                'l3' => 'Feature 3',
-                'l4' => 'Feature 4',
-                'primaryText' => 'Primary CTA',
-                'primaryLink' => '#',
-                'secondaryText' => 'Secondary CTA',
-                'secondaryLink' => '#',
-                'imagePath' => 'images/sample-hero.png',
-            ],
-            'modal' => [
-                'title' => 'Modal Title',
-            ],
-            'table' => [
-                'rows' => [['Column 1', 'Column 2', 'Column 3']],
-                'columns' => ['Column 1', 'Column 2', 'Column 3'],
-            ],
-        ];
-
-        return $components[$componentType] ?? [];
-    }
-
-    protected function gatherPageConditions()
-    {
-        $pageConditions = [];
-
-        // Ask if the user wants to add page-specific conditions
-        if ($this->confirm('Do you want to add specific conditions for certain pages?', true)) {
-            while (true) {
-                $pagePath = $this->ask("Enter page path (e.g., /example-page) or press ENTER to finish");
-                if (empty($pagePath)) {
-                    break;
+        // Handle nested arrays and objects
+        if (isset($data['items'])) {
+            $template .= "    'items' => [\n";
+            foreach ($data['items'] as $item) {
+                $template .= "        [\n";
+                foreach ($item as $key => $value) {
+                    $template .= "            '{$key}' => '" . addslashes($value) . "',\n";
                 }
-
-                // Gather custom values for this page condition
-                $pageData = $this->gatherSectionData($this->argument('name'));
-                $pageConditions[$pagePath] = $pageData;
+                $template .= "        ],\n";
             }
+            $template .= "    ],\n";
         }
 
-        return $pageConditions;
+        if (isset($data['cta'])) {
+            $template .= "    'cta' => [\n";
+            foreach ($data['cta'] as $key => $value) {
+                $template .= "        '{$key}' => '" . addslashes($value) . "',\n";
+            }
+            $template .= "    ],\n";
+        }
+
+        $template .= <<<BLADE
+];
+@endphp
+
+<x-{$componentName}
+    :title="\${$dataVarName}['title']"
+
+BLADE;
+
+        if (isset($data['items'])) {
+            $template .= "    :items=\"\${$dataVarName}['items']\"\n";
+        }
+
+        if (isset($data['cta'])) {
+            $template .= "    :cta=\"\${$dataVarName}['cta']\"\n";
+        }
+
+        $template .= "/>\n";
+
+        return $template;
+    }
+
+    public function handle()
+    {
+        $name = $this->argument('name');
+        $componentName = $this->option('component') ?? $name;
+        
+        // Get component schema
+        $schema = $this->getComponentSchema($componentName);
+        if (empty($schema)) {
+            $this->error("No schema found for component: {$componentName}");
+            return 1;
+        }
+
+        // Collect data through CLI prompts
+        $data = $this->promptForData($schema);
+
+        // Generate Blade template
+        $template = $this->generateBladeTemplate($name, $componentName, $data);
+
+        // Save to file
+        $path = resource_path("views/bonsai/sections/{$name}.blade.php");
+        if (!file_exists(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+
+        file_put_contents($path, $template);
+
+        $this->info("Section created successfully: {$path}");
+        return 0;
     }
 }
