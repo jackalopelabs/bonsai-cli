@@ -3,8 +3,10 @@
 namespace Jackalopelabs\BonsaiCli\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
 use Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand;
+use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
+use Jackalopelabs\BonsaiCli\Commands\SectionCommand;
+
 
 class BonsaiServiceProvider extends ServiceProvider
 {
@@ -14,8 +16,9 @@ class BonsaiServiceProvider extends ServiceProvider
         $this->app->singleton(BonsaiInitCommand::class);
 
         $this->commands([
-            ComponentCommand::class,
             BonsaiInitCommand::class,
+            ComponentCommand::class,
+            SectionCommand::class,
         ]);
     }
 }
