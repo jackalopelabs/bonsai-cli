@@ -18,17 +18,11 @@
                 "Jackalopelabs\\BonsaiCli\\Providers\\BonsaiServiceProvider"
             ]
         }
-    }
+    },
     "authors": [
         {
             "name": "Mason Lawlor",
             "email": "mason@jackalope.io"
         }
-    ],
-    "repositories": {
-        "bonsai-cli": {
-            "type": "path",
-            "url": "/Users/masonlawlor/sites/bonsai-cli"
-        }
-    }
+    ]
 }
