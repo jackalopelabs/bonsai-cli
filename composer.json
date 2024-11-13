@@ -1,0 +1,34 @@
+{
+    "name": "jackalopelabs/bonsai-cli",
+    "description": "A CLI tool for adding components to a Roots WP project",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.0",
+        "roots/acorn": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Jackalopelabs\\BonsaiCli\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Jackalopelabs\\BonsaiCli\\Providers\\BonsaiServiceProvider"
+            ]
+        }
+    },
+    "authors": [
+        {
+            "name": "Mason Lawlor",
+            "email": "mason@jackalope.io"
+        }
+    ],
+    "repositories": {
+        "bonsai-cli": {
+            "type": "path",
+            "url": "/Users/masonlawlor/sites/bonsai-cli"
+        }
+    }
+}
