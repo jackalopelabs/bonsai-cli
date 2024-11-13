@@ -8,7 +8,7 @@ use Illuminate\Filesystem\Filesystem;
 
 class PageCommand extends Command
 {
-    protected $signature = 'bonsai:page {title} {--layout=}';
+    protected $signature = 'bonsai:page {title*} {--layout=}';
     protected $description = 'Create a new WordPress page with a custom template and layout';
 
     protected $files;
