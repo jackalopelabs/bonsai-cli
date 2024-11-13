@@ -51,7 +51,13 @@ class SectionCommand extends Command
 
         // Prompt the user to override each default value
         foreach ($data as $key => $default) {
-            $data[$key] = $this->ask("Enter value for {$key} (default: {$default})", $default);
+            if (is_array($default)) {
+                $default = json_encode($default);
+                $response = $this->ask("Enter value for {$key} as JSON (default: {$default})", $default);
+                $data[$key] = json_decode($response, true);
+            } else {
+                $data[$key] = $this->ask("Enter value for {$key} (default: {$default})", $default);
+            }
         }
 
         return $data;
