@@ -8,7 +8,7 @@ use Illuminate\Filesystem\Filesystem;
 
 class PageCommand extends Command
 {
-    protected $signature = 'bonsai:page {title*} {--layout=}';
+    protected $signature = 'bonsai:page {title} {--layout=}';
     protected $description = 'Create a new WordPress page with a custom template and layout';
 
     protected $files;
@@ -21,10 +21,10 @@ class PageCommand extends Command
 
     public function handle()
     {
-        $title = $this->argument('title');
+        $title = is_array($this->argument('title')) ? implode(' ', $this->argument('title')) : $this->argument('title');
         $layout = strtolower($this->option('layout') ?? 'default');
         $slug = strtolower(str_replace(' ', '-', $title));
-
+    
         // Step 1: Create the Blade template
         $templatePath = resource_path("views/templates/template-{$slug}.blade.php");
         if (!$this->files->exists($templatePath)) {
@@ -34,19 +34,19 @@ class PageCommand extends Command
         } else {
             $this->warn("Template file already exists at: {$templatePath}");
         }
-
+    
         // Step 2: Register the template with WordPress
         add_filter('theme_page_templates', function ($templates) use ($slug) {
             $templates["templates/template-{$slug}.blade.php"] = ucfirst(str_replace('-', ' ', $slug)) . ' Template';
             return $templates;
         });
-
+    
         // Step 3: Create the WordPress page
         $pageId = DB::table('posts')
             ->where('post_type', 'page')
             ->where('post_name', $slug)
             ->value('ID');
-
+    
         if ($pageId) {
             $this->warn("Page '{$title}' already exists with ID: {$pageId}");
         } else {
@@ -59,15 +59,15 @@ class PageCommand extends Command
                     '_wp_page_template' => "templates/template-{$slug}.blade.php"
                 ],
             ]);
-
+    
             if (is_wp_error($pageId)) {
                 $this->error("Failed to create page: " . $pageId->get_error_message());
                 return;
             }
-
+    
             $this->info("Page '{$title}' created with ID: {$pageId}");
         }
-    }
+    }    
 
     protected function getTemplateStubContent($layout)
     {
