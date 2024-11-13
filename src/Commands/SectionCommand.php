@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Console\Commands;
+namespace JackalopeLabs\BonsaiCli\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
-class BonsaiSectionCommand extends Command
+class SectionCommand extends Command
 {
     protected $signature = 'bonsai:section {name} {--component=} {--template=}';
     protected $description = 'Create a new Bonsai section with dynamic component data';
@@ -77,7 +77,7 @@ class BonsaiSectionCommand extends Command
                     $field['default'] ?? null
                 );
             } elseif ($field['type'] === 'array') {
-                $count = $this->ask($field['prompt']);
+                $count = (int) $this->ask($field['prompt']);
                 $data[$key] = [];
                 
                 for ($i = 0; $i < $count; $i++) {
@@ -115,29 +115,16 @@ class BonsaiSectionCommand extends Command
         $template = <<<BLADE
 @php
 \${$dataVarName} = [
-    'title' => '{$data['title']}',
 
 BLADE;
 
-        // Handle nested arrays and objects
-        if (isset($data['items'])) {
-            $template .= "    'items' => [\n";
-            foreach ($data['items'] as $item) {
-                $template .= "        [\n";
-                foreach ($item as $key => $value) {
-                    $template .= "            '{$key}' => '" . addslashes($value) . "',\n";
-                }
-                $template .= "        ],\n";
+        // Handle each data field
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $template .= "    '{$key}' => " . $this->arrayToPhpString($value, 1) . ",\n";
+            } else {
+                $template .= "    '{$key}' => '" . addslashes($value) . "',\n";
             }
-            $template .= "    ],\n";
-        }
-
-        if (isset($data['cta'])) {
-            $template .= "    'cta' => [\n";
-            foreach ($data['cta'] as $key => $value) {
-                $template .= "        '{$key}' => '" . addslashes($value) . "',\n";
-            }
-            $template .= "    ],\n";
         }
 
         $template .= <<<BLADE
@@ -145,21 +132,42 @@ BLADE;
 @endphp
 
 <x-{$componentName}
-    :title="\${$dataVarName}['title']"
 
 BLADE;
 
-        if (isset($data['items'])) {
-            $template .= "    :items=\"\${$dataVarName}['items']\"\n";
-        }
-
-        if (isset($data['cta'])) {
-            $template .= "    :cta=\"\${$dataVarName}['cta']\"\n";
+        // Add props
+        foreach ($data as $key => $value) {
+            $template .= "    :{$key}=\"\${$dataVarName}['{$key}']\"\n";
         }
 
         $template .= "/>\n";
 
         return $template;
+    }
+
+    protected function arrayToPhpString($array, $depth = 0)
+    {
+        $indent = str_repeat('    ', $depth);
+        $output = "[\n";
+        
+        foreach ($array as $key => $value) {
+            $output .= $indent . "    ";
+            
+            if (is_string($key)) {
+                $output .= "'{$key}' => ";
+            }
+            
+            if (is_array($value)) {
+                $output .= $this->arrayToPhpString($value, $depth + 1);
+            } else {
+                $output .= "'" . addslashes($value) . "'";
+            }
+            
+            $output .= ",\n";
+        }
+        
+        $output .= $indent . "]";
+        return $output;
     }
 
     public function handle()
