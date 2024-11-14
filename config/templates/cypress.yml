@@ -1,0 +1,98 @@
+name: Cypress Template
+description: A modern, minimal business website template
+version: 1.0.0
+
+# Component Definitions
+components:
+  hero:
+    template: hero
+    defaults:
+      image_position: right
+  faq:
+    template: faq
+  cta:
+    template: cta
+  testimonials:
+    template: testimonials
+
+# Section Configurations
+sections:
+  home_hero:
+    component: hero
+    data:
+      title: "Welcome to Cypress"
+      subtitle: "Modern Solutions for Modern Businesses"
+      imagePath: "images/hero-main.jpg"
+      l1: "Streamlined Workflow"
+      l2: "Enhanced Productivity"
+      l3: "Data-Driven Insights"
+      l4: "24/7 Support"
+      primaryText: "Get Started"
+      primaryLink: "#contact"
+      secondaryText: "Watch Demo"
+  
+  services_faq:
+    component: faq
+    data:
+      title: "Common Questions"
+      faqs:
+        - question: "What services do you offer?"
+          answer: "We provide comprehensive digital solutions..."
+        - question: "How do I get started?"
+          answer: "Schedule a free consultation..."
+
+# Layout Definitions
+layouts:
+  main:
+    sections:
+      - home_hero
+      - features
+      - testimonials
+      - services_faq
+  
+  landing:
+    sections:
+      - home_hero
+      - cta
+
+# Page Configurations
+pages:
+  home:
+    title: "Home"
+    layout: main
+    meta:
+      description: "Welcome to Cypress - Modern Business Solutions"
+      keywords: "business, modern, solutions"
+  
+  services:
+    title: "Our Services"
+    layout: main
+    meta:
+      description: "Comprehensive Business Services"
+
+# Database Configuration
+database:
+  seeds:
+    - CypressDefaultContentSeeder
+    - CypressMenuSeeder
+  imports:
+    - initial-content.sql
+
+# Site Settings
+settings:
+  options:
+    blogname: "Cypress"
+    blogdescription: "Modern Business Solutions"
+    timezone_string: "America/New_York"
+    template: "cypress"
+  
+  env:
+    WP_ENV: "production"
+    MAIL_DRIVER: "smtp"
+  
+  api_keys:
+    mailchimp:
+      api_key: "${MAILCHIMP_API_KEY}"
+      list_id: "${MAILCHIMP_LIST_ID}"
+    google:
+      analytics_id: "${GA_TRACKING_ID}"

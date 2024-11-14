@@ -1,0 +1,45 @@
+name: Test Template
+description: A minimal test template
+version: 1.0.0
+
+components:
+  hero:
+    template: hero
+  faq:
+    template: faq
+
+sections:
+  home_hero:
+    component: hero
+    data:
+      title: "Welcome to Test Site"
+      subtitle: "Testing Bonsai Generator"
+      imagePath: "images/hero.jpg"
+      l1: "Feature One"
+      l2: "Feature Two"
+      l3: "Feature Three"
+      l4: "Feature Four"
+      primaryText: "Get Started"
+      primaryLink: "#contact"
+      secondaryText: "Learn More"
+
+  main_faq:
+    component: faq
+    data:
+      title: "FAQ Section"
+      faqs:
+        - question: "Test Question 1?"
+          answer: "Test Answer 1"
+        - question: "Test Question 2?"
+          answer: "Test Answer 2"
+
+layouts:
+  main:
+    sections:
+      - home_hero
+      - main_faq
+
+pages:
+  home:
+    title: "Home"
+    layout: main
