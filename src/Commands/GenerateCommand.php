@@ -46,27 +46,12 @@ class GenerateCommand extends Command
         }
     }
 
-    protected function getDefaultConfigPath($template)
-    {
-        return __DIR__ . "/../../config/templates/{$template}.yml";
-    }
-
-    protected function loadConfig($path)
-    {
-        if (!file_exists($path)) {
-            throw new \Exception("Configuration file not found: {$path}");
-        }
-
-        return Yaml::parseFile($path);
-    }
-
     protected function generateComponents($components)
     {
         $this->info('Generating components...');
         foreach ($components as $component => $config) {
             $this->call('bonsai:component', [
-                'name' => $component,
-                '--config' => $config
+                'name' => $component
             ]);
         }
     }
@@ -75,11 +60,15 @@ class GenerateCommand extends Command
     {
         $this->info('Generating sections...');
         foreach ($sections as $section => $config) {
-            $this->call('bonsai:section', [
-                'name' => $section,
-                '--component' => $config['component'] ?? $section,
-                '--data' => $config['data'] ?? []
-            ]);
+            $params = [
+                'name' => $section
+            ];
+
+            if (isset($config['component'])) {
+                $params['--component'] = $config['component'];
+            }
+
+            $this->call('bonsai:section', $params);
         }
     }
 
@@ -87,10 +76,15 @@ class GenerateCommand extends Command
     {
         $this->info('Generating layouts...');
         foreach ($layouts as $layout => $config) {
-            $this->call('bonsai:layout', [
-                'name' => $layout,
-                '--sections' => implode(',', $config['sections'] ?? [])
-            ]);
+            $params = [
+                'name' => $layout
+            ];
+
+            if (isset($config['sections'])) {
+                $params['--sections'] = implode(',', $config['sections']);
+            }
+
+            $this->call('bonsai:layout', $params);
         }
     }
 
@@ -98,10 +92,13 @@ class GenerateCommand extends Command
     {
         $this->info('Generating pages...');
         foreach ($pages as $page => $config) {
-            $this->call('bonsai:page', array_merge(
-                ['title' => $config['title'] ?? Str::title($page)],
-                ['--layout' => $config['layout'] ?? 'default']
-            ));
+            $params = explode(' ', $config['title'] ?? Str::title($page));
+            
+            if (isset($config['layout'])) {
+                $params['--layout'] = $config['layout'];
+            }
+
+            $this->call('bonsai:page', $params);
         }
     }
 
@@ -182,5 +179,19 @@ class GenerateCommand extends Command
     protected function importSqlFile($sqlFile)
     {
         // Implement SQL file import logic
+    }
+
+    protected function getDefaultConfigPath($template)
+    {
+        return __DIR__ . "/../../config/templates/{$template}.yml";
+    }
+
+    protected function loadConfig($path)
+    {
+        if (!file_exists($path)) {
+            throw new \Exception("Configuration file not found: {$path}");
+        }
+
+        return Yaml::parseFile($path);
     }
 }
