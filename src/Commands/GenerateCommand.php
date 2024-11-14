@@ -141,17 +141,10 @@ class GenerateCommand extends Command
         $this->info('Generating pages...');
         foreach ($pages as $page => $config) {
             try {
-                // Create the parameters array with the title
-                $params = [
-                    'title' => $config['title'] ?? Str::title($page)
-                ];
-                
-                // Add layout if specified
-                if (isset($config['layout'])) {
-                    $params['--layout'] = $config['layout'];
-                }
-
-                $this->call('bonsai:page', $params);
+                $this->call('bonsai:page', [
+                    'title' => $config['title'] ?? Str::title($page),
+                    '--layout' => $config['layout'] ?? 'default'
+                ]);
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate page '{$page}': " . $e->getMessage());
             }
