@@ -6,7 +6,7 @@
     "require": {
         "php": "^8.0",
         "roots/acorn": "^4.0",
-        "symfony/yaml": "^7.1"
+        "symfony/yaml": "^6.0"
     },
     "autoload": {
         "psr-4": {
