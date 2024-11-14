@@ -29,6 +29,9 @@ class GenerateCommand extends Command
             $config = $this->loadConfig($configPath);
             
             $this->info("Starting Bonsai site generation for template: {$template}");
+
+            // Create required directories first
+            $this->createDirectories();
             
             // Execute generation steps in sequence
             $this->generateComponents($config['components'] ?? []);
@@ -46,13 +49,50 @@ class GenerateCommand extends Command
         }
     }
 
+    protected function createDirectories()
+    {
+        $directories = [
+            resource_path('views/bonsai'),
+            resource_path('views/bonsai/components'),
+            resource_path('views/bonsai/sections'),
+            resource_path('views/bonsai/layouts'),
+            resource_path('views/templates'),
+        ];
+
+        foreach ($directories as $directory) {
+            if (!$this->files->isDirectory($directory)) {
+                $this->files->makeDirectory($directory, 0755, true);
+                $this->info("Created directory: {$directory}");
+            }
+        }
+    }
+
+    protected function copyAssets()
+    {
+        $assetDirectories = [
+            resource_path('images'),
+            public_path('images'),
+        ];
+
+        foreach ($assetDirectories as $directory) {
+            if (!$this->files->isDirectory($directory)) {
+                $this->files->makeDirectory($directory, 0755, true);
+                $this->info("Created asset directory: {$directory}");
+            }
+        }
+    }
+
     protected function generateComponents($components)
     {
         $this->info('Generating components...');
         foreach ($components as $component => $config) {
-            $this->call('bonsai:component', [
-                'name' => $component
-            ]);
+            try {
+                $this->call('bonsai:component', [
+                    'name' => $component
+                ]);
+            } catch (\Exception $e) {
+                $this->warn("Warning: Could not generate component '{$component}': " . $e->getMessage());
+            }
         }
     }
 
@@ -60,15 +100,19 @@ class GenerateCommand extends Command
     {
         $this->info('Generating sections...');
         foreach ($sections as $section => $config) {
-            $params = [
-                'name' => $section
-            ];
+            try {
+                $params = [
+                    'name' => $section
+                ];
 
-            if (isset($config['component'])) {
-                $params['--component'] = $config['component'];
+                if (isset($config['component'])) {
+                    $params['--component'] = $config['component'];
+                }
+
+                $this->call('bonsai:section', $params);
+            } catch (\Exception $e) {
+                $this->warn("Warning: Could not generate section '{$section}': " . $e->getMessage());
             }
-
-            $this->call('bonsai:section', $params);
         }
     }
 
@@ -76,15 +120,19 @@ class GenerateCommand extends Command
     {
         $this->info('Generating layouts...');
         foreach ($layouts as $layout => $config) {
-            $params = [
-                'name' => $layout
-            ];
+            try {
+                $params = [
+                    'name' => $layout
+                ];
 
-            if (isset($config['sections'])) {
-                $params['--sections'] = implode(',', $config['sections']);
+                if (isset($config['sections'])) {
+                    $params['--sections'] = implode(',', $config['sections']);
+                }
+
+                $this->call('bonsai:layout', $params);
+            } catch (\Exception $e) {
+                $this->warn("Warning: Could not generate layout '{$layout}': " . $e->getMessage());
             }
-
-            $this->call('bonsai:layout', $params);
         }
     }
 
@@ -92,13 +140,17 @@ class GenerateCommand extends Command
     {
         $this->info('Generating pages...');
         foreach ($pages as $page => $config) {
-            $params = explode(' ', $config['title'] ?? Str::title($page));
-            
-            if (isset($config['layout'])) {
-                $params['--layout'] = $config['layout'];
-            }
+            try {
+                $params = explode(' ', $config['title'] ?? Str::title($page));
+                
+                if (isset($config['layout'])) {
+                    $params['--layout'] = $config['layout'];
+                }
 
-            $this->call('bonsai:page', $params);
+                $this->call('bonsai:page', $params);
+            } catch (\Exception $e) {
+                $this->warn("Warning: Could not generate page '{$page}': " . $e->getMessage());
+            }
         }
     }
 
