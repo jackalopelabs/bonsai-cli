@@ -1,6 +1,6 @@
 <?php
 
-namespace JackalopeLabs\BonsaiCli\Commands;
+namespace Jackalopelabs\BonsaiCli\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
