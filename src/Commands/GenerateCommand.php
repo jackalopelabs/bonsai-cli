@@ -141,8 +141,12 @@ class GenerateCommand extends Command
         $this->info('Generating pages...');
         foreach ($pages as $page => $config) {
             try {
-                $params = explode(' ', $config['title'] ?? Str::title($page));
+                // Create the parameters array with the title
+                $params = [
+                    'title' => $config['title'] ?? Str::title($page)
+                ];
                 
+                // Add layout if specified
                 if (isset($config['layout'])) {
                     $params['--layout'] = $config['layout'];
                 }

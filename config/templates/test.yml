@@ -41,5 +41,11 @@ layouts:
 
 pages:
   home:
-    title: "Home"
-    layout: main
+    title: "Home Page"
+    layout: "main"
+  about:
+    title: "About Us"
+    layout: "main"
+  contact:
+    title: "Contact Us"
+    layout: "main"
