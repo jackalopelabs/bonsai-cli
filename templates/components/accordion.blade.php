@@ -1,17 +1,33 @@
-{{-- bonsai-cli/templates/components/accordion.blade.php --}}
-@props(['item', 'open' => false])
+{{-- /resources/views/components/accordion.blade.php --}}
+@props(['item'])
 
-<div x-data="{ open: {{ $open ? 'true' : 'false' }} }" class="my-4">
-    <div @click="open = !open; $dispatch('accordion-toggled', { id: '{{ $item['id'] }}' })" 
-         :class="{ 'bg-white bg-opacity-50 rounded-xl p-3': open }" class="flex items-center space-x-2 cursor-pointer px-3">
-         <div :class="{ 'bg-white rounded-full': !open, 'bonsai-gradient rounded-full': open }" class="h-10 w-10 flex items-center justify-center mr-2">
-            @isset($item['icon'])
-                <x-dynamic-component :component="$item['icon']" :class="open ? 'text-white' : 'text-gray-700'" class="inline-block h-4 w-4" />
-            @endisset
-        </div>
+<div class="my-4">
+    <div 
+        @click="$dispatch('accordion-toggled', { id: '{{ $item['id'] }}' })" 
+        :class="{ 'bg-white bg-opacity-50 rounded-xl p-3': activeAccordion === '{{ $item['id'] }}' }" 
+        class="flex items-center space-x-2 cursor-pointer px-3"
+    >
+        {{-- Render icon only if it is provided and not empty --}}
+        @if(!empty($item['icon']))
+            <div 
+                :class="{ 'bg-white rounded-full': activeAccordion !== '{{ $item['id'] }}', 'blue-purple-gradient rounded-full': activeAccordion === '{{ $item['id'] }}' }" 
+                class="h-10 w-10 flex items-center justify-center mr-2"
+            >
+                <x-dynamic-component 
+                    :component="$item['icon']" 
+                    :class="activeAccordion === '{{ $item['id'] }}' ? 'text-white' : 'text-gray-700'" 
+                    class="inline-block h-4 w-4" 
+                />
+            </div>
+        @endif
+
         <div class="flex-1">
-            <div class="font-bold">{{ $item['title'] }}</div>
-            <div x-show="open" x-collapse style="display: none;">
+            <div class="font-bold">{!! $item['title'] !!}</div>
+            <div 
+                x-show="activeAccordion === '{{ $item['id'] }}'" 
+                x-collapse 
+                style="display: none;"
+            >
                 <p class="text-gray-400">{{ $item['content'] }}</p>
             </div>
         </div>

@@ -1,0 +1,11 @@
+{{-- bonsai-cli/templates/components/list-item.blade.php --}}
+@props(['number', 'itemName', 'text'])
+
+<li class="flex items-start py-2">
+  <span class="flex-shrink-0 flex items-center justify-center text-white mr-4 bg-gray-600 rounded-full w-8 h-8 text-sm">{{ $number }}</span>
+  <div>
+    <p class="font-semibold">{{ $itemName }}</p>
+    <p class="text-sm text-gray-500">{{ $text }}</p>
+  </div>
+</li>
+

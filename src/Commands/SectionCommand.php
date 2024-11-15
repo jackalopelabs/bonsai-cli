@@ -100,6 +100,52 @@ class SectionCommand extends Command
                     'default' => 'Watch Video'
                 ]
             ],
+            'slideshow' => [
+                'title' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter section title',
+                    'default' => 'Latest News & Announcements'
+                ],
+                'announcements' => [
+                    'type' => 'array',
+                    'prompt' => 'How many announcements?',
+                    'default' => 3,
+                    'schema' => [
+                        'title' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter announcement title'
+                        ],
+                        'description' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter announcement description'
+                        ],
+                        'link' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter announcement link'
+                        ],
+                        'cta' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter call to action text',
+                            'default' => 'Learn More'
+                        ],
+                        'category' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter announcement category',
+                            'default' => 'News'
+                        ],
+                        'isNew' => [
+                            'type' => 'boolean',
+                            'prompt' => 'Is this a new announcement? (yes/no)',
+                            'default' => 'no'
+                        ],
+                        'backgroundImage' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter background image path',
+                            'default' => 'images/announcement-bg.jpg'
+                        ]
+                    ]
+                ]
+            ],
             'faq' => [
                 'title' => [
                     'type' => 'string',
@@ -108,16 +154,155 @@ class SectionCommand extends Command
                 ],
                 'faqs' => [
                     'type' => 'array',
-                    'prompt' => 'How many FAQ items? (Press enter to use defaults)',
-                    'default' => 5,
+                    'prompt' => 'How many FAQ items?',
+                    'default' => 3,
                     'schema' => [
                         'question' => [
                             'type' => 'string',
-                            'prompt' => 'Enter question (or press enter to use defaults)'
+                            'prompt' => 'Enter question'
                         ],
                         'answer' => [
                             'type' => 'string',
                             'prompt' => 'Enter answer'
+                        ]
+                    ]
+                ]
+            ],
+            'widget' => [
+                'items' => [
+                    'type' => 'array',
+                    'prompt' => 'How many widget items?',
+                    'default' => 3,
+                    'schema' => [
+                        'id' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter item ID (e.g., widget-1)',
+                            'default' => 'widget-'
+                        ],
+                        'title' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter item title'
+                        ],
+                        'content' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter item content'
+                        ],
+                        'icon' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter Heroicon component name (e.g., heroicon-o-check)',
+                            'default' => 'heroicon-o-check'
+                        ],
+                        'cta' => [
+                            'type' => 'object',
+                            'schema' => [
+                                'title' => [
+                                    'type' => 'string',
+                                    'prompt' => 'Enter CTA title'
+                                ],
+                                'link' => [
+                                    'type' => 'string',
+                                    'prompt' => 'Enter CTA link'
+                                ],
+                                'imagePath' => [
+                                    'type' => 'string',
+                                    'prompt' => 'Enter CTA image path'
+                                ]
+                            ]
+                        ],
+                        'listItems' => [
+                            'type' => 'array',
+                            'prompt' => 'How many list items?',
+                            'schema' => [
+                                'number' => [
+                                    'type' => 'string',
+                                    'prompt' => 'Enter item number'
+                                ],
+                                'itemName' => [
+                                    'type' => 'string',
+                                    'prompt' => 'Enter item name'
+                                ],
+                                'text' => [
+                                    'type' => 'string',
+                                    'prompt' => 'Enter item text'
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'card-featured' => [
+                'title' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter card title'
+                ],
+                'subtitle' => [
+                    'type' => 'array',
+                    'prompt' => 'How many features?',
+                    'schema' => [
+                        'title' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter feature title'
+                        ],
+                        'description' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter feature description'
+                        ],
+                        'icon' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter Heroicon component name',
+                            'default' => 'heroicon-o-check'
+                        ]
+                    ]
+                ],
+                'items' => [
+                    'type' => 'array',
+                    'prompt' => 'How many items?',
+                    'schema' => [
+                        'title' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter item title'
+                        ]
+                    ]
+                ],
+                'imagePath' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter image path',
+                    'default' => 'images/featured.jpg'
+                ],
+                'playIcon' => [
+                    'type' => 'boolean',
+                    'prompt' => 'Show play icon? (yes/no)',
+                    'default' => 'no'
+                ]
+            ],
+            'table' => [
+                'products' => [
+                    'type' => 'array',
+                    'prompt' => 'How many products?',
+                    'schema' => [
+                        'name' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter product name'
+                        ],
+                        'ref' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter product reference'
+                        ],
+                        'dimensions' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter dimensions'
+                        ],
+                        'woundPadSize' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter wound pad size'
+                        ],
+                        'quantityPerBox' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter quantity per box'
+                        ],
+                        'hcpcs' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter HCPCS code'
                         ]
                     ]
                 ]
@@ -126,6 +311,7 @@ class SectionCommand extends Command
 
         return $schemas[$componentName] ?? [];
     }
+
 
     protected function promptForData($schema)
     {
