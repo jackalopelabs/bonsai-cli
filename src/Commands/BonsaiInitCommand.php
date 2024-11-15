@@ -14,17 +14,17 @@ class BonsaiInitCommand extends Command
     protected $files;
 
     protected $components = [
+        'slideshow' => 'Dynamic slideshow for showcasing content',
+        'hero' => 'Hero section for prominent page headers',
+        'faq' => 'Frequently asked questions component with expandable answers',
         'accordion' => 'Interactive accordion component for toggling content visibility',
         'alert' => 'Contextual feedback messages for typical user actions',
         'button' => 'Customizable button component with multiple variants',
         'card-component' => 'Versatile card component for displaying content',
         'card-featured' => 'Featured card with enhanced visual elements',
         'cta' => 'Call-to-action component for user engagement',
-        'faq' => 'Frequently asked questions component with expandable answers',
-        'hero' => 'Hero section for prominent page headers',
         'list-item' => 'Styled list items for organized content',
         'modal' => 'Modal dialog component for overlaid content',
-        'slideshow' => 'Dynamic slideshow for showcasing content',
         'table' => 'Data table component with sorting and filtering',
         'widget' => 'Multi-purpose widget component with various layouts'
     ];
@@ -39,61 +39,142 @@ class BonsaiInitCommand extends Command
     {
         $this->info('Starting Bonsai initialization...');
 
-        // Step 1: Install all components
+        // Step 1: Create required directories
+        $this->createDirectories();
+
+        // Step 2: Install all components
         $this->installComponents();
 
-        // Step 2: Create sections for components
+        // Verify components were installed
+        if (!$this->verifyComponents()) {
+            $this->error('Component installation failed. Please check the component templates.');
+            return;
+        }
+
+        // Step 3: Create sections for components
         $this->createSections();
 
-        // Step 3: Create layout
+        // Step 4: Create layout
         $this->createLayout();
 
-        // Step 4: Create the Components page
+        // Step 5: Create the Components page
         $this->createComponentsPage();
 
         $this->info('🌳 Bonsai initialization completed successfully!');
     }
 
+    protected function createDirectories()
+    {
+        $directories = [
+            resource_path('views/bonsai'),
+            resource_path('views/bonsai/components'),
+            resource_path('views/bonsai/sections'),
+            resource_path('views/bonsai/layouts'),
+            resource_path('views/templates'),
+        ];
+
+        foreach ($directories as $directory) {
+            if (!$this->files->isDirectory($directory)) {
+                $this->files->makeDirectory($directory, 0755, true);
+                $this->info("Created directory: {$directory}");
+            }
+        }
+    }
+
     protected function installComponents()
     {
         $this->info('Installing components...');
+        
+        // First, verify component templates exist in bonsai-cli
         foreach ($this->components as $component => $description) {
+            $templatePath = __DIR__ . "/../../templates/components/{$component}.blade.php";
+            
+            if (!file_exists($templatePath)) {
+                $this->warn("Template not found for component: {$component}");
+                continue;
+            }
+
             $this->call('bonsai:component', [
                 'name' => $component
             ]);
+
+            // Verify component was installed
+            $componentPath = resource_path("views/bonsai/components/{$component}.blade.php");
+            if (!file_exists($componentPath)) {
+                $this->error("Failed to install component: {$component}");
+            }
         }
+    }
+
+    protected function verifyComponents()
+    {
+        $allInstalled = true;
+        foreach ($this->components as $component => $description) {
+            $componentPath = resource_path("views/bonsai/components/{$component}.blade.php");
+            if (!file_exists($componentPath)) {
+                $this->error("Component not found: {$component}");
+                $allInstalled = false;
+            }
+        }
+        return $allInstalled;
     }
 
     protected function createSections()
     {
         $this->info('Creating component sections...');
         
-        // Create example sections for each component type
-        $this->call('bonsai:section', [
-            'name' => 'hero-example',
-            '--component' => 'hero'
-        ]);
+        // Only create sections for components that exist
+        if ($this->componentExists('hero')) {
+            $this->call('bonsai:section', [
+                'name' => 'hero-example',
+                '--component' => 'hero'
+            ]);
+        }
 
-        $this->call('bonsai:section', [
-            'name' => 'faq-example',
-            '--component' => 'faq'
-        ]);
+        if ($this->componentExists('faq')) {
+            $this->call('bonsai:section', [
+                'name' => 'faq-example',
+                '--component' => 'faq'
+            ]);
+        }
 
-        $this->call('bonsai:section', [
-            'name' => 'slideshow-example',
-            '--component' => 'slideshow'
-        ]);
+        if ($this->componentExists('slideshow')) {
+            $this->call('bonsai:section', [
+                'name' => 'slideshow-example',
+                '--component' => 'slideshow'
+            ]);
+        }
+    }
 
-        // ... add more sections as needed
+    protected function componentExists($component)
+    {
+        return file_exists(resource_path("views/bonsai/components/{$component}.blade.php"));
     }
 
     protected function createLayout()
     {
         $this->info('Creating components layout...');
-        $this->call('bonsai:layout', [
-            'name' => 'components',
-            '--sections' => 'hero-example,slideshow-example,faq-example'
-        ]);
+        
+        // Only include sections for components that exist
+        $sections = [];
+        if ($this->componentExists('hero')) {
+            $sections[] = 'hero-example';
+        }
+        if ($this->componentExists('slideshow')) {
+            $sections[] = 'slideshow-example';
+        }
+        if ($this->componentExists('faq')) {
+            $sections[] = 'faq-example';
+        }
+
+        if (!empty($sections)) {
+            $this->call('bonsai:layout', [
+                'name' => 'components',
+                '--sections' => implode(',', $sections)
+            ]);
+        } else {
+            $this->warn('No sections available for layout creation.');
+        }
     }
 
     protected function createComponentsPage()
@@ -139,21 +220,24 @@ class BonsaiInitCommand extends Command
         $componentSections = '';
         
         foreach ($this->components as $component => $description) {
-            $componentTitle = str_replace('-', ' ', ucwords($component));
-            $componentSections .= <<<BLADE
-                
-                {{-- {$componentTitle} Component --}}
-                <div class="mt-16">
-                    <h2 class="text-2xl font-semibold mb-4">{$componentTitle}</h2>
-                    <p class="text-gray-600 mb-6">{$description}</p>
-                    <div class="bg-white rounded-lg p-6 shadow-lg">
-                        @php
-                            \$exampleData = \$this->getExampleData('{$component}');
-                        @endphp
-                        <x-{$component} {{\$exampleData}} />
+            if ($this->componentExists($component)) {
+                $componentTitle = str_replace('-', ' ', ucwords($component));
+                $componentSections .= <<<BLADE
+                    
+                    {{-- {$componentTitle} Component --}}
+                    <div class="mt-16">
+                        <h2 class="text-2xl font-semibold mb-4">{$componentTitle}</h2>
+                        <p class="text-gray-600 mb-6">{$description}</p>
+                        <div class="bg-white rounded-lg p-6 shadow-lg">
+                            @if(View::exists('bonsai.components.{$component}'))
+                                <x-{$component} {{\$this->getExampleData('{$component}')}} />
+                            @else
+                                <div class="text-red-500">Component not found: {$component}</div>
+                            @endif
+                        </div>
                     </div>
-                </div>
-            BLADE;
+                BLADE;
+            }
         }
 
         return <<<BLADE
