@@ -13,6 +13,22 @@ class BonsaiInitCommand extends Command
 
     protected $files;
 
+    protected $components = [
+        'accordion' => 'Interactive accordion component for toggling content visibility',
+        'alert' => 'Contextual feedback messages for typical user actions',
+        'button' => 'Customizable button component with multiple variants',
+        'card-component' => 'Versatile card component for displaying content',
+        'card-featured' => 'Featured card with enhanced visual elements',
+        'cta' => 'Call-to-action component for user engagement',
+        'faq' => 'Frequently asked questions component with expandable answers',
+        'hero' => 'Hero section for prominent page headers',
+        'list-item' => 'Styled list items for organized content',
+        'modal' => 'Modal dialog component for overlaid content',
+        'slideshow' => 'Dynamic slideshow for showcasing content',
+        'table' => 'Data table component with sorting and filtering',
+        'widget' => 'Multi-purpose widget component with various layouts'
+    ];
+
     public function __construct(Filesystem $files)
     {
         parent::__construct();
@@ -21,7 +37,67 @@ class BonsaiInitCommand extends Command
 
     public function handle()
     {
-        // Step 1: Create the "Components" Page
+        $this->info('Starting Bonsai initialization...');
+
+        // Step 1: Install all components
+        $this->installComponents();
+
+        // Step 2: Create sections for components
+        $this->createSections();
+
+        // Step 3: Create layout
+        $this->createLayout();
+
+        // Step 4: Create the Components page
+        $this->createComponentsPage();
+
+        $this->info('🌳 Bonsai initialization completed successfully!');
+    }
+
+    protected function installComponents()
+    {
+        $this->info('Installing components...');
+        foreach ($this->components as $component => $description) {
+            $this->call('bonsai:component', [
+                'name' => $component
+            ]);
+        }
+    }
+
+    protected function createSections()
+    {
+        $this->info('Creating component sections...');
+        
+        // Create example sections for each component type
+        $this->call('bonsai:section', [
+            'name' => 'hero-example',
+            '--component' => 'hero'
+        ]);
+
+        $this->call('bonsai:section', [
+            'name' => 'faq-example',
+            '--component' => 'faq'
+        ]);
+
+        $this->call('bonsai:section', [
+            'name' => 'slideshow-example',
+            '--component' => 'slideshow'
+        ]);
+
+        // ... add more sections as needed
+    }
+
+    protected function createLayout()
+    {
+        $this->info('Creating components layout...');
+        $this->call('bonsai:layout', [
+            'name' => 'components',
+            '--sections' => 'hero-example,slideshow-example,faq-example'
+        ]);
+    }
+
+    protected function createComponentsPage()
+    {
         $pageTitle = 'Components';
         $pageSlug = 'components';
         
@@ -47,26 +123,39 @@ class BonsaiInitCommand extends Command
             }
 
             $this->info("Created Components page with ID: {$pageId}");
-        } else {
-            $this->info("Components page already exists.");
         }
 
-        // Step 2: Create the Blade template file for Components
+        // Create the template file
         $templatePath = resource_path("views/template-components.blade.php");
-
         if (!$this->files->exists($templatePath)) {
             $stubContent = $this->getTemplateStubContent($pageTitle);
             $this->files->put($templatePath, $stubContent);
             $this->info("Created Blade template: {$templatePath}");
-        } else {
-            $this->info("Blade template for Components already exists.");
         }
-
-        $this->info("Bonsai init process completed successfully.");
     }
 
     protected function getTemplateStubContent($title)
     {
+        $componentSections = '';
+        
+        foreach ($this->components as $component => $description) {
+            $componentTitle = str_replace('-', ' ', ucwords($component));
+            $componentSections .= <<<BLADE
+                
+                {{-- {$componentTitle} Component --}}
+                <div class="mt-16">
+                    <h2 class="text-2xl font-semibold mb-4">{$componentTitle}</h2>
+                    <p class="text-gray-600 mb-6">{$description}</p>
+                    <div class="bg-white rounded-lg p-6 shadow-lg">
+                        @php
+                            \$exampleData = \$this->getExampleData('{$component}');
+                        @endphp
+                        <x-{$component} {{\$exampleData}} />
+                    </div>
+                </div>
+            BLADE;
+        }
+
         return <<<BLADE
 {{--
     Template Name: Components Template
@@ -74,51 +163,32 @@ class BonsaiInitCommand extends Command
 @extends('layouts.app')
 
 @section('content')
-    <div class="container mx-auto py-10">
-        <h1 class="text-3xl font-bold mb-8">{$title} Showcase</h1>
-        <p class="mb-4">Explore various Blade UI Kit components below:</p>
+    <div class="container mx-auto py-10 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-bold mb-4">{$title} Library</h1>
+            <p class="text-xl text-gray-600 mb-12">Explore our collection of reusable Blade components for building beautiful web interfaces.</p>
 
-        {{-- Button Components --}}
-        <h2 class="text-2xl font-semibold mt-6">Buttons</h2>
-        <div class="space-x-2 mt-2">
-            <x-button>Default Button</x-button>
-            <x-button.primary>Primary Button</x-button.primary>
-            <x-button.secondary>Secondary Button</x-button.secondary>
-        </div>
-
-        {{-- Form Elements --}}
-        <h2 class="text-2xl font-semibold mt-6">Form Elements</h2>
-        <div class="mt-2">
-            <x-form>
-                <x-form.input name="name" label="Name" />
-                <x-form.email name="email" label="Email" />
-                <x-form.password name="password" label="Password" />
-                <x-button.primary type="submit">Submit</x-button.primary>
-            </x-form>
-        </div>
-
-        {{-- Modal Components --}}
-        <h2 class="text-2xl font-semibold mt-6">Modal</h2>
-        <x-modal>
-            <x-slot name="trigger">
-                <x-button.primary>Open Modal</x-button.primary>
-            </x-slot>
-            <x-slot name="title">Modal Title</x-slot>
-            <p>This is the content of the modal.</p>
-            <x-slot name="footer">
-                <x-button.secondary>Close</x-button.secondary>
-            </x-slot>
-        </x-modal>
-
-        {{-- Icon Components --}}
-        <h2 class="text-2xl font-semibold mt-6">Icons</h2>
-        <div class="space-x-4 mt-2">
-            <x-icon name="home" class="w-6 h-6 text-blue-500" />
-            <x-icon name="user" class="w-6 h-6 text-green-500" />
-            <x-icon name="settings" class="w-6 h-6 text-red-500" />
+            {$componentSections}
         </div>
     </div>
 @endsection
+
+@php
+function getExampleData(\$component) {
+    switch (\$component) {
+        case 'hero':
+            return 'title="Welcome to Components" subtitle="Explore our library" description="Build beautiful interfaces with our component library" buttonText="Get Started"';
+        case 'faq':
+            return ':faqs="[
+                [\'question\' => \'What are components?\', \'answer\' => \'Reusable building blocks for web interfaces\'],
+                [\'question\' => \'How do I use them?\', \'answer\' => \'Import them into your templates and pass the required props\']
+            ]"';
+        // Add more examples for other components
+        default:
+            return '';
+    }
+}
+@endphp
 BLADE;
     }
 }
