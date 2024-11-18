@@ -92,18 +92,32 @@ class GenerateCommand extends Command
         $this->info('Generating sections...');
         foreach ($sections as $section => $config) {
             try {
+                $this->info("Creating section: {$section}");
+                $this->info("Component: " . ($config['component'] ?? $section));
+                
                 $params = [
                     'name' => $section,
                     '--component' => $config['component'] ?? $section
                 ];
 
+                // Debug data
                 if (isset($config['data'])) {
-                    $params['--data'] = json_encode($config['data']);
+                    $this->info("Section data: " . json_encode($config['data'], JSON_PRETTY_PRINT));
                 }
 
                 $this->call('bonsai:section', $params);
+                
+                // Verify section was created
+                $sectionPath = resource_path("views/bonsai/sections/{$section}.blade.php");
+                if (file_exists($sectionPath)) {
+                    $this->info("Section file created: {$sectionPath}");
+                } else {
+                    $this->error("Section file not created: {$sectionPath}");
+                }
+                
             } catch (\Exception $e) {
-                $this->warn("Warning: Could not generate section '{$section}': " . $e->getMessage());
+                $this->error("Failed to generate section '{$section}': " . $e->getMessage());
+                $this->error($e->getTraceAsString());
             }
         }
     }
