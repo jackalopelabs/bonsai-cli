@@ -95,17 +95,39 @@ class GenerateCommand extends Command
                 $this->info("Creating section: {$section}");
                 $this->info("Component: " . ($config['component'] ?? $section));
                 
+                // Get the component type
+                $componentType = $config['component'] ?? $section;
+                
+                // Get the schema data
                 $params = [
                     'name' => $section,
-                    '--component' => $config['component'] ?? $section
+                    '--component' => $componentType,
                 ];
 
                 // Debug data
                 if (isset($config['data'])) {
-                    $this->info("Section data: " . json_encode($config['data'], JSON_PRETTY_PRINT));
+                    $this->info("Section data found. Processing...");
+                    
+                    // Pass data directly to section command by setting environment variables
+                    foreach ($config['data'] as $key => $value) {
+                        if (is_array($value)) {
+                            putenv("BONSAI_DATA_{$key}=" . json_encode($value));
+                            $this->info("Setting array data for {$key}");
+                        } else {
+                            putenv("BONSAI_DATA_{$key}={$value}");
+                            $this->info("Setting string data for {$key}: {$value}");
+                        }
+                    }
                 }
 
                 $this->call('bonsai:section', $params);
+                
+                // Clear environment variables
+                if (isset($config['data'])) {
+                    foreach ($config['data'] as $key => $value) {
+                        putenv("BONSAI_DATA_{$key}");
+                    }
+                }
                 
                 // Verify section was created
                 $sectionPath = resource_path("views/bonsai/sections/{$section}.blade.php");

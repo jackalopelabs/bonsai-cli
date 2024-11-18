@@ -482,9 +482,29 @@ BLADE;
             return 1;
         }
 
-        // Collect data through CLI prompts
-        $this->info("Configuring {$componentName} section...");
-        $data = $this->promptForData($schema);
+        // Check for data in environment variables
+        $data = [];
+        foreach ($schema as $key => $field) {
+            $envKey = "BONSAI_DATA_{$key}";
+            $envValue = getenv($envKey);
+            
+            if ($envValue !== false) {
+                if ($field['type'] === 'array' || $field['type'] === 'object') {
+                    $data[$key] = json_decode($envValue, true);
+                } else {
+                    $data[$key] = $envValue;
+                }
+                continue;
+            }
+            
+            // If no environment variable, use prompt
+            $this->info("No pre-configured data found for {$key}, prompting...");
+        }
+
+        // If no data was found in environment variables, prompt for it
+        if (empty($data)) {
+            $data = $this->promptForData($schema);
+        }
 
         // Generate Blade template
         $template = $this->generateBladeTemplate($name, $componentName, $data);
@@ -498,12 +518,6 @@ BLADE;
         $this->files->put($path, $template);
 
         $this->info("✓ Section created successfully: {$path}");
-        
-        // Show next steps
-        $this->info("\nNext steps:");
-        $this->line(" - Review the generated section at: {$path}");
-        $this->line(" - Include it in your layout using: @include('bonsai.sections.{$name}')");
-        $this->line(" - Customize the section's appearance by passing a class prop");
         
         return 0;
     }
