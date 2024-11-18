@@ -76,13 +76,29 @@ class GenerateCommand extends Command
     protected function generateComponents($components)
     {
         $this->info('Generating components...');
+        
+        // Convert list-style components array to associative if needed
+        if (isset($components[0])) {
+            $components = array_combine($components, array_fill(0, count($components), []));
+        }
+
         foreach ($components as $component => $config) {
             try {
+                $componentName = is_array($config) ? $component : $config;
+                $this->info("Installing component: {$componentName}");
+
+                // Check if component template exists
+                $templatePath = __DIR__ . "/../../templates/components/{$componentName}.blade.php";
+                if (!file_exists($templatePath)) {
+                    $this->warn("Component template not found: {$componentName}");
+                    continue;
+                }
+
                 $this->call('bonsai:component', [
-                    'name' => is_array($config) ? $component : $config
+                    'name' => $componentName
                 ]);
             } catch (\Exception $e) {
-                $this->warn("Warning: Could not generate component '{$component}': " . $e->getMessage());
+                $this->warn("Warning: Could not generate component '{$componentName}': " . $e->getMessage());
             }
         }
     }
@@ -194,14 +210,31 @@ class GenerateCommand extends Command
         
         if (!empty($database['seeds'])) {
             foreach ($database['seeds'] as $seeder) {
-                $this->call('db:seed', ['--class' => $seeder]);
+                try {
+                    // Check if seeder class exists
+                    if (!class_exists("Database\\Seeders\\{$seeder}")) {
+                        $this->warn("Seeder not found, skipping: {$seeder}");
+                        continue;
+                    }
+                    $this->call('db:seed', ['--class' => $seeder]);
+                } catch (\Exception $e) {
+                    $this->warn("Failed to run seeder {$seeder}: " . $e->getMessage());
+                }
             }
         }
 
         if (!empty($database['imports'])) {
             foreach ($database['imports'] as $import) {
-                if (str_ends_with($import, '.sql')) {
-                    $this->importSqlFile($import);
+                try {
+                    if (str_ends_with($import, '.sql')) {
+                        if (!file_exists($import)) {
+                            $this->warn("SQL file not found, skipping: {$import}");
+                            continue;
+                        }
+                        $this->importSqlFile($import);
+                    }
+                } catch (\Exception $e) {
+                    $this->warn("Failed to import {$import}: " . $e->getMessage());
                 }
             }
         }
