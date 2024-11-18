@@ -4,16 +4,13 @@ version: 1.0.0
 
 # Component Definitions
 components:
-  hero:
-    template: hero
-    defaults:
-      image_position: right
-  faq:
-    template: faq
-  cta:
-    template: cta
-  testimonials:
-    template: testimonials
+  - hero
+  - faq
+  - cta
+  - card-featured
+  - slideshow
+  - widget
+  - table
 
 # Section Configurations
 sections:
@@ -22,6 +19,7 @@ sections:
     data:
       title: "Welcome to Cypress"
       subtitle: "Modern Solutions for Modern Businesses"
+      description: "A modern web testing tool for modern applications"
       imagePath: "images/hero-main.jpg"
       l1: "Streamlined Workflow"
       l2: "Enhanced Productivity"
@@ -31,15 +29,35 @@ sections:
       primaryLink: "#contact"
       secondaryText: "Watch Demo"
   
+  features:
+    component: card-featured
+    data:
+      title: "Modern Testing Tools"
+      subtitle:
+        - title: "Real Browser Testing"
+          description: "Test your app in a real browser environment"
+          icon: "heroicon-o-cube-transparent"
+        - title: "Automatic Waiting"
+          description: "Tests wait for commands and assertions automatically"
+          icon: "heroicon-o-clock"
+        - title: "Network Control"
+          description: "Complete control over network traffic"
+          icon: "heroicon-o-globe-alt"
+        - title: "Time Travel Debugging"
+          description: "Debug your tests with time travel features"
+          icon: "heroicon-o-cursor-arrow-rays"
+  
   services_faq:
     component: faq
     data:
       title: "Common Questions"
       faqs:
-        - question: "What services do you offer?"
-          answer: "We provide comprehensive digital solutions..."
+        - question: "What is Cypress?"
+          answer: "Cypress is a modern web testing tool built for the modern web. It enables you to write automated tests for your web applications with ease."
         - question: "How do I get started?"
-          answer: "Schedule a free consultation..."
+          answer: "Getting started is simple. Install Cypress with npm, write your first test, and watch it run in real time."
+        - question: "What makes Cypress different?"
+          answer: "Cypress provides a unique developer experience with features like time travel debugging, automatic waiting, and real browser testing."
 
 # Layout Definitions
 layouts:
@@ -47,13 +65,12 @@ layouts:
     sections:
       - home_hero
       - features
-      - testimonials
       - services_faq
   
   landing:
     sections:
       - home_hero
-      - cta
+      - features
 
 # Page Configurations
 pages:
@@ -61,14 +78,14 @@ pages:
     title: "Home"
     layout: main
     meta:
-      description: "Welcome to Cypress - Modern Business Solutions"
-      keywords: "business, modern, solutions"
+      description: "Welcome to Cypress - Modern Web Testing"
+      keywords: "testing, automation, cypress, end-to-end testing"
   
-  services:
-    title: "Our Services"
+  docs:
+    title: "Documentation"
     layout: main
     meta:
-      description: "Comprehensive Business Services"
+      description: "Cypress Documentation - Learn how to test your applications"
 
 # Database Configuration
 database:
@@ -82,7 +99,7 @@ database:
 settings:
   options:
     blogname: "Cypress"
-    blogdescription: "Modern Business Solutions"
+    blogdescription: "Modern Web Testing"
     timezone_string: "America/New_York"
     template: "cypress"
   

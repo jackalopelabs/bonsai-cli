@@ -39,19 +39,175 @@ class BonsaiInitCommand extends Command
     {
         $this->info('Starting Bonsai initialization...');
 
-        // Step 1: Install all components
+        // Step 1: Create required directories
+        $this->createDirectories();
+
+        // Step 2: Install all components
         $this->installComponents();
 
-        // Step 2: Create sections for components
+        // Step 3: Create sections for components
         $this->createSections();
 
-        // Step 3: Create layout
+        // Step 4: Create layout
         $this->createLayout();
 
-        // Step 4: Create the Components page
+        // Step 5: Create the Components page
         $this->createComponentsPage();
 
+        // Step 6: Setup local config directory
+        $this->setupLocalConfig();
+
         $this->info('🌳 Bonsai initialization completed successfully!');
+        $this->info("\nNext steps:");
+        $this->line(" 1. Create your site configuration in config/bonsai/");
+        $this->line(" 2. Run 'wp acorn bonsai:generate [template]' to generate your site");
+        $this->line(" 3. Available templates: cypress, jackalope (or create your own)");
+    }
+
+    protected function createDirectories()
+    {
+        $directories = [
+            resource_path('views/bonsai'),
+            resource_path('views/bonsai/components'),
+            resource_path('views/bonsai/sections'),
+            resource_path('views/bonsai/layouts'),
+            resource_path('views/templates'),
+            base_path('config/bonsai')
+        ];
+
+        foreach ($directories as $directory) {
+            if (!$this->files->isDirectory($directory)) {
+                $this->files->makeDirectory($directory, 0755, true);
+                $this->info("Created directory: {$directory}");
+            }
+        }
+    }
+
+    protected function setupLocalConfig()
+    {
+        $configDir = base_path('config/bonsai');
+        $readmePath = "{$configDir}/README.md";
+
+        if (!$this->files->exists($readmePath)) {
+            $readmeContent = <<<MD
+# Bonsai Configuration
+
+This directory contains your site configurations for Bonsai CLI.
+
+## Usage
+
+1. Create a new .yml configuration file:
+   ```bash
+   my-site.yml
+   ```
+
+2. Generate your site:
+   ```bash
+   wp acorn bonsai:generate my-site
+   ```
+
+## Available Templates
+
+You can also use pre-built templates:
+
+- `cypress` - Modern SaaS landing page
+- `jackalope` - Agency/portfolio site
+- (more coming soon)
+
+Example:
+```bash
+wp acorn bonsai:generate cypress
+```
+
+## Configuration Structure
+
+```yaml
+name: My Site
+description: Site description
+version: 1.0.0
+
+# Components to install
+components:
+  - hero
+  - faq
+  - slideshow
+
+# Section configurations
+sections:
+  homepage_hero:
+    component: hero
+    data:
+      title: "Welcome"
+      # ... component-specific data
+
+# Layout definitions
+layouts:
+  home:
+    sections:
+      - homepage_hero
+      - features_faq
+
+# Page configurations
+pages:
+  home:
+    title: "Home"
+    layout: home
+```
+
+For more information, visit the Bonsai CLI documentation.
+MD;
+            
+            $this->files->put($readmePath, $readmeContent);
+            $this->info("Created config README: {$readmePath}");
+        }
+
+        // Create example.yml if it doesn't exist
+        $examplePath = "{$configDir}/example.yml";
+        if (!$this->files->exists($examplePath)) {
+            $exampleContent = $this->getExampleConfig();
+            $this->files->put($examplePath, $exampleContent);
+            $this->info("Created example config: {$examplePath}");
+        }
+    }
+
+    protected function getExampleConfig()
+    {
+        return <<<YAML
+name: My Bonsai Site
+description: Custom site configuration
+version: 1.0.0
+
+components:
+  - hero
+  - faq
+  - slideshow
+
+sections:
+  home_hero:
+    component: hero
+    data:
+      title: "Welcome to My Site"
+      subtitle: "Built with Bonsai"
+      description: "A modern WordPress site"
+      imagePath: "images/hero.jpg"
+      l1: "Feature One"
+      l2: "Feature Two"
+      l3: "Feature Three"
+      l4: "Feature Four"
+      primaryText: "Get Started"
+      primaryLink: "#contact"
+      secondaryText: "Learn More"
+
+layouts:
+  main:
+    sections:
+      - home_hero
+
+pages:
+  home:
+    title: "Home"
+    layout: main
+YAML;
     }
 
     protected function installComponents()
@@ -66,9 +222,8 @@ class BonsaiInitCommand extends Command
 
     protected function createSections()
     {
-        $this->info('Creating component sections...');
+        $this->info('Creating example sections...');
         
-        // Create example sections for each component type
         $this->call('bonsai:section', [
             'name' => 'hero-example',
             '--component' => 'hero'
@@ -83,8 +238,6 @@ class BonsaiInitCommand extends Command
             'name' => 'slideshow-example',
             '--component' => 'slideshow'
         ]);
-
-        // ... add more sections as needed
     }
 
     protected function createLayout()
@@ -147,10 +300,11 @@ class BonsaiInitCommand extends Command
                     <h2 class="text-2xl font-semibold mb-4">{$componentTitle}</h2>
                     <p class="text-gray-600 mb-6">{$description}</p>
                     <div class="bg-white rounded-lg p-6 shadow-lg">
-                        @php
-                            \$exampleData = \$this->getExampleData('{$component}');
-                        @endphp
-                        <x-{$component} {{\$exampleData}} />
+                        @if(View::exists('bonsai.components.{$component}'))
+                            <x-{$component} {{\$this->getExampleData('{$component}')}} />
+                        @else
+                            <div class="text-red-500">Component not found: {$component}</div>
+                        @endif
                     </div>
                 </div>
             BLADE;

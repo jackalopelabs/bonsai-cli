@@ -23,15 +23,13 @@ class GenerateCommand extends Command
     public function handle()
     {
         $template = $this->argument('template');
-        $configPath = $this->option('config') ?? $this->getDefaultConfigPath($template);
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
 
         try {
             $config = $this->loadConfig($configPath);
             
             $this->info("Starting Bonsai site generation for template: {$template}");
-
-            // Create required directories first
-            $this->createDirectories();
+            $this->info("Using config: {$configPath}");
             
             // Execute generation steps in sequence
             $this->generateComponents($config['components'] ?? []);
@@ -49,37 +47,30 @@ class GenerateCommand extends Command
         }
     }
 
-    protected function createDirectories()
+    protected function getConfigPath($template)
     {
-        $directories = [
-            resource_path('views/bonsai'),
-            resource_path('views/bonsai/components'),
-            resource_path('views/bonsai/sections'),
-            resource_path('views/bonsai/layouts'),
-            resource_path('views/templates'),
+        // Check locations in order of priority
+        $paths = [
+            base_path("config/bonsai/{$template}.yml"),          // 1. Local project config
+            __DIR__ . "/../../config/templates/{$template}.yml"  // 2. Default package config
         ];
 
-        foreach ($directories as $directory) {
-            if (!$this->files->isDirectory($directory)) {
-                $this->files->makeDirectory($directory, 0755, true);
-                $this->info("Created directory: {$directory}");
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return $path;
             }
         }
+
+        throw new \Exception("Configuration file not found for template: {$template}");
     }
 
-    protected function copyAssets()
+    protected function loadConfig($path)
     {
-        $assetDirectories = [
-            resource_path('images'),
-            public_path('images'),
-        ];
-
-        foreach ($assetDirectories as $directory) {
-            if (!$this->files->isDirectory($directory)) {
-                $this->files->makeDirectory($directory, 0755, true);
-                $this->info("Created asset directory: {$directory}");
-            }
+        if (!file_exists($path)) {
+            throw new \Exception("Configuration file not found: {$path}");
         }
+
+        return Yaml::parseFile($path);
     }
 
     protected function generateComponents($components)
@@ -88,7 +79,7 @@ class GenerateCommand extends Command
         foreach ($components as $component => $config) {
             try {
                 $this->call('bonsai:component', [
-                    'name' => $component
+                    'name' => is_array($config) ? $component : $config
                 ]);
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate component '{$component}': " . $e->getMessage());
@@ -102,11 +93,12 @@ class GenerateCommand extends Command
         foreach ($sections as $section => $config) {
             try {
                 $params = [
-                    'name' => $section
+                    'name' => $section,
+                    '--component' => $config['component'] ?? $section
                 ];
 
-                if (isset($config['component'])) {
-                    $params['--component'] = $config['component'];
+                if (isset($config['data'])) {
+                    $params['--data'] = json_encode($config['data']);
                 }
 
                 $this->call('bonsai:section', $params);
@@ -141,10 +133,15 @@ class GenerateCommand extends Command
         $this->info('Generating pages...');
         foreach ($pages as $page => $config) {
             try {
-                $this->call('bonsai:page', [
-                    'title' => $config['title'] ?? Str::title($page),
-                    '--layout' => $config['layout'] ?? 'default'
-                ]);
+                $params = [
+                    'title' => $config['title'] ?? Str::title($page)
+                ];
+
+                if (isset($config['layout'])) {
+                    $params['--layout'] = $config['layout'];
+                }
+
+                $this->call('bonsai:page', $params);
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate page '{$page}': " . $e->getMessage());
             }
@@ -159,7 +156,6 @@ class GenerateCommand extends Command
 
         $this->info('Configuring database...');
         
-        // Handle different types of database operations
         if (!empty($database['seeds'])) {
             foreach ($database['seeds'] as $seeder) {
                 $this->call('db:seed', ['--class' => $seeder]);
@@ -168,7 +164,6 @@ class GenerateCommand extends Command
 
         if (!empty($database['imports'])) {
             foreach ($database['imports'] as $import) {
-                // Handle SQL imports
                 if (str_ends_with($import, '.sql')) {
                     $this->importSqlFile($import);
                 }
@@ -203,10 +198,13 @@ class GenerateCommand extends Command
     protected function updateEnvFile($envVars)
     {
         $envPath = base_path('.env');
+        if (!file_exists($envPath)) {
+            return;
+        }
+
         $envContent = file_get_contents($envPath);
 
         foreach ($envVars as $key => $value) {
-            // Update existing vars or add new ones
             if (preg_match("/^{$key}=/m", $envContent)) {
                 $envContent = preg_replace("/^{$key}=.*/m", "{$key}={$value}", $envContent);
             } else {
@@ -220,27 +218,14 @@ class GenerateCommand extends Command
     protected function storeApiKeys($apiKeys)
     {
         foreach ($apiKeys as $service => $keys) {
-            // Store API keys securely based on your preferred method
-            // This could be in the database, .env file, or other secure storage
+            // Here you could implement secure storage of API keys
+            // For now, we'll just store them in .env
+            $this->updateEnvFile($keys);
         }
     }
 
     protected function importSqlFile($sqlFile)
     {
-        // Implement SQL file import logic
-    }
-
-    protected function getDefaultConfigPath($template)
-    {
-        return __DIR__ . "/../../config/templates/{$template}.yml";
-    }
-
-    protected function loadConfig($path)
-    {
-        if (!file_exists($path)) {
-            throw new \Exception("Configuration file not found: {$path}");
-        }
-
-        return Yaml::parseFile($path);
+        // Implement SQL import logic if needed
     }
 }
