@@ -87,20 +87,59 @@ class GenerateCommand extends Command
                 $componentName = is_array($config) ? $component : $config;
                 $this->info("Installing component: {$componentName}");
 
-                // Check if component template exists
-                $templatePath = __DIR__ . "/../../templates/components/{$componentName}.blade.php";
-                if (!file_exists($templatePath)) {
-                    $this->warn("Component template not found: {$componentName}");
+                // Check all possible locations for component template
+                $possiblePaths = [
+                    __DIR__ . "/../../templates/components/{$componentName}.blade.php",
+                    base_path("resources/views/components/{$componentName}.blade.php"),
+                    base_path("resources/views/components/bonsai/{$componentName}.blade.php")
+                ];
+
+                $templatePath = null;
+                foreach ($possiblePaths as $path) {
+                    if (file_exists($path)) {
+                        $templatePath = $path;
+                        break;
+                    }
+                }
+
+                if (!$templatePath) {
+                    // Create a basic component if template not found
+                    $this->createBasicComponent($componentName);
                     continue;
                 }
 
-                $this->call('bonsai:component', [
-                    'name' => $componentName
-                ]);
+                // Ensure the components directory exists
+                $targetDir = base_path("resources/views/components");
+                if (!$this->files->exists($targetDir)) {
+                    $this->files->makeDirectory($targetDir, 0755, true);
+                }
+
+                // Copy component to main components directory
+                $targetPath = "{$targetDir}/{$componentName}.blade.php";
+                $this->files->copy($templatePath, $targetPath);
+                $this->line("Component installed at: {$targetPath}");
+
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate component '{$componentName}': " . $e->getMessage());
             }
         }
+    }
+
+    protected function createBasicComponent($name)
+    {
+        $targetPath = base_path("resources/views/components/{$name}.blade.php");
+        $content = <<<BLADE
+<div class="component-{$name}">
+    <!-- Basic {$name} component -->
+    <div class="p-4">
+        <h2>{{ \$title ?? 'Default Title' }}</h2>
+        {{ \$slot }}
+    </div>
+</div>
+BLADE;
+
+        $this->files->put($targetPath, $content);
+        $this->info("Created basic component at: {$targetPath}");
     }
 
     protected function generateSections($sections)
@@ -287,14 +326,8 @@ class GenerateCommand extends Command
     protected function storeApiKeys($apiKeys)
     {
         foreach ($apiKeys as $service => $keys) {
-            // Here you could implement secure storage of API keys
-            // For now, we'll just store them in .env
+            // Store API keys in .env
             $this->updateEnvFile($keys);
         }
-    }
-
-    protected function importSqlFile($sqlFile)
-    {
-        // Implement SQL import logic if needed
     }
 }
