@@ -289,9 +289,8 @@ BLADE;
     
         // WordPress options
         foreach ($settings['options'] ?? [] as $option => $value) {
-            // Skip template/theme related options
-            if (in_array($option, ['template', 'stylesheet', 'current_theme'])) {
-                $this->warn("Skipping theme-related option: {$option}");
+            // Skip theme-related settings
+            if (in_array($option, ['template', 'stylesheet'])) {
                 continue;
             }
             update_option($option, $value);
