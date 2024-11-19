@@ -18,6 +18,11 @@ class CleanupCommand extends Command
         'resources/views/pages/bonsai',
     ];
 
+    protected $templatePatterns = [
+        'resources/views/template-*.blade.php',
+        'resources/views/templates/template-*.blade.php'
+    ];
+
     public function handle()
     {
         if (!$this->option('force') && !$this->confirm('This will remove all Bonsai-generated content. Are you sure you want to continue?')) {
@@ -26,8 +31,10 @@ class CleanupCommand extends Command
         }
 
         $this->cleanupFiles();
+        $this->cleanupTemplates();
         $this->cleanupWordPressContent();
         $this->cleanupMenus();
+        $this->resetTemplateRegistry();
         
         $this->info('Cleanup completed successfully!');
     }
@@ -50,18 +57,59 @@ class CleanupCommand extends Command
         }
     }
 
+    protected function cleanupTemplates()
+    {
+        $this->info('Cleaning up template files...');
+        
+        foreach ($this->templatePatterns as $pattern) {
+            $files = glob(base_path($pattern));
+            foreach ($files as $file) {
+                try {
+                    if (File::exists($file)) {
+                        File::delete($file);
+                        $this->line("- Removed template: " . basename($file));
+                    }
+                } catch (\Exception $e) {
+                    $this->error("Failed to remove template {$file}: " . $e->getMessage());
+                }
+            }
+        }
+
+        // Cleanup empty templates directory if it exists
+        $templatesDir = base_path('resources/views/templates');
+        if (File::exists($templatesDir) && count(File::files($templatesDir)) === 0) {
+            try {
+                File::deleteDirectory($templatesDir);
+                $this->line("- Removed empty templates directory");
+            } catch (\Exception $e) {
+                $this->error("Failed to remove templates directory: " . $e->getMessage());
+            }
+        }
+    }
+
     protected function cleanupWordPressContent()
     {
         $this->info('Cleaning up WordPress pages...');
 
-        // Query for pages with Bonsai template
+        // Query for pages with any Bonsai-related template
         $args = [
             'post_type' => 'page',
             'posts_per_page' => -1,
             'meta_query' => [
+                'relation' => 'OR',
                 [
                     'key' => '_wp_page_template',
                     'value' => 'bonsai-%',
+                    'compare' => 'LIKE'
+                ],
+                [
+                    'key' => '_wp_page_template',
+                    'value' => 'template-%',
+                    'compare' => 'LIKE'
+                ],
+                [
+                    'key' => '_wp_page_template',
+                    'value' => 'templates/template-%',
                     'compare' => 'LIKE'
                 ]
             ]
@@ -73,10 +121,11 @@ class CleanupCommand extends Command
             while ($query->have_posts()) {
                 $query->the_post();
                 $postId = get_the_ID();
+                $template = get_post_meta($postId, '_wp_page_template', true);
                 
                 try {
                     wp_delete_post($postId, true);
-                    $this->line("- Removed page: " . get_the_title());
+                    $this->line("- Removed page: " . get_the_title() . " (template: {$template})");
                 } catch (\Exception $e) {
                     $this->error("Failed to remove page {$postId}: " . $e->getMessage());
                 }
@@ -102,18 +151,45 @@ class CleanupCommand extends Command
                         // Check if menu item points to a Bonsai page
                         if ($item->type === 'post_type' 
                             && $item->object === 'page' 
-                            && get_post_meta($item->object_id, '_wp_page_template', true) 
-                            && strpos(get_post_meta($item->object_id, '_wp_page_template', true), 'bonsai-') === 0
+                            && ($template = get_post_meta($item->object_id, '_wp_page_template', true))
                         ) {
-                            wp_delete_post($item->ID, true);
-                            $this->line("- Removed menu item: {$item->title}");
+                            // Check for any Bonsai-related template pattern
+                            if (strpos($template, 'bonsai-') === 0 
+                                || strpos($template, 'template-') === 0 
+                                || strpos($template, 'templates/template-') === 0
+                            ) {
+                                wp_delete_post($item->ID, true);
+                                $this->line("- Removed menu item: {$item->title} (template: {$template})");
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Clear menu cache
+        // Clear menu and post caches
         wp_cache_delete('last_changed', 'posts');
+        wp_cache_delete('last_changed', 'nav_menu_items');
+    }
+
+    protected function resetTemplateRegistry()
+    {
+        $this->info('Resetting template registry...');
+        
+        // Clear the page templates option
+        delete_option('page_templates');
+        
+        // Clear related caches
+        wp_cache_delete('page_templates');
+        
+        // Reset theme mods related to templates
+        $theme = get_option('stylesheet');
+        $mods = get_option("theme_mods_{$theme}");
+        if (is_array($mods) && isset($mods['page_templates'])) {
+            unset($mods['page_templates']);
+            update_option("theme_mods_{$theme}", $mods);
+        }
+        
+        $this->line("- Template registry reset successfully");
     }
 }

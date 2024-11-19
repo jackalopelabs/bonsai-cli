@@ -12,6 +12,7 @@ class PageCommand extends Command
     protected $description = 'Create a new WordPress page with a custom template and layout';
 
     protected $files;
+    protected const TEMPLATE_BASE_PATH = 'resources/views';
 
     public function __construct(Filesystem $files)
     {
@@ -25,12 +26,22 @@ class PageCommand extends Command
         $layout = strtolower($this->option('layout') ?? 'default');
         $slug = strtolower(str_replace(' ', '-', $title));
 
-        // Ensure the template directory exists
-        $templateDirectory = resource_path("views/templates");
-        $this->files->ensureDirectoryExists($templateDirectory);
+        // Create template
+        $templateName = $this->createTemplate($slug, $layout);
+        
+        // Create or update WordPress page
+        $this->createOrUpdatePage($title, $slug, $templateName);
+    }
 
-        // Step 1: Create the Blade template
-        $templatePath = "{$templateDirectory}/template-{$slug}.blade.php";
+    protected function createTemplate($slug, $layout)
+    {
+        // Standardize template path to be in root views directory
+        $templateName = "template-{$slug}.blade.php";
+        $templatePath = base_path(self::TEMPLATE_BASE_PATH . "/{$templateName}");
+        
+        // Ensure directory exists
+        $this->files->ensureDirectoryExists(dirname($templatePath));
+
         if (!$this->files->exists($templatePath)) {
             $stubContent = $this->getTemplateStubContent($layout);
             $this->files->put($templatePath, $stubContent);
@@ -39,36 +50,36 @@ class PageCommand extends Command
             $this->warn("Template file already exists at: {$templatePath}");
         }
 
-        // Step 2: Register the template with WordPress
-        add_filter('theme_page_templates', function ($templates) use ($slug) {
-            $templates["templates/template-{$slug}.blade.php"] = ucfirst(str_replace('-', ' ', $slug)) . ' Template';
-            return $templates;
-        });
+        return $templateName;
+    }
 
-        // Step 3: Create the WordPress page
+    protected function createOrUpdatePage($title, $slug, $templateName)
+    {
         $pageId = DB::table('posts')
             ->where('post_type', 'page')
             ->where('post_name', $slug)
             ->value('ID');
 
-        if ($pageId) {
-            $this->warn("Page '{$title}' already exists with ID: {$pageId}");
-        } else {
-            $pageId = wp_insert_post([
-                'post_title'   => $title,
-                'post_name'    => $slug,
-                'post_status'  => 'publish',
-                'post_type'    => 'page',
-                'meta_input'   => [
-                    '_wp_page_template' => "templates/template-{$slug}.blade.php"
-                ],
-            ]);
+        $pageData = [
+            'post_title'   => $title,
+            'post_name'    => $slug,
+            'post_status'  => 'publish',
+            'post_type'    => 'page',
+            'meta_input'   => [
+                '_wp_page_template' => $templateName
+            ],
+        ];
 
+        if ($pageId) {
+            $pageData['ID'] = $pageId;
+            wp_update_post($pageData);
+            $this->info("Page '{$title}' updated with ID: {$pageId}");
+        } else {
+            $pageId = wp_insert_post($pageData);
             if (is_wp_error($pageId)) {
                 $this->error("Failed to create page: " . $pageId->get_error_message());
                 return;
             }
-
             $this->info("Page '{$title}' created with ID: {$pageId}");
         }
     }
@@ -77,7 +88,7 @@ class PageCommand extends Command
     {
         return <<<BLADE
 {{--
-    Template Name: Custom Template for {$layout} layout
+    Template Name: {$layout} Layout Template
 --}}
 @extends('bonsai.layouts.{$layout}')
 BLADE;
