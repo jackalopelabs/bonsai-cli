@@ -287,12 +287,19 @@ BLADE;
     
         $this->info('Configuring site settings...');
     
+        // Get current theme settings before we start
+        $currentTemplate = get_option('template');
+        $currentStylesheet = get_option('stylesheet');
+    
         // WordPress options
         foreach ($settings['options'] ?? [] as $option => $value) {
             // Skip theme-related settings
-            if (in_array($option, ['template', 'stylesheet'])) {
+            if (in_array($option, ['template', 'stylesheet', 'current_theme']) || 
+                strpos($option, 'theme_mods_') === 0) {
+                $this->line("Skipping theme setting: {$option}");
                 continue;
             }
+            
             update_option($option, $value);
         }
     
@@ -304,6 +311,17 @@ BLADE;
         // API keys and credentials
         if (!empty($settings['api_keys'])) {
             $this->storeApiKeys($settings['api_keys']);
+        }
+    
+        // Verify theme settings haven't changed
+        if (get_option('template') !== $currentTemplate) {
+            $this->warn("Theme template was modified, restoring to: {$currentTemplate}");
+            update_option('template', $currentTemplate);
+        }
+    
+        if (get_option('stylesheet') !== $currentStylesheet) {
+            $this->warn("Theme stylesheet was modified, restoring to: {$currentStylesheet}");
+            update_option('stylesheet', $currentStylesheet);
         }
     }
 
