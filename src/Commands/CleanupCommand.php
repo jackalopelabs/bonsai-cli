@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Commands;
+namespace Jackalopelabs\BonsaiCli\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use WP_Query;
 
-class BonsaiCleanupCommand extends Command
+class CleanupCommand extends Command
 {
     protected $signature = 'bonsai:cleanup {--force : Force cleanup without confirmation}';
     protected $description = 'Clean up all Bonsai-generated content and start fresh';
