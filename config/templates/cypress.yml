@@ -103,12 +103,9 @@ settings:
     blogname: "Cypress"
     blogdescription: "Modern Web Testing"
     timezone_string: "America/New_York"
-    template: "cypress"
-  
   env:
     WP_ENV: "production"
     MAIL_DRIVER: "smtp"
-  
   api_keys:
     mailchimp:
       api_key: "${MAILCHIMP_API_KEY}"

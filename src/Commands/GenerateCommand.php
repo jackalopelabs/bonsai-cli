@@ -284,19 +284,24 @@ BLADE;
         if (empty($settings)) {
             return;
         }
-
+    
         $this->info('Configuring site settings...');
-
+    
         // WordPress options
         foreach ($settings['options'] ?? [] as $option => $value) {
+            // Skip template/theme related options
+            if (in_array($option, ['template', 'stylesheet', 'current_theme'])) {
+                $this->warn("Skipping theme-related option: {$option}");
+                continue;
+            }
             update_option($option, $value);
         }
-
+    
         // Environment variables
         if (!empty($settings['env'])) {
             $this->updateEnvFile($settings['env']);
         }
-
+    
         // API keys and credentials
         if (!empty($settings['api_keys'])) {
             $this->storeApiKeys($settings['api_keys']);
