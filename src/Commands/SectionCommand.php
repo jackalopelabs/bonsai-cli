@@ -8,7 +8,7 @@ use Illuminate\Filesystem\Filesystem;
 
 class SectionCommand extends Command
 {
-    protected $signature = 'bonsai:section {name} {--component=} {--template=}';
+    protected $signature = 'bonsai:section {name} {--component=} {--template=} {--default : Use default configuration without prompting}';
     protected $description = 'Create a new Bonsai section with dynamic component data';
 
     protected $files;
@@ -474,6 +474,7 @@ BLADE;
     {
         $name = $this->argument('name');
         $componentName = $this->option('component') ?? $name;
+        $useDefault = $this->option('default');
         
         // Get component schema
         $schema = $this->getComponentSchema($componentName);
@@ -482,28 +483,33 @@ BLADE;
             return 1;
         }
 
-        // Check for data in environment variables
-        $data = [];
-        foreach ($schema as $key => $field) {
-            $envKey = "BONSAI_DATA_{$key}";
-            $envValue = getenv($envKey);
-            
-            if ($envValue !== false) {
-                if ($field['type'] === 'array' || $field['type'] === 'object') {
-                    $data[$key] = json_decode($envValue, true);
-                } else {
-                    $data[$key] = $envValue;
+        // If using defaults, skip prompts and use default values
+        if ($useDefault) {
+            $data = $this->getDefaultData($schema);
+        } else {
+            // Check for data in environment variables
+            $data = [];
+            foreach ($schema as $key => $field) {
+                $envKey = "BONSAI_DATA_{$key}";
+                $envValue = getenv($envKey);
+                
+                if ($envValue !== false) {
+                    if ($field['type'] === 'array' || $field['type'] === 'object') {
+                        $data[$key] = json_decode($envValue, true);
+                    } else {
+                        $data[$key] = $envValue;
+                    }
+                    continue;
                 }
-                continue;
+                
+                // If no environment variable, use prompt
+                $this->info("No pre-configured data found for {$key}, prompting...");
             }
-            
-            // If no environment variable, use prompt
-            $this->info("No pre-configured data found for {$key}, prompting...");
-        }
 
-        // If no data was found in environment variables, prompt for it
-        if (empty($data)) {
-            $data = $this->promptForData($schema);
+            // If no data was found in environment variables, prompt for it
+            if (empty($data)) {
+                $data = $this->promptForData($schema);
+            }
         }
 
         // Generate Blade template
@@ -520,5 +526,36 @@ BLADE;
         $this->info("✓ Section created successfully: {$path}");
         
         return 0;
+    }
+
+    protected function getDefaultData($schema)
+    {
+        $data = [];
+        foreach ($schema as $key => $field) {
+            if ($field['type'] === 'string') {
+                $data[$key] = $field['default'] ?? '';
+            } elseif ($field['type'] === 'array') {
+                if ($key === 'faqs') {
+                    $data[$key] = $this->getDefaultFaqs();
+                } else {
+                    $data[$key] = [];
+                    // Create default number of items
+                    $count = $field['default'] ?? 3;
+                    for ($i = 0; $i < $count; $i++) {
+                        $item = [];
+                        foreach ($field['schema'] as $subKey => $subField) {
+                            $item[$subKey] = $subField['default'] ?? '';
+                        }
+                        $data[$key][] = $item;
+                    }
+                }
+            } elseif ($field['type'] === 'object') {
+                $data[$key] = [];
+                foreach ($field['schema'] as $subKey => $subField) {
+                    $data[$key][$subKey] = $subField['default'] ?? '';
+                }
+            }
+        }
+        return $data;
     }
 }

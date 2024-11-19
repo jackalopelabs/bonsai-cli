@@ -38,25 +38,33 @@ class BonsaiInitCommand extends Command
     public function handle()
     {
         $this->info('Starting Bonsai initialization...');
-
+    
+        // Ask about configuration preference upfront
+        $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
+    
+        // Store the preference for use in other commands
+        if ($useDefault) {
+            $this->info('Using default configurations for all components...');
+        }
+    
         // Step 1: Create required directories
         $this->createDirectories();
-
+    
         // Step 2: Install all components
-        $this->installComponents();
-
+        $this->installComponents($useDefault);
+    
         // Step 3: Create sections for components
-        $this->createSections();
-
+        $this->createSections($useDefault);
+    
         // Step 4: Create layout
         $this->createLayout();
-
+    
         // Step 5: Create the Components page
         $this->createComponentsPage();
-
+    
         // Step 6: Setup local config directory
         $this->setupLocalConfig();
-
+    
         $this->info('🌳 Bonsai initialization completed successfully!');
         $this->info("\nNext steps:");
         $this->line(" 1. Create your site configuration in config/bonsai/");
@@ -210,33 +218,37 @@ pages:
 YAML;
     }
 
-    protected function installComponents()
+    protected function installComponents($useDefault = false)
     {
         $this->info('Installing components...');
         foreach ($this->components as $component => $description) {
             $this->call('bonsai:component', [
-                'name' => $component
+                'name' => $component,
+                '--default' => $useDefault,  // Pass this flag to the component command
             ]);
         }
     }
 
-    protected function createSections()
+    protected function createSections($useDefault = false)
     {
         $this->info('Creating example sections...');
         
         $this->call('bonsai:section', [
             'name' => 'hero-example',
-            '--component' => 'hero'
+            '--component' => 'hero',
+            '--default' => $useDefault,
         ]);
-
+    
         $this->call('bonsai:section', [
             'name' => 'faq-example',
-            '--component' => 'faq'
+            '--component' => 'faq',
+            '--default' => $useDefault,
         ]);
-
+    
         $this->call('bonsai:section', [
             'name' => 'slideshow-example',
-            '--component' => 'slideshow'
+            '--component' => 'slideshow',
+            '--default' => $useDefault,
         ]);
     }
 

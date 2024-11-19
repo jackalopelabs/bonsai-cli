@@ -7,7 +7,7 @@ use Illuminate\Filesystem\Filesystem;
 
 class ComponentCommand extends Command
 {
-    protected $signature = 'bonsai:component {name}';
+    protected $signature = 'bonsai:component {name} {--default : Use default configuration without prompting}';
     protected $description = 'Create a Bonsai component in the project';
 
     protected $files;
@@ -21,6 +21,8 @@ class ComponentCommand extends Command
     public function handle()
     {
         $name = strtolower($this->argument('name'));
+        $useDefault = $this->option('default');
+        
         $templatePath = __DIR__ . "/../../templates/components/{$name}.blade.php";
         $componentPath = resource_path("views/bonsai/components/{$name}.blade.php");
     
@@ -33,12 +35,20 @@ class ComponentCommand extends Command
         $this->files->ensureDirectoryExists(resource_path('views/bonsai/components'));
     
         if ($this->files->exists($componentPath)) {
+            if ($useDefault) {
+                $this->info("Component {$name} already exists, skipping.");
+                return;
+            }
             $this->error("Component {$name} already exists at {$componentPath}");
             return;
         }
     
         $this->files->copy($templatePath, $componentPath);
     
-        $this->info("Component {$name} created at {$componentPath}");
+        if ($useDefault) {
+            $this->line("Component {$name} created at {$componentPath}");
+        } else {
+            $this->info("Component {$name} created at {$componentPath}");
+        }
     }
 }
