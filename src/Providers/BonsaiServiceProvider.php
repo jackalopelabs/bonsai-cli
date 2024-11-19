@@ -3,6 +3,7 @@
 namespace Jackalopelabs\BonsaiCli\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Jackalopelabs\BonsaiCli\Commands\BonsaiCleanupCommand;
 use Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand;
 use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
 use Jackalopelabs\BonsaiCli\Commands\CleanupCommand;
@@ -14,13 +15,15 @@ use Jackalopelabs\BonsaiCli\Commands\GenerateCommand;
 class BonsaiServiceProvider extends ServiceProvider
 {
     public function register()
-    {
+    {   
+        $this->app->singleton(BonsaiCleanupCommand::class);
         $this->app->singleton(BonsaiInitCommand::class);
         $this->app->singleton(ComponentCommand::class);
         $this->app->singleton(GenerateCommand::class);
         $this->app->singleton(CleanupCommand::class);
 
         $this->commands([
+            BonsaiCleanupCommand::class,
             BonsaiInitCommand::class,
             ComponentCommand::class,
             LayoutCommand::class,
