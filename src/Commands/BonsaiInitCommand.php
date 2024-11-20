@@ -214,7 +214,7 @@ pages:
 For more information, visit the Bonsai CLI documentation.
 MD;
             
-            $this->files->put($readmePath, $readmeContent);
+            $this->writeFile($readmePath, $readmeContent);
             $this->info("Created config README: {$readmePath}");
         }
 
@@ -223,7 +223,7 @@ MD;
         if (!$this->files->exists($examplePath)) {
             $exampleContent = $this->getExampleConfig();
             $this->files->put($examplePath, $exampleContent);
-            $this->info("Created example config: {$examplePath}");
+            $this->writeFile($examplePath, $exampleContent);
         }
     }
 
@@ -343,7 +343,7 @@ YAML;
         $templatePath = resource_path("views/template-components.blade.php");
         if (!$this->files->exists($templatePath)) {
             $stubContent = $this->getTemplateStubContent($pageTitle);
-            $this->files->put($templatePath, $stubContent);
+            $this->writeFile($templatePath, $stubContent);
             $this->info("Created Blade template: {$templatePath}");
         }
     }
