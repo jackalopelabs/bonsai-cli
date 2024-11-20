@@ -364,30 +364,24 @@ BLADE;
     {
         $this->info('Rebuilding assets...');
         
-        // Store current path
-        $currentPath = getcwd();
-        
         try {
-            // Move to project root
-            chdir(base_path());
-            
-            // Try yarn first
-            $yarnResult = shell_exec('which yarn');
-            
-            if ($yarnResult) {
-                shell_exec('yarn build');
+            // When running in Vagrant/Trellis environment
+            if (php_uname('n') === 'jackalope') {  // Check if we're in the Vagrant box
+                // Use nvm's yarn if available, otherwise use system yarn
+                $command = 'cd /srv/www/jackalope.io/current && source ~/.nvm/nvm.sh && yarn build';
+                shell_exec($command);
             } else {
-                // Get the host machine to run yarn build
-                shell_exec('cd /srv/www/jackalope.io/current && /usr/local/bin/yarn build');
+                // Running locally
+                $currentPath = getcwd();
+                chdir(base_path());
+                shell_exec('yarn build');
+                chdir($currentPath);
             }
             
             $this->info('Assets rebuilt successfully');
         } catch (\Exception $e) {
             $this->error('Failed to rebuild assets: ' . $e->getMessage());
-            $this->info('You may need to run `yarn build` manually');
-        } finally {
-            // Ensure we return to original path
-            chdir($currentPath);
+            $this->info('Please run `yarn build` manually');
         }
     }
 }
