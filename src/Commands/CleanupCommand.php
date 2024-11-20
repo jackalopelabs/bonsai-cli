@@ -28,12 +28,15 @@ class CleanupCommand extends Command
             $this->info('Operation cancelled.');
             return;
         }
-
+    
         $this->cleanupFiles();
         $this->cleanupTemplates();
         $this->cleanupWordPressContent();
         $this->cleanupMenus();
         $this->resetTemplateRegistry();
+        
+        // Rebuild assets after cleanup
+        $this->rebuildAssets();
         
         $this->info('Cleanup completed successfully!');
     }
@@ -233,5 +236,26 @@ class CleanupCommand extends Command
     protected function isDirectoryEmpty($dir)
     {
         return count(array_diff(scandir($dir), ['.', '..'])) === 0;
+    }
+
+    protected function rebuildAssets()
+    {
+        $this->info('Rebuilding assets...');
+        
+        // Store current path
+        $currentPath = getcwd();
+        
+        try {
+            // Move to project root
+            chdir(base_path());
+            
+            // Run build
+            shell_exec('yarn build');
+            
+            $this->info('Assets rebuilt successfully');
+        } finally {
+            // Ensure we return to original path
+            chdir($currentPath);
+        }
     }
 }

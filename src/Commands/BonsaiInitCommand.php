@@ -65,6 +65,9 @@ class BonsaiInitCommand extends Command
         // Step 6: Setup local config directory
         $this->setupLocalConfig();
     
+        // Step 7: Rebuild assets
+        $this->rebuildAssets();
+    
         $this->info('🌳 Bonsai initialization completed successfully!');
         $this->info("\nNext steps:");
         $this->line(" 1. Create your site configuration in config/bonsai/");
@@ -356,5 +359,25 @@ function getExampleData(\$component) {
 }
 @endphp
 BLADE;
+    }
+    protected function rebuildAssets()
+    {
+        $this->info('Rebuilding assets...');
+        
+        // Store current path
+        $currentPath = getcwd();
+        
+        try {
+            // Move to project root
+            chdir(base_path());
+            
+            // Run build
+            shell_exec('yarn build');
+            
+            $this->info('Assets rebuilt successfully');
+        } finally {
+            // Ensure we return to original path
+            chdir($currentPath);
+        }
     }
 }
