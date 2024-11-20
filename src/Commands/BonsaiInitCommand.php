@@ -363,23 +363,21 @@ BLADE;
 
     protected function rebuildAssets()
     {
+        // Check if we're running with a remote alias
+        $isRemote = defined('WP_CLI_ALIAS') && !empty(WP_CLI_ALIAS);
+        
+        if ($isRemote) {
+            $this->info('Skipping asset rebuild on remote environment.');
+            $this->info('Please run yarn build locally in your theme directory.');
+            return;
+        }
+        
         $this->info('Starting asset rebuild process...');
         
         // Debug environment information
         $this->info('=== Environment Information ===');
-        $this->info('Current working directory: ' . getcwd());
-        $this->info('Current user: ' . trim(shell_exec('whoami')));
-        $this->info('PHP version: ' . PHP_VERSION);
-        $this->info('Operating system: ' . php_uname());
-        
-        // Check for Node and Yarn
-        $this->info('=== Dependencies ===');
-        $nodeVersion = trim(shell_exec('node -v 2>&1'));
-        $this->info('Node version: ' . $nodeVersion);
-        $yarnVersion = trim(shell_exec('yarn -v 2>&1'));
-        $this->info('Yarn version: ' . $yarnVersion);
-        
         $projectRoot = getcwd();
+        $this->info('Current working directory: ' . $projectRoot);
         
         // Check if package.json exists
         $this->info('=== Project Configuration ===');
@@ -392,9 +390,13 @@ BLADE;
             return;
         }
         
-        // Attempt to rebuild
+        // Try yarn first, fall back to npm
+        $buildCommand = file_exists($projectRoot . '/yarn.lock') 
+            ? 'yarn && yarn build'
+            : 'npm install && npm run build';
+        
         $this->info('=== Build Attempt ===');
-        $command = "cd {$projectRoot} && yarn build";
+        $command = "cd {$projectRoot} && {$buildCommand}";
         $this->info('Executing command: ' . $command);
         
         exec($command . ' 2>&1', $output, $returnCode);
@@ -403,13 +405,13 @@ BLADE;
         foreach ($output as $line) {
             $this->info($line);
         }
-        $this->info('Return code: ' . $returnCode);
         
         if ($returnCode === 0) {
             $this->info('Assets rebuilt successfully');
         } else {
-            $this->error('Failed to rebuild assets. Please run yarn build manually');
-            $this->info('Try running: cd ' . $projectRoot . ' && yarn install && yarn build');
+            $this->error('Failed to rebuild assets. Please run manually:');
+            $this->info("cd {$projectRoot}");
+            $this->info($buildCommand);
         }
     }
 }
