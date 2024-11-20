@@ -244,51 +244,37 @@ class CleanupCommand extends Command
         $isRemote = defined('WP_CLI_ALIAS') && !empty(WP_CLI_ALIAS);
         
         if ($isRemote) {
-            $this->info('Skipping asset rebuild on remote environment.');
-            $this->info('Please run yarn build locally in your theme directory.');
+            $this->newLine();
+            $this->warn('⚠️  Asset rebuild required');
+            $this->info('Since you\'re running this command with @development, you\'ll need to rebuild assets locally:');
+            $this->newLine();
+            $this->info('Run this command on your local machine:');
+            $this->line('  yarn build');
+            $this->newLine();
+            $this->info('This is needed because:');
+            $this->line('1. Template files were modified');
+            $this->line('2. Your asset build tools are on your local machine');
+            $this->line('3. The remote environment doesn\'t have access to yarn/npm');
+            $this->newLine();
             return;
         }
         
-        $this->info('Starting asset rebuild process...');
-        
-        // Debug environment information
-        $this->info('=== Environment Information ===');
+        // Local build logic (unlikely to be used but kept for completeness)
+        $this->info('Starting local asset rebuild process...');
         $projectRoot = getcwd();
-        $this->info('Current working directory: ' . $projectRoot);
         
-        // Check if package.json exists
-        $this->info('=== Project Configuration ===');
-        if (file_exists($projectRoot . '/package.json')) {
-            $this->info('package.json found');
-            $packageJson = json_decode(file_get_contents($projectRoot . '/package.json'), true);
-            $this->info('Build script defined: ' . (isset($packageJson['scripts']['build']) ? 'Yes' : 'No'));
-        } else {
-            $this->error('package.json not found in ' . $projectRoot);
-            return;
-        }
-        
-        // Try yarn first, fall back to npm
         $buildCommand = file_exists($projectRoot . '/yarn.lock') 
             ? 'yarn && yarn build'
             : 'npm install && npm run build';
         
-        $this->info('=== Build Attempt ===');
         $command = "cd {$projectRoot} && {$buildCommand}";
-        $this->info('Executing command: ' . $command);
-        
         exec($command . ' 2>&1', $output, $returnCode);
-        
-        $this->info('Command output:');
-        foreach ($output as $line) {
-            $this->info($line);
-        }
         
         if ($returnCode === 0) {
             $this->info('Assets rebuilt successfully');
         } else {
             $this->error('Failed to rebuild assets. Please run manually:');
-            $this->info("cd {$projectRoot}");
-            $this->info($buildCommand);
+            $this->line("  {$buildCommand}");
         }
     }
 }
