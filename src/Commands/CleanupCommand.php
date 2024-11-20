@@ -240,25 +240,16 @@ class CleanupCommand extends Command
     protected function rebuildAssets()
     {
         $this->info('Rebuilding assets...');
+
+        $projectRoot = getcwd(); // Gets the local project directory
+        $command = "cd {$projectRoot} && yarn build";
         
-        try {
-            // When running in Vagrant/Trellis environment
-            if (php_uname('n') === 'jackalope') {
-                // Execute directly with bash
-                $command = '/bin/bash -c "cd /srv/www/jackalope.io/current && /home/vagrant/.nvm/versions/node/v18.12.0/bin/yarn build"';
-                shell_exec($command);
-            } else {
-                // Running locally
-                $currentPath = getcwd();
-                chdir(base_path());
-                shell_exec('yarn build');
-                chdir($currentPath);
-            }
-            
+        exec($command, $output, $returnCode);
+        
+        if ($returnCode === 0) {
             $this->info('Assets rebuilt successfully');
-        } catch (\Exception $e) {
-            $this->error('Failed to rebuild assets: ' . $e->getMessage());
-            $this->warn('Please run `yarn build` manually');
+        } else {
+            $this->error('Failed to rebuild assets. Please run `yarn build` manually');
         }
     }
 }
