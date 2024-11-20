@@ -290,3 +290,74 @@ pages:
 ## License
 
 MIT License. See [LICENSE](LICENSE.md) for more information.
+
+# Bonsai Script
+
+A wrapper script for running Bonsai CLI commands across different environments with automatic asset rebuilding.
+
+## Usage
+
+From your project root:
+
+```bash
+./scripts/bonsai.sh <command> [--env=environment]
+```
+
+### Environments
+
+- `--env=development` (default)
+- `--env=staging`
+- `--env=production`
+
+You can also use the shorthand:
+- `--development`
+- `--staging`
+- `--production`
+
+### Examples
+
+```bash
+# Initialize Bonsai in development (default)
+./scripts/bonsai.sh acorn bonsai:init
+
+# Generate a site using the cypress template on staging
+./scripts/bonsai.sh acorn bonsai:generate cypress --env=staging
+
+# Clean up Bonsai files in production
+./scripts/bonsai.sh acorn bonsai:cleanup --env=production
+```
+
+### Asset Building
+
+- Development environment automatically rebuilds assets after Bonsai commands
+- Staging and production environments skip asset rebuilding
+- Asset rebuilding is only triggered for Bonsai-specific commands
+
+### Command Structure
+
+```
+./scripts/bonsai.sh [command] [--env=environment]
+
+command:          The Bonsai command to execute (e.g., acorn bonsai:init)
+--env:           Target environment (development|staging|production)
+```
+
+## Features
+
+- Environment-specific command execution
+- Automatic asset rebuilding in development
+- Clear feedback and error messages
+- Defaults to development environment if none specified
+- Maintains proper exit codes from WP-CLI commands
+
+## Requirements
+
+- WP-CLI with configured environments (@development, @staging, @production)
+- Yarn for asset building (development only)
+- Proper SSH access to remote environments
+
+## Notes
+
+- Run the script from your project root directory
+- Make sure the script is executable (`chmod +x scripts/bonsai.sh`)
+- Asset rebuilding only occurs in development and only for Bonsai commands
