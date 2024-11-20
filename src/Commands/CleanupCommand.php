@@ -237,19 +237,56 @@ class CleanupCommand extends Command
     {
         return count(array_diff(scandir($dir), ['.', '..'])) === 0;
     }
+
     protected function rebuildAssets()
     {
-        $this->info('Rebuilding assets...');
-
-        $projectRoot = getcwd(); // Gets the local project directory
-        $command = "cd {$projectRoot} && yarn build";
+        $this->info('Starting asset rebuild process...');
         
-        exec($command, $output, $returnCode);
+        // Debug environment information
+        $this->info('=== Environment Information ===');
+        $this->info('Current working directory: ' . getcwd());
+        $this->info('Current user: ' . trim(shell_exec('whoami')));
+        $this->info('PHP version: ' . PHP_VERSION);
+        $this->info('Operating system: ' . php_uname());
+        
+        // Check for Node and Yarn
+        $this->info('=== Dependencies ===');
+        $nodeVersion = trim(shell_exec('node -v 2>&1'));
+        $this->info('Node version: ' . $nodeVersion);
+        $yarnVersion = trim(shell_exec('yarn -v 2>&1'));
+        $this->info('Yarn version: ' . $yarnVersion);
+        
+        $projectRoot = getcwd();
+        
+        // Check if package.json exists
+        $this->info('=== Project Configuration ===');
+        if (file_exists($projectRoot . '/package.json')) {
+            $this->info('package.json found');
+            $packageJson = json_decode(file_get_contents($projectRoot . '/package.json'), true);
+            $this->info('Build script defined: ' . (isset($packageJson['scripts']['build']) ? 'Yes' : 'No'));
+        } else {
+            $this->error('package.json not found in ' . $projectRoot);
+            return;
+        }
+        
+        // Attempt to rebuild
+        $this->info('=== Build Attempt ===');
+        $command = "cd {$projectRoot} && yarn build";
+        $this->info('Executing command: ' . $command);
+        
+        exec($command . ' 2>&1', $output, $returnCode);
+        
+        $this->info('Command output:');
+        foreach ($output as $line) {
+            $this->info($line);
+        }
+        $this->info('Return code: ' . $returnCode);
         
         if ($returnCode === 0) {
             $this->info('Assets rebuilt successfully');
         } else {
-            $this->error('Failed to rebuild assets. Please run `yarn build` manually');
+            $this->error('Failed to rebuild assets. Please run yarn build manually');
+            $this->info('Try running: cd ' . $projectRoot . ' && yarn install && yarn build');
         }
     }
 }
