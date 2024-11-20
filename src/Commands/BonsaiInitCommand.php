@@ -4,6 +4,7 @@ namespace Jackalopelabs\BonsaiCli\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\File; 
 use Illuminate\Support\Facades\DB;
 
 class BonsaiInitCommand extends Command
