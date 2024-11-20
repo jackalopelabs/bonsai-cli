@@ -41,6 +41,41 @@ class CleanupCommand extends Command
         $this->info('Cleanup completed successfully!');
     }
 
+    protected function writeFile($path, $content)
+    {
+        $this->info('=== Debug: File Write Operation ===');
+        $this->info("Writing to path: {$path}");
+        
+        // Check file existence and permissions before write
+        $exists = file_exists($path);
+        $this->info("File exists before write: " . ($exists ? 'yes' : 'no'));
+        
+        if ($exists) {
+            $this->info("Current permissions: " . substr(sprintf('%o', fileperms($path)), -4));
+            $this->info("Current owner: " . posix_getpwuid(fileowner($path))['name']);
+            $this->info("Is writable: " . (is_writable($path) ? 'yes' : 'no'));
+        }
+        
+        try {
+            File::put($path, $content);
+            clearstatcache(true, $path);
+            
+            // Verify write
+            $this->info("File exists after write: " . (file_exists($path) ? 'yes' : 'no'));
+            $this->info("New permissions: " . substr(sprintf('%o', fileperms($path)), -4));
+            $this->info("New owner: " . posix_getpwuid(fileowner($path))['name']);
+            $this->info("File size: " . filesize($path) . " bytes");
+            
+            // Try to force sync
+            exec('sync');
+            
+            return true;
+        } catch (\Exception $e) {
+            $this->error("Failed to write file: " . $e->getMessage());
+            return false;
+        }
+    }
+
     protected function cleanupFiles()
     {
         $this->info('Cleaning up generated files...');

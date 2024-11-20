@@ -75,8 +75,44 @@ class BonsaiInitCommand extends Command
         $this->line(" 3. Available templates: cypress, jackalope (or create your own)");
     }
 
+    protected function writeFile($path, $content)
+    {
+        $this->info('=== Debug: File Write Operation ===');
+        $this->info("Writing to path: {$path}");
+        
+        // Check file existence and permissions before write
+        $exists = file_exists($path);
+        $this->info("File exists before write: " . ($exists ? 'yes' : 'no'));
+        
+        if ($exists) {
+            $this->info("Current permissions: " . substr(sprintf('%o', fileperms($path)), -4));
+            $this->info("Current owner: " . posix_getpwuid(fileowner($path))['name']);
+            $this->info("Is writable: " . (is_writable($path) ? 'yes' : 'no'));
+        }
+        
+        try {
+            File::put($path, $content);
+            clearstatcache(true, $path);
+            
+            // Verify write
+            $this->info("File exists after write: " . (file_exists($path) ? 'yes' : 'no'));
+            $this->info("New permissions: " . substr(sprintf('%o', fileperms($path)), -4));
+            $this->info("New owner: " . posix_getpwuid(fileowner($path))['name']);
+            $this->info("File size: " . filesize($path) . " bytes");
+            
+            // Try to force sync
+            exec('sync');
+            
+            return true;
+        } catch (\Exception $e) {
+            $this->error("Failed to write file: " . $e->getMessage());
+            return false;
+        }
+    }
+
     protected function createDirectories()
     {
+        $this->info('=== Debug: Directory Creation ===');
         $directories = [
             resource_path('views/bonsai'),
             resource_path('views/bonsai/components'),
@@ -85,11 +121,21 @@ class BonsaiInitCommand extends Command
             resource_path('views/templates'),
             base_path('config/bonsai')
         ];
-
+    
         foreach ($directories as $directory) {
-            if (!$this->files->isDirectory($directory)) {
-                $this->files->makeDirectory($directory, 0755, true);
-                $this->info("Created directory: {$directory}");
+            $this->info("Checking directory: {$directory}");
+            $this->info("Exists: " . (File::exists($directory) ? 'yes' : 'no'));
+            $this->info("Writable: " . (is_writable(dirname($directory)) ? 'yes' : 'no'));
+            
+            if (!File::isDirectory($directory)) {
+                try {
+                    File::makeDirectory($directory, 0755, true);
+                    $this->info("Created directory: {$directory}");
+                    $this->info("New directory permissions: " . substr(sprintf('%o', fileperms($directory)), -4));
+                    $this->info("Owner/Group: " . posix_getpwuid(fileowner($directory))['name'] . ':' . posix_getgrgid(filegroup($directory))['name']);
+                } catch (\Exception $e) {
+                    $this->error("Failed to create {$directory}: " . $e->getMessage());
+                }
             }
         }
     }
