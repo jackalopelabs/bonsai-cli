@@ -371,10 +371,20 @@ BLADE;
             // Move to project root
             chdir(base_path());
             
-            // Run build
-            shell_exec('yarn build');
+            // Try yarn first
+            $yarnResult = shell_exec('which yarn');
+            
+            if ($yarnResult) {
+                shell_exec('yarn build');
+            } else {
+                // Get the host machine to run yarn build
+                shell_exec('cd /srv/www/jackalope.io/current && /usr/local/bin/yarn build');
+            }
             
             $this->info('Assets rebuilt successfully');
+        } catch (\Exception $e) {
+            $this->error('Failed to rebuild assets: ' . $e->getMessage());
+            $this->info('You may need to run `yarn build` manually');
         } finally {
             // Ensure we return to original path
             chdir($currentPath);
