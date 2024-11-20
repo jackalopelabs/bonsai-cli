@@ -360,12 +360,23 @@ function getExampleData(\$component) {
 @endphp
 BLADE;
     }
+
     protected function rebuildAssets()
     {
         $this->info('Rebuilding assets...');
 
-        $projectRoot = getcwd(); // Gets the local project directory
-        $command = "cd {$projectRoot} && yarn build";
+        $projectRoot = getcwd();
+        // Use npm to find yarn if installed
+        $command = "cd {$projectRoot} && /usr/local/bin/npm bin -g";
+        $npmBinPath = trim(shell_exec($command));
+        $yarnPath = "{$npmBinPath}/yarn";
+
+        if (!file_exists($yarnPath)) {
+            $this->error('Could not find yarn. Please run `yarn build` manually');
+            return;
+        }
+
+        $command = "cd {$projectRoot} && {$yarnPath} build";
         
         exec($command, $output, $returnCode);
         
