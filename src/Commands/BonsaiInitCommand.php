@@ -366,9 +366,9 @@ BLADE;
         
         try {
             // When running in Vagrant/Trellis environment
-            if (php_uname('n') === 'jackalope') {  // Check if we're in the Vagrant box
-                // Use nvm's yarn if available, otherwise use system yarn
-                $command = 'cd /srv/www/jackalope.io/current && source ~/.nvm/nvm.sh && yarn build';
+            if (php_uname('n') === 'jackalope') {
+                // Execute directly with bash
+                $command = '/bin/bash -c "cd /srv/www/jackalope.io/current && /home/vagrant/.nvm/versions/node/v18.12.0/bin/yarn build"';
                 shell_exec($command);
             } else {
                 // Running locally
@@ -381,7 +381,7 @@ BLADE;
             $this->info('Assets rebuilt successfully');
         } catch (\Exception $e) {
             $this->error('Failed to rebuild assets: ' . $e->getMessage());
-            $this->info('Please run `yarn build` manually');
+            $this->warn('Please run `yarn build` manually');
         }
     }
 }
