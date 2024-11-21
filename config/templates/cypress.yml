@@ -79,6 +79,7 @@ pages:
   home:
     title: "Home"
     layout: main
+    template: "template-bonsai-home"
     meta:
       description: "Welcome to Cypress - Modern Web Testing"
       keywords: "testing, automation, cypress, end-to-end testing"
@@ -86,6 +87,7 @@ pages:
   docs:
     title: "Documentation"
     layout: main
+    template: "template-bonsai-docs"
     meta:
       description: "Cypress Documentation - Learn how to test your applications"
 

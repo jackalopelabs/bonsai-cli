@@ -18,8 +18,8 @@ class CleanupCommand extends Command
     ];
 
     protected $templatePatterns = [
-        'resources/views/template-*.blade.php',
-        'resources/views/templates/template-*.blade.php'
+        'resources/views/template-bonsai-*.blade.php',
+        'resources/views/templates/template-bonsai-*.blade.php'
     ];
 
     public function handle()
