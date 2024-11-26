@@ -14,7 +14,7 @@
         }
     },
     "extra": {
-        "laravel": {
+        "acorn": {
             "providers": [
                 "Jackalopelabs\\BonsaiCli\\Providers\\BonsaiServiceProvider"
             ]
