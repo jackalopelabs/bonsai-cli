@@ -29,10 +29,11 @@ layouts:
 
 # Page Configurations
 pages:
-  home:
-    title: "Home"
+  cypress:
+    title: "Cypress"
     layout: main
-    template: "template-bonsai-home"
+    template: "template-bonsai-cypress"
+    is_homepage: true
     meta:
       description: "Welcome to Cypress - Modern Web Testing"
       keywords: "testing, automation, cypress, end-to-end testing"

@@ -224,27 +224,44 @@ BLADE;
         $this->info('Generating pages...');
         foreach ($pages as $page => $config) {
             try {
+                // Create params array for page creation
+                $title = $config['title'] ?? Str::title($page);
+                
+                // Build command arguments
                 $params = [
-                    'title' => $config['title'] ?? Str::title($page)
+                    'name' => $page,
+                    '--title' => $title,
                 ];
 
                 if (isset($config['layout'])) {
                     $params['--layout'] = $config['layout'];
                 }
 
-                // Add template parameter if specified
                 if (isset($config['template'])) {
-                    $params['--template'] = $config['template'];
+                    $params['--page-template'] = $config['template'];
                 }
 
-                // Add meta parameters if specified
-                if (isset($config['meta'])) {
-                    foreach ($config['meta'] as $key => $value) {
-                        $params["--meta-{$key}"] = $value;
+                // Create the page
+                $this->call('bonsai:page', $params);
+
+                // Set as homepage if specified
+                if (isset($config['is_homepage']) && $config['is_homepage']) {
+                    $this->info("Setting '{$title}' as static homepage...");
+                    
+                    // Get the page ID
+                    $page = get_page_by_title($title);
+                    
+                    if ($page) {
+                        // Set "Static Page" option
+                        update_option('show_on_front', 'page');
+                        update_option('page_on_front', $page->ID);
+                        
+                        $this->info("Successfully set '{$title}' as homepage");
+                    } else {
+                        $this->warn("Could not find page '{$title}' to set as homepage");
                     }
                 }
 
-                $this->call('bonsai:page', $params);
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate page '{$page}': " . $e->getMessage());
             }
