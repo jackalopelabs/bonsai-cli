@@ -77,12 +77,21 @@ class GenerateCommand extends Command
     {
         $this->info('Generating components...');
         
-        // Convert list-style components array to associative if needed
+        // If components is a simple array, convert to associative
         if (isset($components[0])) {
+            // Filter to only include hero
+            $components = array_filter($components, function($component) {
+                return $component === 'hero';
+            });
             $components = array_combine($components, array_fill(0, count($components), []));
         }
 
         foreach ($components as $component => $config) {
+            // Skip if not hero
+            if ($component !== 'hero') {
+                continue;
+            }
+
             try {
                 $componentName = is_array($config) ? $component : $config;
                 $this->info("Installing component: {$componentName}");

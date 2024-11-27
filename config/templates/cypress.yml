@@ -1,18 +1,10 @@
 name: Cypress Template
-description: A modern, minimal business website template
+description: Modern SaaS landing page template
 version: 1.0.0
 
-# Component Definitions
 components:
   - hero
-  - faq
-  - cta
-  - card-featured
-  - slideshow
-  - widget
-  - table
 
-# Section Configurations
 sections:
   home_hero:
     component: hero
@@ -28,92 +20,14 @@ sections:
       primaryText: "Get Started"
       primaryLink: "#contact"
       secondaryText: "Watch Demo"
-  
-  features:
-    component: card-featured
-    data:
-      title: "Modern Testing Tools"
-      subtitle:
-        - title: "Real Browser Testing"
-          description: "Test your app in a real browser environment"
-          icon: "heroicon-o-cube-transparent"
-        - title: "Automatic Waiting"
-          description: "Tests wait for commands and assertions automatically"
-          icon: "heroicon-o-clock"
-        - title: "Network Control"
-          description: "Complete control over network traffic"
-          icon: "heroicon-o-globe-alt"
-        - title: "Time Travel Debugging"
-          description: "Debug your tests with time travel features"
-          icon: "heroicon-o-cursor-arrow-rays"
-      imagePath: "images/features.jpg"
-      playIcon: false
-  
-  services_faq:
-    component: faq
-    data:
-      title: "Common Questions"
-      faqs:
-        - question: "What is Cypress?"
-          answer: "Cypress is a modern web testing tool built for the modern web. It enables you to write automated tests for your web applications with ease."
-        - question: "How do I get started?"
-          answer: "Getting started is simple. Install Cypress with npm, write your first test, and watch it run in real time."
-        - question: "What makes Cypress different?"
-          answer: "Cypress provides a unique developer experience with features like time travel debugging, automatic waiting, and real browser testing."
 
-# Layout Definitions
 layouts:
-  main:
-    template: "bonsai"
-    sections:
-      - home_hero
-      - features
-      - services_faq
-  
-  landing:
-    template: "bonsai"
-    sections:
-      - home_hero
-      - features
-
-# Page Configurations
-pages:
   cypress:
+    sections:
+      - home_hero
+
+pages:
+  home:
     title: "Cypress"
-    layout: app
-    template: "template-cypress"
+    layout: cypress
     is_homepage: true
-    meta:
-      description: "Welcome to Cypress - Modern Web Testing"
-      keywords: "testing, automation, cypress, end-to-end testing"
-  
-  docs:
-    title: "Documentation"
-    layout: main
-    template: "template-bonsai-docs"
-    meta:
-      description: "Cypress Documentation - Learn how to test your applications"
-
-# Database Configuration
-database:
-  seeds:
-    - CypressDefaultContentSeeder
-    - CypressMenuSeeder
-  imports:
-    - initial-content.sql
-
-# Site Settings
-settings:
-  options:
-    blogname: "Cypress"
-    blogdescription: "Modern Web Testing"
-    timezone_string: "America/New_York"
-  env:
-    WP_ENV: "production"
-    MAIL_DRIVER: "smtp"
-  api_keys:
-    mailchimp:
-      api_key: "${MAILCHIMP_API_KEY}"
-      list_id: "${MAILCHIMP_LIST_ID}"
-    google:
-      analytics_id: "${GA_TRACKING_ID}"
