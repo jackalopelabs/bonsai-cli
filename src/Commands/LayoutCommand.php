@@ -26,9 +26,6 @@ class LayoutCommand extends Command
         // Ensure the layouts directory exists
         $this->files->ensureDirectoryExists(resource_path('views/bonsai/layouts'));
 
-        // Create app.blade.php if it doesn't exist
-        $this->ensureBonsaiAppLayoutExists();
-
         if ($this->files->exists($layoutPath)) {
             $this->error("Layout {$name} already exists at {$layoutPath}");
             return;
@@ -37,25 +34,18 @@ class LayoutCommand extends Command
         // Get sections to include in the layout
         $sections = $this->getSections();
 
-        // Generate layout content with @include directives for each section
-        $stubContent = $this->getLayoutStubContent($name, $sections);
-        $this->files->put($layoutPath, $stubContent);
+        // If this is the cypress layout, use the specific template
+        if ($name === 'cypress') {
+            $stubContent = $this->getCypressLayoutContent();
+        } else {
+            $stubContent = $this->getLayoutStubContent($name, $sections);
+        }
 
+        $this->files->put($layoutPath, $stubContent);
         $this->info("Layout {$name} created at {$layoutPath}");
     }
 
-    protected function ensureBonsaiAppLayoutExists()
-    {
-        $appLayoutPath = resource_path('views/bonsai/layouts/app.blade.php');
-        
-        if (!$this->files->exists($appLayoutPath)) {
-            $appLayoutContent = $this->getBonsaiAppLayoutContent();
-            $this->files->put($appLayoutPath, $appLayoutContent);
-            $this->info('Created Bonsai app layout at ' . $appLayoutPath);
-        }
-    }
-
-    protected function getBonsaiAppLayoutContent()
+    protected function getCypressLayoutContent()
     {
         return <<<'BLADE'
 <!doctype html>
@@ -68,30 +58,68 @@ class LayoutCommand extends Command
         @include('utils.styles')
     </head>
 
-    <body @php(body_class('h-full bg-gray-100'))>
+    <body @php(body_class()) x-data="{ openModal: false }" @open-modal.window="openModal = true; $nextTick(() => window.scrollToSection($event.detail.sectionId))" @close-modal.window="openModal = false">
         @php(wp_body_open())
-
-        <div id="app">
-            <a class="sr-only focus:not-sr-only" href="#main">
-                {{ __('Skip to content', 'radicle') }}
-            </a>
-
-            @include('sections.header')
-
-            <main id="main" class="max-w-5xl mx-auto">
-                <div class="{{ $containerInnerClasses ?? '' }}">
-                    @yield('content')
+    
+        <div x-cloak x-data="{ openModal: false }" @open-modal.window="openModal = true; $nextTick(() => window.scrollToSection($event.detail.sectionId))" @close-modal.window="openModal = false">
+            <div id="app">
+                <a class="sr-only focus:not-sr-only" href="#main">
+                    {{ __('Skip to content') }}
+                </a>
+        
+                @include('sections.header')
+        
+                <div id="main" class="max-w-5xl mx-auto">
+                    <div class="{{ $containerInnerClasses ?? '' }}">
+                        @include('bonsai.sections.home_hero')
+                        @include('bonsai.sections.features')
+                        @include('bonsai.sections.services_faq')
+                    </div>
                 </div>
-            </main>
-
-            @include('sections.footer')
-        </div>
-
+        
+                <div class="max-w-5xl mx-auto">
+                    <div class="{{ $containerInnerClasses ?? '' }}">
+                        {{-- Additional sections can be added here --}}
+                    </div>
+                </div>
+        
+                <!-- Modal Include -->
+                <div x-cloak x-show="openModal">
+                    {{-- @include('layouts.modals') --}}
+                </div>
+                @include('sections.footer')
+            </div>
+        
+            @php(do_action('get_footer'))
+            @php(wp_footer())
+            @include('utils.scripts')
+        </div>    
+    
         @php(do_action('get_footer'))
         @php(wp_footer())
         @include('utils.scripts')
     </body>
 </html>
+BLADE;
+    }
+
+    protected function getLayoutStubContent($name, $sections)
+    {
+        $sectionIncludes = collect($sections)
+            ->map(fn($section) => "@include('bonsai.sections.{$section}')")
+            ->implode("\n        ");
+
+        return <<<BLADE
+{{-- Layout: {$name} --}}
+@extends('bonsai.layouts.app')
+
+@section('content')
+    <div class="layout-{$name}">
+        {{-- Include sections in specified order --}}
+        {$sectionIncludes}
+        {{-- Add other sections as needed --}}
+    </div>
+@endsection
 BLADE;
     }
 
@@ -113,25 +141,5 @@ BLADE;
         }
 
         return $sections;
-    }
-
-    protected function getLayoutStubContent($name, $sections)
-    {
-        $sectionIncludes = collect($sections)
-            ->map(fn($section) => "@include('bonsai.sections.{$section}')")
-            ->implode("\n        ");
-
-        return <<<BLADE
-{{-- Layout: {$name} --}}
-@extends('bonsai.layouts.app')
-
-@section('content')
-    <div class="layout-{$name}">
-        {{-- Include sections in specified order --}}
-        {$sectionIncludes}
-        {{-- Add other sections as needed --}}
-    </div>
-@endsection
-BLADE;
     }
 }

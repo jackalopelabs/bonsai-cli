@@ -44,7 +44,7 @@ class PageCommand extends Command
         $this->files->ensureDirectoryExists(dirname($templatePath));
 
         if (!$this->files->exists($templatePath)) {
-            $stubContent = $this->getTemplateStubContent($layout);
+            $stubContent = $this->getTemplateStubContent($layout, $slug);
             $this->files->put($templatePath, $stubContent);
             $this->info("Template file created at: {$templatePath}");
         } else {
@@ -85,8 +85,19 @@ class PageCommand extends Command
         }
     }
 
-    protected function getTemplateStubContent($layout)
+    protected function getTemplateStubContent($layout, $slug)
     {
+        // If this is the cypress template, use the specific layout
+        if ($slug === 'cypress') {
+            return <<<BLADE
+{{--
+    Template Name: Cypress Layout Template
+--}}
+@extends('bonsai.layouts.cypress')
+BLADE;
+        }
+
+        // Default template for other pages
         return <<<BLADE
 {{--
     Template Name: {$layout} Layout Template
