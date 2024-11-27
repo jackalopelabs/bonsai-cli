@@ -69,7 +69,7 @@ class LayoutCommand extends Command
             @include('sections.header')
 
             <main id="main" class="max-w-5xl mx-auto">
-                <div class="{{ \$containerInnerClasses }}">
+                <div class="{{ $containerInnerClasses }}">
                     @yield('content')
                 </div>
             </main>
