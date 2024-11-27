@@ -251,7 +251,7 @@ BLADE;
 @endphp
 
 <div class="{{ \$class }}">
-    <x-bonsai-hero
+    <x-bonsai-{$componentName}
 BLADE;
 
         // Add props

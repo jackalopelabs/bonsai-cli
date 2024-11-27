@@ -79,16 +79,16 @@ class GenerateCommand extends Command
         
         // If components is a simple array, convert to associative
         if (isset($components[0])) {
-            // Filter to only include hero
+            // Allow both hero and header
             $components = array_filter($components, function($component) {
-                return $component === 'hero';
+                return in_array($component, ['hero', 'header']);
             });
             $components = array_combine($components, array_fill(0, count($components), []));
         }
 
         foreach ($components as $component => $config) {
-            // Skip if not hero
-            if ($component !== 'hero') {
+            // Allow both hero and header
+            if (!in_array($component, ['hero', 'header'])) {
                 continue;
             }
 
