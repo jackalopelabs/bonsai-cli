@@ -70,7 +70,7 @@ class SectionCommand extends Command
             'imagePaths' => [
                 'type' => 'array',
                 'prompt' => 'Enter image paths (comma-separated)',
-                'default' => ['images/hero-main.jpg']
+                'default' => ['https://placehold.co/600x400/png']
             ],
             'buttonText' => [
                 'type' => 'string',

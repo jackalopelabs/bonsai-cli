@@ -12,7 +12,7 @@ sections:
       title: "Welcome to Cypress"
       subtitle: "Modern Solutions for Modern Businesses"
       description: "A modern web testing tool for modern applications"
-      imagePaths: ["images/hero-main.jpg"]
+      imagePaths: ["https://placehold.co/600x400/png"]
       buttonText: "Get Started"
       buttonLink: "#contact"
       secondaryText: "Watch Demo"
