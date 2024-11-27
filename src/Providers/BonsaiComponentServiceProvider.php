@@ -18,27 +18,26 @@ class BonsaiComponentServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        // Debug info
-        \Log::info('Booting BonsaiComponentServiceProvider');
-        
         try {
-            // Register the Bonsai components directory
             $componentsPath = resource_path('views/bonsai/components');
-            \Log::info("Components path: {$componentsPath}");
             
             if (is_dir($componentsPath)) {
-                // Register components with their full namespace
+                // Register both namespaced and aliased components
                 Blade::componentNamespace('App\\View\\Components\\Bonsai', 'bonsai');
                 
-                // Also register the view-based components
-                Blade::components([
-                    'bonsai.components.hero' => 'bonsai-hero',
+                // Register view components with aliases
+                $components = [
+                    'hero' => 'bonsai-hero',
+                    'cta' => 'bonsai-cta',
+                    'widget' => 'bonsai-widget',
                     // Add other components as needed
-                ]);
+                ];
+
+                foreach ($components as $name => $alias) {
+                    Blade::component("bonsai.components.{$name}", $alias);
+                }
                 
                 \Log::info('Successfully registered Bonsai components');
-            } else {
-                \Log::warning("Components directory not found: {$componentsPath}");
             }
         } catch (\Exception $e) {
             \Log::error("Error registering components: " . $e->getMessage());

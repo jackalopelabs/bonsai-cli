@@ -52,52 +52,52 @@ class SectionCommand extends Command
                 'title' => [
                     'type' => 'string',
                     'prompt' => 'Enter hero title',
-                    'default' => 'Welcome to Our Site'
+                    'default' => 'Welcome to Cypress'
                 ],
                 'subtitle' => [
                     'type' => 'string',
                     'prompt' => 'Enter hero subtitle',
-                    'default' => 'Discover what makes us unique'
+                    'default' => 'Modern Solutions for Modern Businesses'
                 ],
-                'imagePath' => [
+                'description' => [
                     'type' => 'string',
-                    'prompt' => 'Enter hero image path (relative to assets)',
-                    'default' => 'images/hero.jpg'
+                    'prompt' => 'Enter hero description',
+                    'default' => 'Empowering your business with cutting-edge solutions'
                 ],
-                'l1' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter first list item',
-                    'default' => 'Feature one description'
+                'imagePaths' => [
+                    'type' => 'array',
+                    'prompt' => 'Enter image paths (comma-separated)',
+                    'default' => ['images/hero-main.jpg']
                 ],
-                'l2' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter second list item',
-                    'default' => 'Feature two description'
-                ],
-                'l3' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter third list item',
-                    'default' => 'Feature three description'
-                ],
-                'l4' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter fourth list item',
-                    'default' => 'Feature four description'
-                ],
-                'primaryText' => [
+                'buttonText' => [
                     'type' => 'string',
                     'prompt' => 'Enter primary button text',
                     'default' => 'Get Started'
                 ],
-                'primaryLink' => [
+                'buttonLink' => [
                     'type' => 'string',
-                    'prompt' => 'Enter primary button link target',
-                    'default' => '#features'
+                    'prompt' => 'Enter primary button link',
+                    'default' => '#contact'
                 ],
                 'secondaryText' => [
                     'type' => 'string',
                     'prompt' => 'Enter secondary button text',
-                    'default' => 'Watch Video'
+                    'default' => 'Watch Demo'
+                ],
+                'secondaryLink' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter secondary button link',
+                    'default' => '#demo'
+                ],
+                'buttonLinkIcon' => [
+                    'type' => 'boolean',
+                    'prompt' => 'Show button link icon? (yes/no)',
+                    'default' => true
+                ],
+                'secondaryIcon' => [
+                    'type' => 'boolean',
+                    'prompt' => 'Show secondary icon? (yes/no)',
+                    'default' => true
                 ]
             ],
             'slideshow' => [
@@ -397,7 +397,6 @@ class SectionCommand extends Command
     {
         $dataVarName = Str::camel($name) . 'Data';
         
-        // Start template with props
         $template = <<<BLADE
 @props([
     'class' => ''
@@ -412,10 +411,9 @@ BLADE;
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $arrayStr = $this->arrayToPhpString($value, 1);
-                // Ensure the array string is properly formatted
                 $template .= "    '{$key}' => " . $arrayStr . ",\n";
             } else {
-                $template .= "    '{$key}' => '" . addslashes($value) . "',\n";
+                $template .= "    '{$key}' => " . var_export($value, true) . ",\n";
             }
         }
 
@@ -424,16 +422,15 @@ BLADE;
 @endphp
 
 <div class="{{ \$class }}">
-    <x-{$componentName}
-
+    <x-bonsai-hero
 BLADE;
 
         // Add props
         foreach ($data as $key => $value) {
-            $template .= "        :{$key}=\"\${$dataVarName}['{$key}']\"\n";
+            $template .= "\n        :{$key}=\"\${$dataVarName}['{$key}']\"";
         }
 
-        $template .= "    />\n</div>\n";
+        $template .= "\n    />\n</div>\n";
 
         return $template;
     }
