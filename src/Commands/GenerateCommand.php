@@ -156,49 +156,31 @@ BLADE;
     {
         $this->info('Generating sections...');
         
-        // Get the template name and config
+        // Set the template name in environment for SectionCommand
         $template = $this->argument('template');
-        $configPath = $this->option('config') ?? $this->getConfigPath($template);
-        $config = $this->loadConfig($configPath);
+        putenv("BONSAI_TEMPLATE={$template}");
         
         foreach ($sections as $section => $config) {
             try {
                 $this->info("Creating section: {$section}");
-                $this->info("Component: " . ($config['component'] ?? $section));
-                
-                // Get the component type
                 $componentType = $config['component'] ?? $section;
                 
-                // Get the schema data
-                $params = [
-                    'name' => $section,
-                    '--component' => $componentType,
-                ];
-
-                // Debug data
+                // Pass data directly to section command
                 if (isset($config['data'])) {
-                    $this->info("Section data found. Processing...");
-                    
-                    // If this is a header component, update the siteName to match the template name
-                    if ($componentType === 'header' && isset($config['data']['siteName'])) {
-                        $templateName = $this->loadConfig($configPath)['name'] ?? 'Bonsai';
-                        $config['data']['siteName'] = $templateName;
-                        $this->info("Updated header siteName to: {$templateName}");
-                    }
-                    
-                    // Pass data directly to section command by setting environment variables
                     foreach ($config['data'] as $key => $value) {
                         if (is_array($value)) {
                             putenv("BONSAI_DATA_{$key}=" . json_encode($value));
-                            $this->info("Setting array data for {$key}");
                         } else {
                             putenv("BONSAI_DATA_{$key}={$value}");
-                            $this->info("Setting string data for {$key}: {$value}");
                         }
                     }
                 }
 
-                $this->call('bonsai:section', $params);
+                $this->call('bonsai:section', [
+                    'name' => $section,
+                    '--component' => $componentType,
+                    '--default' => true
+                ]);
                 
                 // Clear environment variables
                 if (isset($config['data'])) {
@@ -207,19 +189,13 @@ BLADE;
                     }
                 }
                 
-                // Verify section was created
-                $sectionPath = resource_path("views/bonsai/sections/{$section}.blade.php");
-                if (file_exists($sectionPath)) {
-                    $this->info("Section file created: {$sectionPath}");
-                } else {
-                    $this->error("Section file not created: {$sectionPath}");
-                }
-                
             } catch (\Exception $e) {
                 $this->error("Failed to generate section '{$section}': " . $e->getMessage());
-                $this->error($e->getTraceAsString());
             }
         }
+        
+        // Clear template from environment
+        putenv("BONSAI_TEMPLATE");
     }
 
     protected function generateLayouts($layouts)

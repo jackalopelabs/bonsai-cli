@@ -5,6 +5,7 @@ namespace JackalopeLabs\BonsaiCli\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Illuminate\Filesystem\Filesystem;
+use Symfony\Component\Yaml\Yaml;
 
 class SectionCommand extends Command
 {
@@ -47,98 +48,51 @@ class SectionCommand extends Command
 
     protected function getComponentSchema($componentName)
     {
-        $schemas = [
-            'hero' => [
-                'title' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter hero title',
-                    'default' => 'Welcome to Cypress'
-                ],
-                'subtitle' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter hero subtitle',
-                    'default' => 'Modern Solutions for Modern Businesses'
-                ],
-                'description' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter hero description',
-                    'default' => 'A modern web testing tool for modern applications'
-                ],
-                'imagePaths' => [
-                    'type' => 'array',
-                    'prompt' => 'Enter image paths (comma-separated)',
-                    'default' => ['https://placehold.co/600x400/png']
-                ],
-                'buttonText' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter primary button text',
-                    'default' => 'Get Started'
-                ],
-                'buttonLink' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter primary button link',
-                    'default' => '#contact'
-                ],
-                'secondaryText' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter secondary button text',
-                    'default' => 'Watch Demo'
-                ],
-                'secondaryLink' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter secondary button link',
-                    'default' => '#demo'
-                ],
-                'buttonLinkIcon' => [
-                    'type' => 'boolean',
-                    'prompt' => 'Show button link icon? (yes/no)',
-                    'default' => true
-                ],
-                'secondaryIcon' => [
-                    'type' => 'boolean',
-                    'prompt' => 'Show secondary icon? (yes/no)',
-                    'default' => true
-                ]
+        // Get the template name from the environment
+        $template = getenv('BONSAI_TEMPLATE') ?: 'bonsai';
+        
+        // Get the template configuration
+        $configPath = base_path("config/templates/{$template}.yml");
+        if (!file_exists($configPath)) {
+            $configPath = __DIR__ . "/../../config/templates/{$template}.yml";
+        }
+
+        try {
+            $config = Yaml::parseFile($configPath);
+            
+            // Get the section configuration from the template
+            $sections = $config['sections'] ?? [];
+            foreach ($sections as $sectionName => $sectionConfig) {
+                if ($sectionConfig['component'] === $componentName) {
+                    // Convert section data into schema format
+                    $schema = [];
+                    foreach ($sectionConfig['data'] as $key => $value) {
+                        $schema[$key] = [
+                            'type' => is_array($value) ? 'array' : 'string',
+                            'prompt' => "Enter {$key}",
+                            'default' => $value
+                        ];
+                    }
+                    return $schema;
+                }
+            }
+        } catch (\Exception $e) {
+            $this->error("Error loading template configuration: " . $e->getMessage());
+        }
+
+        // Fallback to basic schema if no template config found
+        return [
+            'title' => [
+                'type' => 'string',
+                'prompt' => 'Enter title',
+                'default' => 'Default Title'
             ],
-            'header' => [
-                'siteName' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter site name',
-                    'default' => 'Cypress'
-                ],
-                'iconComponent' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter icon component name',
-                    'default' => 'icon-bonsai'
-                ],
-                'navLinks' => [
-                    'type' => 'array',
-                    'prompt' => 'How many navigation links?',
-                    'default' => [
-                        ['url' => '#features', 'label' => 'Features'],
-                        ['url' => '#pricing', 'label' => 'Pricing'],
-                        ['url' => '#faq', 'label' => 'FAQ'],
-                    ]
-                ],
-                'primaryLink' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter primary link URL',
-                    'default' => '#signup'
-                ],
-                'containerClasses' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter container classes',
-                    'default' => 'max-w-5xl mx-auto'
-                ],
-                'containerInnerClasses' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter inner container classes',
-                    'default' => 'px-6'
-                ]
+            'description' => [
+                'type' => 'string',
+                'prompt' => 'Enter description',
+                'default' => 'Default description'
             ]
         ];
-
-        return $schemas[$componentName] ?? [];
     }
 
 
@@ -309,32 +263,33 @@ BLADE;
             return 1;
         }
 
-        // If using defaults, skip prompts and use default values
-        if ($useDefault) {
-            $data = $this->getDefaultData($schema);
-        } else {
-            // Check for data in environment variables
-            $data = [];
-            foreach ($schema as $key => $field) {
-                $envKey = "BONSAI_DATA_{$key}";
-                $envValue = getenv($envKey);
-                
-                if ($envValue !== false) {
-                    if ($field['type'] === 'array' || $field['type'] === 'object') {
-                        $data[$key] = json_decode($envValue, true);
-                    } else {
-                        $data[$key] = $envValue;
-                    }
-                    continue;
+        // Get data from environment variables first
+        $data = [];
+        foreach ($schema as $key => $field) {
+            $envKey = "BONSAI_DATA_{$key}";
+            $envValue = getenv($envKey);
+            
+            if ($envValue !== false) {
+                if ($field['type'] === 'array') {
+                    $decoded = json_decode($envValue, true);
+                    $data[$key] = $decoded !== null ? $decoded : $field['default'];
+                } else {
+                    $data[$key] = $envValue;
                 }
-                
-                // If no environment variable, use prompt
-                $this->info("No pre-configured data found for {$key}, prompting...");
-            }
-
-            // If no data was found in environment variables, prompt for it
-            if (empty($data)) {
-                $data = $this->promptForData($schema);
+                $this->info("Using environment data for {$key}: {$envValue}");
+            } else {
+                // If no environment variable and using defaults, use schema default
+                if ($useDefault) {
+                    $data[$key] = $field['default'];
+                    $this->info("Using default value for {$key}");
+                } else {
+                    // If not using defaults and no env var, prompt for input
+                    if ($field['type'] === 'array') {
+                        $data[$key] = $field['default']; // For arrays, use default if no env var
+                    } else {
+                        $data[$key] = $this->ask($field['prompt'], $field['default']);
+                    }
+                }
             }
         }
 
