@@ -31,8 +31,8 @@ layouts:
 pages:
   cypress:
     title: "Cypress"
-    layout: main
-    template: "template-bonsai-cypress"
+    layout: app
+    template: "template-cypress"
     is_homepage: true
     meta:
       description: "Welcome to Cypress - Modern Web Testing"
