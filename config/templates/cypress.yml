@@ -11,7 +11,7 @@ sections:
     component: header
     data:
       siteName: "Cypress"
-      iconComponent: "icon-bonsai"
+      iconComponent: "heroicon-o-cube-transparent"
       navLinks: [
         {"url": "#features", "label": "Features"},
         {"url": "#pricing", "label": "Pricing"},
