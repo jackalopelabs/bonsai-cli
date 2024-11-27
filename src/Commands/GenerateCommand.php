@@ -248,34 +248,19 @@ BLADE;
                 
                 $params = [
                     'title' => $title,
+                    '--layout' => $config['layout'] ?? 'default',
                 ];
 
-                if (isset($config['layout'])) {
-                    $params['--layout'] = $config['layout'];
-                }
-
-                if (isset($config['template'])) {
-                    $params['--page-template'] = $config['template'];
-                }
-
                 // Create the page
-                $result = $this->call('bonsai:page', $params);
+                $this->call('bonsai:page', $params);
 
                 // Set as homepage if specified
                 if (isset($config['is_homepage']) && $config['is_homepage']) {
-                    $this->info("Setting '{$title}' as static homepage...");
-                    
-                    // Get the page ID
-                    $page = get_page_by_title($title);
-                    
+                    $page = get_page_by_path($slug);
                     if ($page) {
-                        // Set "Static Page" option
                         update_option('show_on_front', 'page');
                         update_option('page_on_front', $page->ID);
-                        
-                        $this->info("Successfully set '{$title}' as homepage");
-                    } else {
-                        $this->warn("Could not find page '{$title}' to set as homepage");
+                        $this->info("Set '{$title}' as static homepage");
                     }
                 }
 

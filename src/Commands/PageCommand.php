@@ -67,7 +67,7 @@ class PageCommand extends Command
             'post_status'  => 'publish',
             'post_type'    => 'page',
             'meta_input'   => [
-                '_wp_page_template' => $templateName
+                '_wp_page_template' => "template-{$slug}.blade.php"
             ],
         ];
 
@@ -83,23 +83,30 @@ class PageCommand extends Command
             }
             $this->info("Page '{$title}' created with ID: {$pageId}");
         }
+
+        // Set as homepage if specified in config
+        if ($slug === 'cypress') {
+            update_option('show_on_front', 'page');
+            update_option('page_on_front', $pageId);
+            $this->info("Set '{$title}' as static homepage");
+        }
     }
 
     protected function getTemplateStubContent($layout, $slug)
     {
         // If this is the cypress template, use the specific layout
         if ($slug === 'cypress') {
-            // First, ensure the cypress layout exists
-            $this->call('bonsai:layout', [
-                'name' => 'cypress',
-                '--sections' => 'home_hero,features,services_faq'
-            ]);
-
             return <<<BLADE
 {{--
-    Template Name: Cypress Layout Template
+    Template Name: Cypress Template
 --}}
 @extends('bonsai.layouts.cypress')
+
+@section('content')
+    @include('bonsai.sections.home_hero')
+    @include('bonsai.sections.features')
+    @include('bonsai.sections.services_faq')
+@endsection
 BLADE;
         }
 
