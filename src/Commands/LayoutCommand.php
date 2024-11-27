@@ -58,27 +58,25 @@ class LayoutCommand extends Command
         @include('utils.styles')
     </head>
 
-    <body @php(body_class()) x-data="{ openModal: false }" @open-modal.window="openModal = true; $nextTick(() => window.scrollToSection($event.detail.sectionId))" @close-modal.window="openModal = false">
+    <body @php(body_class('bg-gray-100'))>
         @php(wp_body_open())
-    
-        <div x-cloak x-data="{ openModal: false }" @open-modal.window="openModal = true; $nextTick(() => window.scrollToSection($event.detail.sectionId))" @close-modal.window="openModal = false">
-            <div id="app">
-                <a class="sr-only focus:not-sr-only" href="#main">
-                    {{ __('Skip to content') }}
-                </a>
-        
-                @include('sections.header')
-        
-                <div id="main" class="max-w-5xl mx-auto">
-                    <div class="{{ \$containerInnerClasses }}">
-                        <h1>Cypress Layout</h1>
-                    </div>
+
+        <div id="app">
+            <a class="sr-only focus:not-sr-only" href="#main">
+                {{ __('Skip to content', 'radicle') }}
+            </a>
+
+            @include('sections.header')
+
+            <main id="main" class="max-w-5xl mx-auto">
+                <div class="{{ \$containerInnerClasses }}">
+                    @yield('content')
                 </div>
-        
-                @include('sections.footer')
-            </div>
-        </div>    
-    
+            </main>
+
+            @include('sections.footer')
+        </div>
+
         @php(do_action('get_footer'))
         @php(wp_footer())
         @include('utils.scripts')
