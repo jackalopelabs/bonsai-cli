@@ -376,6 +376,17 @@ BLADE;
         $currentTemplate = get_option('template');
         $currentStylesheet = get_option('stylesheet');
     
+        // Get the template name and config
+        $template = $this->argument('template');
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
+    
+        // Update site name based on template configuration
+        if (isset($config['name'])) {
+            update_option('blogname', $config['name']);
+            $this->info("Updated site name to: {$config['name']}");
+        }
+    
         // WordPress options
         foreach ($settings['options'] ?? [] as $option => $value) {
             // Skip theme-related settings
