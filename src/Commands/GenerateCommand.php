@@ -232,6 +232,18 @@ BLADE;
                     $params['--layout'] = $config['layout'];
                 }
 
+                // Add template parameter if specified
+                if (isset($config['template'])) {
+                    $params['--template'] = $config['template'];
+                }
+
+                // Add meta parameters if specified
+                if (isset($config['meta'])) {
+                    foreach ($config['meta'] as $key => $value) {
+                        $params["--meta-{$key}"] = $value;
+                    }
+                }
+
                 $this->call('bonsai:page', $params);
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate page '{$page}': " . $e->getMessage());
