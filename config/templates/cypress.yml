@@ -12,14 +12,13 @@ sections:
       title: "Welcome to Cypress"
       subtitle: "Modern Solutions for Modern Businesses"
       description: "A modern web testing tool for modern applications"
-      imagePath: "images/hero-main.jpg"
-      l1: "Streamlined Workflow"
-      l2: "Enhanced Productivity"
-      l3: "Data-Driven Insights"
-      l4: "24/7 Support"
-      primaryText: "Get Started"
-      primaryLink: "#contact"
+      imagePaths: ["images/hero-main.jpg"]
+      buttonText: "Get Started"
+      buttonLink: "#contact"
       secondaryText: "Watch Demo"
+      secondaryLink: "#demo"
+      buttonLinkIcon: true
+      secondaryIcon: true
 
 layouts:
   cypress:

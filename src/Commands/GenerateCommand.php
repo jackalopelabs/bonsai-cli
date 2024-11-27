@@ -254,29 +254,71 @@ BLADE;
         foreach ($pages as $slug => $config) {
             try {
                 $title = $config['title'] ?? Str::title($slug);
+                $layout = $config['layout'] ?? 'default';
                 
-                $params = [
-                    'title' => $title,
-                    '--layout' => $config['layout'] ?? 'default',
-                ];
+                // Create template file
+                $templatePath = resource_path("views/template-{$slug}.blade.php");
+                $templateContent = $this->getTemplateContent($slug, $layout);
+                $this->files->put($templatePath, $templateContent);
+                $this->info("Template file created at: {$templatePath}");
 
-                // Create the page
-                $this->call('bonsai:page', $params);
+                // Create or update the page
+                $pageId = wp_insert_post([
+                    'post_title'   => $title,
+                    'post_name'    => $slug,
+                    'post_status'  => 'publish',
+                    'post_type'    => 'page',
+                    'meta_input'   => [
+                        '_wp_page_template' => "template-{$slug}.blade.php",
+                    ],
+                ]);
+
+                if (is_wp_error($pageId)) {
+                    throw new \Exception("Failed to create page: " . $pageId->get_error_message());
+                }
+
+                $this->info("Page '{$title}' updated with ID: {$pageId}");
 
                 // Set as homepage if specified
                 if (isset($config['is_homepage']) && $config['is_homepage']) {
-                    $page = get_page_by_path($slug);
-                    if ($page) {
-                        update_option('show_on_front', 'page');
-                        update_option('page_on_front', $page->ID);
-                        $this->info("Set '{$title}' as static homepage");
-                    }
+                    update_option('show_on_front', 'page');
+                    update_option('page_on_front', $pageId);
+                    $this->info("Set '{$title}' as static homepage");
                 }
 
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate page '{$slug}': " . $e->getMessage());
             }
         }
+    }
+
+    protected function getTemplateContent($slug, $layout)
+    {
+        // For cypress template, only include home_hero section
+        if ($slug === 'cypress') {
+            return <<<BLADE
+{{--
+    Template Name: Cypress Template
+--}}
+@extends('bonsai.layouts.cypress')
+
+@section('content')
+    @include('bonsai.sections.home_hero')
+@endsection
+BLADE;
+        }
+
+        // For other templates
+        return <<<BLADE
+{{--
+    Template Name: {$layout} Template
+--}}
+@extends('bonsai.layouts.{$layout}')
+
+@section('content')
+    {{-- Add sections here --}}
+@endsection
+BLADE;
     }
 
     protected function generateDatabase($database)
