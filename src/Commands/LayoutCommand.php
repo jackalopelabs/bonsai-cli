@@ -105,6 +105,12 @@ BLADE;
 
     protected function getLayoutStubContent($name, $sections)
     {
+        // If this is the cypress layout, use the specific template
+        if ($name === 'cypress') {
+            return $this->getCypressLayoutContent();
+        }
+
+        // For other layouts, use the default template
         $sectionIncludes = collect($sections)
             ->map(fn($section) => "@include('bonsai.sections.{$section}')")
             ->implode("\n        ");

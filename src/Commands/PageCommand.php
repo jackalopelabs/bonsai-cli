@@ -89,6 +89,12 @@ class PageCommand extends Command
     {
         // If this is the cypress template, use the specific layout
         if ($slug === 'cypress') {
+            // First, ensure the cypress layout exists
+            $this->call('bonsai:layout', [
+                'name' => 'cypress',
+                '--sections' => 'home_hero,features,services_faq'
+            ]);
+
             return <<<BLADE
 {{--
     Template Name: Cypress Layout Template
