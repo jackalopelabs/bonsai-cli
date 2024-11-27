@@ -21,6 +21,7 @@ class CleanupCommand extends Command
         'resources/views/template-bonsai-*.blade.php',
         'resources/views/templates/template-bonsai-*.blade.php',
         'resources/views/template-components.blade.php',
+        'resources/views/template-cypress.blade.php',
     ];
 
     public function handle()
