@@ -155,6 +155,12 @@ BLADE;
     protected function generateSections($sections)
     {
         $this->info('Generating sections...');
+        
+        // Get the template name and config
+        $template = $this->argument('template');
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
+        
         foreach ($sections as $section => $config) {
             try {
                 $this->info("Creating section: {$section}");
@@ -172,6 +178,13 @@ BLADE;
                 // Debug data
                 if (isset($config['data'])) {
                     $this->info("Section data found. Processing...");
+                    
+                    // If this is a header component, update the siteName to match the template name
+                    if ($componentType === 'header' && isset($config['data']['siteName'])) {
+                        $templateName = $this->loadConfig($configPath)['name'] ?? 'Bonsai';
+                        $config['data']['siteName'] = $templateName;
+                        $this->info("Updated header siteName to: {$templateName}");
+                    }
                     
                     // Pass data directly to section command by setting environment variables
                     foreach ($config['data'] as $key => $value) {
