@@ -26,6 +26,9 @@ class LayoutCommand extends Command
         // Ensure the layouts directory exists
         $this->files->ensureDirectoryExists(resource_path('views/bonsai/layouts'));
 
+        // Create app.blade.php if it doesn't exist
+        $this->ensureBonsaiAppLayoutExists();
+
         if ($this->files->exists($layoutPath)) {
             $this->error("Layout {$name} already exists at {$layoutPath}");
             return;
@@ -39,6 +42,57 @@ class LayoutCommand extends Command
         $this->files->put($layoutPath, $stubContent);
 
         $this->info("Layout {$name} created at {$layoutPath}");
+    }
+
+    protected function ensureBonsaiAppLayoutExists()
+    {
+        $appLayoutPath = resource_path('views/bonsai/layouts/app.blade.php');
+        
+        if (!$this->files->exists($appLayoutPath)) {
+            $appLayoutContent = $this->getBonsaiAppLayoutContent();
+            $this->files->put($appLayoutPath, $appLayoutContent);
+            $this->info('Created Bonsai app layout at ' . $appLayoutPath);
+        }
+    }
+
+    protected function getBonsaiAppLayoutContent()
+    {
+        return <<<'BLADE'
+<!doctype html>
+<html @php(language_attributes())>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        @php(do_action('get_header'))
+        @php(wp_head())
+        @include('utils.styles')
+    </head>
+
+    <body @php(body_class('h-full bg-gray-100'))>
+        @php(wp_body_open())
+
+        <div id="app">
+            <a class="sr-only focus:not-sr-only" href="#main">
+                {{ __('Skip to content', 'radicle') }}
+            </a>
+
+            @include('sections.header')
+
+            <main id="main" class="max-w-5xl mx-auto">
+                <div class="{{ $containerInnerClasses ?? '' }}">
+                    @yield('content')
+                </div>
+            </main>
+
+            @include('sections.footer')
+        </div>
+
+        @php(do_action('get_footer'))
+        @php(wp_footer())
+        @include('utils.scripts')
+    </body>
+</html>
+BLADE;
     }
 
     protected function getSections()
@@ -69,7 +123,7 @@ class LayoutCommand extends Command
 
         return <<<BLADE
 {{-- Layout: {$name} --}}
-@extends('layouts.app')
+@extends('bonsai.layouts.app')
 
 @section('content')
     <div class="layout-{$name}">
