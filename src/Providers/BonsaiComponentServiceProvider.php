@@ -27,7 +27,15 @@ class BonsaiComponentServiceProvider extends ServiceProvider
             \Log::info("Components path: {$componentsPath}");
             
             if (is_dir($componentsPath)) {
-                Blade::loadComponentsAs('bonsai', $componentsPath);
+                // Register components with their full namespace
+                Blade::componentNamespace('App\\View\\Components\\Bonsai', 'bonsai');
+                
+                // Also register the view-based components
+                Blade::components([
+                    'bonsai.components.hero' => 'bonsai-hero',
+                    // Add other components as needed
+                ]);
+                
                 \Log::info('Successfully registered Bonsai components');
             } else {
                 \Log::warning("Components directory not found: {$componentsPath}");
