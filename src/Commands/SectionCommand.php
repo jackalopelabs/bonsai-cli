@@ -389,4 +389,49 @@ BLADE;
         }
         return $data;
     }
+
+    protected function generateHeaderSection($name)
+    {
+        // Get data from environment variables or use defaults
+        $siteName = getenv('BONSAI_DATA_siteName') ?: 'Cypress';
+        $iconComponent = getenv('BONSAI_DATA_iconComponent') ?: 'icon-bonsai';
+        $navLinks = json_decode(getenv('BONSAI_DATA_navLinks'), true) ?: [
+            ['url' => '#features', 'label' => 'Features'],
+            ['url' => '#pricing', 'label' => 'Pricing'],
+            ['url' => '#faq', 'label' => 'FAQ'],
+        ];
+        $primaryLink = getenv('BONSAI_DATA_primaryLink') ?: '#signup';
+        $containerClasses = getenv('BONSAI_DATA_containerClasses') ?: 'max-w-5xl mx-auto';
+        $containerInnerClasses = getenv('BONSAI_DATA_containerInnerClasses') ?: 'px-6';
+
+        $content = <<<BLADE
+@props([
+    'class' => ''
+])
+
+@php
+\$headerData = [
+    'siteName' => '{$siteName}',
+    'iconComponent' => '{$iconComponent}',
+    'navLinks' => {$this->arrayToPhpString($navLinks)},
+    'primaryLink' => '{$primaryLink}',
+    'containerClasses' => '{$containerClasses}',
+    'containerInnerClasses' => '{$containerInnerClasses}',
+];
+@endphp
+
+<div class="{{ \$class }}">
+    <x-bonsai-header
+        :siteName="\$headerData['siteName']"
+        :iconComponent="\$headerData['iconComponent']"
+        :navLinks="\$headerData['navLinks']"
+        :primaryLink="\$headerData['primaryLink']"
+        :containerClasses="\$headerData['containerClasses']"
+        :containerInnerClasses="\$headerData['containerInnerClasses']"
+    />
+</div>
+BLADE;
+
+        return $content;
+    }
 }
