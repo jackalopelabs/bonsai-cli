@@ -87,11 +87,10 @@ class GenerateCommand extends Command
                 $componentName = is_array($config) ? $component : $config;
                 $this->info("Installing component: {$componentName}");
 
-                // Check all possible locations for component template
+                // Check possible locations for component template
                 $possiblePaths = [
                     __DIR__ . "/../../templates/components/{$componentName}.blade.php",
-                    base_path("resources/views/components/{$componentName}.blade.php"),
-                    base_path("resources/views/components/bonsai/{$componentName}.blade.php")
+                    base_path("resources/views/bonsai/components/{$componentName}.blade.php")
                 ];
 
                 $templatePath = null;
@@ -108,13 +107,13 @@ class GenerateCommand extends Command
                     continue;
                 }
 
-                // Ensure the components directory exists
-                $targetDir = base_path("resources/views/components");
+                // Ensure the bonsai components directory exists
+                $targetDir = base_path("resources/views/bonsai/components");
                 if (!$this->files->exists($targetDir)) {
                     $this->files->makeDirectory($targetDir, 0755, true);
                 }
 
-                // Copy component to main components directory
+                // Copy component to bonsai components directory
                 $targetPath = "{$targetDir}/{$componentName}.blade.php";
                 $this->files->copy($templatePath, $targetPath);
                 $this->line("Component installed at: {$targetPath}");
@@ -127,7 +126,7 @@ class GenerateCommand extends Command
 
     protected function createBasicComponent($name)
     {
-        $targetPath = base_path("resources/views/components/{$name}.blade.php");
+        $targetPath = base_path("resources/views/bonsai/components/{$name}.blade.php");
         $content = <<<BLADE
 <div class="component-{$name}">
     <!-- Basic {$name} component -->
