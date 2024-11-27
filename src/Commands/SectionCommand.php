@@ -192,7 +192,10 @@ BLADE;
 
         // Handle each data field
         foreach ($data as $key => $value) {
-            if (is_array($value)) {
+            if ($key === 'iconMappings') {
+                // Special handling for icon mappings
+                $template .= "    '{$key}' => " . $this->arrayToPhpString($value, 1) . ",\n";
+            } elseif (is_array($value)) {
                 $arrayStr = $this->arrayToPhpString($value, 1);
                 $template .= "    '{$key}' => " . $arrayStr . ",\n";
             } else {
@@ -206,6 +209,7 @@ BLADE;
 
 <div class="{{ \$class }}">
     <x-bonsai-{$componentName}
+
 BLADE;
 
         // Add props
