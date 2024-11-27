@@ -222,15 +222,12 @@ BLADE;
     protected function generatePages($pages)
     {
         $this->info('Generating pages...');
-        foreach ($pages as $page => $config) {
+        foreach ($pages as $slug => $config) {
             try {
-                // Create params array for page creation
-                $title = $config['title'] ?? Str::title($page);
+                $title = $config['title'] ?? Str::title($slug);
                 
-                // Build command arguments
                 $params = [
-                    'name' => $page,
-                    '--title' => $title,
+                    'title' => $title,
                 ];
 
                 if (isset($config['layout'])) {
@@ -242,7 +239,7 @@ BLADE;
                 }
 
                 // Create the page
-                $this->call('bonsai:page', $params);
+                $result = $this->call('bonsai:page', $params);
 
                 // Set as homepage if specified
                 if (isset($config['is_homepage']) && $config['is_homepage']) {
@@ -263,7 +260,7 @@ BLADE;
                 }
 
             } catch (\Exception $e) {
-                $this->warn("Warning: Could not generate page '{$page}': " . $e->getMessage());
+                $this->warn("Warning: Could not generate page '{$slug}': " . $e->getMessage());
             }
         }
     }

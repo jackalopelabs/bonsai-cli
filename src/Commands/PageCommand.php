@@ -8,7 +8,7 @@ use Illuminate\Filesystem\Filesystem;
 
 class PageCommand extends Command
 {
-    protected $signature = 'bonsai:page {title} {--layout=}';
+    protected $signature = 'bonsai:page {title} {--layout=} {--page-template=}';
     protected $description = 'Create a new WordPress page with a custom template and layout';
 
     protected $files;
@@ -24,10 +24,11 @@ class PageCommand extends Command
     {
         $title = $this->argument('title');
         $layout = strtolower($this->option('layout') ?? 'default');
+        $pageTemplate = $this->option('page-template');
         $slug = strtolower(str_replace(' ', '-', $title));
 
-        // Create template
-        $templateName = $this->createTemplate($slug, $layout);
+        // Use provided template name or create new one
+        $templateName = $pageTemplate ?? $this->createTemplate($slug, $layout);
         
         // Create or update WordPress page
         $this->createOrUpdatePage($title, $slug, $templateName);
