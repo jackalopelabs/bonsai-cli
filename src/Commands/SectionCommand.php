@@ -534,9 +534,9 @@ BLADE;
             } elseif ($field['type'] === 'array') {
                 if ($key === 'faqs') {
                     $data[$key] = $this->getDefaultFaqs();
-                } else {
+                } elseif (isset($field['schema'])) {
+                    // Only process schema if it exists
                     $data[$key] = [];
-                    // Create default number of items
                     $count = $field['default'] ?? 3;
                     for ($i = 0; $i < $count; $i++) {
                         $item = [];
@@ -545,8 +545,13 @@ BLADE;
                         }
                         $data[$key][] = $item;
                     }
+                } else {
+                    // Handle arrays without schema
+                    $data[$key] = $field['default'] ?? [];
                 }
-            } elseif ($field['type'] === 'object') {
+            } elseif ($field['type'] === 'boolean') {
+                $data[$key] = $field['default'] ?? false;
+            } elseif ($field['type'] === 'object' && isset($field['schema'])) {
                 $data[$key] = [];
                 foreach ($field['schema'] as $subKey => $subField) {
                     $data[$key][$subKey] = $subField['default'] ?? '';
