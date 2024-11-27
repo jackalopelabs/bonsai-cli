@@ -250,34 +250,61 @@ YAML;
         $className = str_replace(['-', '_'], '', ucwords($componentName, '-_'));
         $classPath = app_path("View/Components/Bonsai/{$className}.php");
         
-        // Get component-specific properties
-        $props = $this->getComponentProperties($componentName);
+        // Debug info
+        $this->info("Creating component class: {$className}");
+        $this->info("Class path: {$classPath}");
         
         if (!$this->files->exists($classPath)) {
-            $constructorParams = $this->buildConstructorParams($props);
-            
             $content = <<<PHP
 <?php
 
 namespace App\View\Components\Bonsai;
 
-class {$className} extends BaseComponent
-{
-    public function __construct({$constructorParams})
-    {
-        // Constructor logic here if needed
-    }
+use Illuminate\View\Component;
 
+class {$className} extends Component
+{
+    /**
+     * Create a new component instance.
+     */
+    public function __construct(
+        public ?string \$title = null,
+        public ?string \$subtitle = null,
+        public ?string \$description = null,
+        public ?string \$imagePath = null,
+        public ?string \$l1 = null,
+        public ?string \$l2 = null,
+        public ?string \$l3 = null,
+        public ?string \$l4 = null,
+        public ?string \$primaryText = null,
+        public ?string \$primaryLink = null,
+        public ?string \$secondaryText = null,
+        public ?string \$secondaryLink = null
+    ) {}
+
+    /**
+     * Get the view / contents that represent the component.
+     */
     public function render()
     {
-        return view('bonsai.components.' . strtolower('{$componentName}'));
+        return view('bonsai.components.{$componentName}');
     }
 }
 PHP;
             
             try {
+                // Ensure directory exists
+                $dir = dirname($classPath);
+                if (!$this->files->isDirectory($dir)) {
+                    $this->files->makeDirectory($dir, 0755, true);
+                }
+
                 $this->files->put($classPath, $content);
-                $this->info("Created component class: {$classPath}");
+                $this->info("✓ Created component class: {$classPath}");
+                
+                // Debug - verify file contents
+                $this->info("File contents:");
+                $this->line($this->files->get($classPath));
             } catch (\Exception $e) {
                 $this->error("Failed to create component class: " . $e->getMessage());
                 throw $e;
@@ -324,8 +351,9 @@ PHP;
 
     protected function copyComponentTemplate($componentName)
     {
-        // Check possible locations for component template
+        // Update possible paths to include the package templates directory
         $possiblePaths = [
+            base_path("templates/components/{$componentName}.blade.php"),
             __DIR__ . "/../../templates/components/{$componentName}.blade.php",
             base_path("resources/views/bonsai/components/{$componentName}.blade.php")
         ];
@@ -334,18 +362,19 @@ PHP;
         foreach ($possiblePaths as $path) {
             if (file_exists($path)) {
                 $templatePath = $path;
+                $this->info("Found template at: {$path}");
                 break;
             }
         }
 
         if (!$templatePath) {
-            // Create a basic component if template not found
+            $this->warn("No template found for component: {$componentName}");
             $this->createBasicComponent($componentName);
             return;
         }
 
         // Ensure the bonsai components directory exists
-        $targetDir = base_path("resources/views/bonsai/components");
+        $targetDir = resource_path("views/bonsai/components");
         if (!$this->files->exists($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
         }
@@ -353,7 +382,7 @@ PHP;
         // Copy component to bonsai components directory
         $targetPath = "{$targetDir}/{$componentName}.blade.php";
         $this->files->copy($templatePath, $targetPath);
-        $this->line("Component template installed at: {$targetPath}");
+        $this->info("Component template installed at: {$targetPath}");
     }
 
     protected function createSections($useDefault = false)

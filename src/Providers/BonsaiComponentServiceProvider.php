@@ -18,7 +18,22 @@ class BonsaiComponentServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        // Register the Bonsai components directory
-        Blade::loadComponentsAs('', resource_path('views/bonsai/components'));
+        // Debug info
+        \Log::info('Booting BonsaiComponentServiceProvider');
+        
+        try {
+            // Register the Bonsai components directory
+            $componentsPath = resource_path('views/bonsai/components');
+            \Log::info("Components path: {$componentsPath}");
+            
+            if (is_dir($componentsPath)) {
+                Blade::loadComponentsAs('bonsai', $componentsPath);
+                \Log::info('Successfully registered Bonsai components');
+            } else {
+                \Log::warning("Components directory not found: {$componentsPath}");
+            }
+        } catch (\Exception $e) {
+            \Log::error("Error registering components: " . $e->getMessage());
+        }
     }
 } 

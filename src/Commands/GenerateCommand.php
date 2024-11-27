@@ -87,8 +87,9 @@ class GenerateCommand extends Command
                 $componentName = is_array($config) ? $component : $config;
                 $this->info("Installing component: {$componentName}");
 
-                // Check possible locations for component template
+                // Update possible paths to include the package templates directory
                 $possiblePaths = [
+                    base_path("templates/components/{$componentName}.blade.php"),
                     __DIR__ . "/../../templates/components/{$componentName}.blade.php",
                     base_path("resources/views/bonsai/components/{$componentName}.blade.php")
                 ];
@@ -97,18 +98,19 @@ class GenerateCommand extends Command
                 foreach ($possiblePaths as $path) {
                     if (file_exists($path)) {
                         $templatePath = $path;
+                        $this->info("Found template at: {$path}");
                         break;
                     }
                 }
 
                 if (!$templatePath) {
-                    // Create a basic component if template not found
+                    $this->warn("No template found for component: {$componentName}");
                     $this->createBasicComponent($componentName);
                     continue;
                 }
 
                 // Ensure the bonsai components directory exists
-                $targetDir = base_path("resources/views/bonsai/components");
+                $targetDir = resource_path("views/bonsai/components");
                 if (!$this->files->exists($targetDir)) {
                     $this->files->makeDirectory($targetDir, 0755, true);
                 }
