@@ -297,7 +297,7 @@ BLADE;
 
     protected function getTemplateContent($slug, $layout)
     {
-        // For cypress template, include both header and home_hero sections
+        // For cypress template, only include home_hero section
         if ($slug === 'cypress') {
             return <<<BLADE
 {{--
@@ -306,7 +306,6 @@ BLADE;
 @extends('bonsai.layouts.cypress')
 
 @section('content')
-    @include('bonsai.sections.header')
     @include('bonsai.sections.home_hero')
 @endsection
 BLADE;
