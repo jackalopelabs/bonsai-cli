@@ -10,7 +10,7 @@ sections:
   site_header:
     component: header
     data:
-      siteName: "Bonsai CLI"
+      siteName: "Bonsai"
       iconComponent: "heroicon-o-command-line"
       navLinks: [
         {"url": "#features", "label": "Features"},
@@ -24,7 +24,7 @@ sections:
   home_hero:
     component: hero
     data:
-      title: "Welcome to Bonsai CLI"
+      title: "Bonsai-CLI"
       subtitle: "WordPress Component Management"
       description: "A WordPress CLI tool for generating and managing reusable components in Roots-based projects"
       imagePaths: ["https://placehold.co/600x400/png"]

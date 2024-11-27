@@ -1,7 +1,7 @@
 {{-- bonsai-cli/templates/components/hero.blade.php --}}
 @props([
     'product' => null, 
-    'titleClass' => 'text-4xl font-bold mb-4',
+    'titleClass' => 'font-semibold text-6xl',
     'title' => null,
     'subtitle' => null,
     'description' => null,
