@@ -12,14 +12,15 @@ class CleanupCommand extends Command
     protected $description = 'Clean up all Bonsai-generated content and start fresh';
 
     protected $generatedPaths = [
-        'resources/views/bonsai/components',
-        'resources/views/bonsai/sections',
-        'resources/views/bonsai/layouts',
+        'resources/views/bonsai',
+        'config/bonsai',
+        'app/View/Components/Bonsai',
     ];
 
     protected $templatePatterns = [
         'resources/views/template-bonsai-*.blade.php',
-        'resources/views/templates/template-bonsai-*.blade.php'
+        'resources/views/templates/template-bonsai-*.blade.php',
+        'resources/views/template-components.blade.php',
     ];
 
     public function handle()
@@ -42,54 +43,28 @@ class CleanupCommand extends Command
     {
         $this->info('Cleaning up generated files...');
         
-        // First clean up individual files in bonsai directories
-        $this->cleanupBonsaiFiles();
-        
-        // Then remove empty directories
+        // Remove entire directories
         foreach ($this->generatedPaths as $path) {
             $fullPath = base_path($path);
             
             if (File::exists($fullPath)) {
                 try {
-                    if ($this->isDirectoryEmpty($fullPath)) {
-                        File::deleteDirectory($fullPath);
-                        $this->line("- Removed empty directory: {$path}");
-                    }
+                    File::deleteDirectory($fullPath);
+                    $this->line("- Removed directory: {$path}");
                 } catch (\Exception $e) {
                     $this->error("Failed to remove {$path}: " . $e->getMessage());
                 }
             }
         }
 
-        // Try to remove parent bonsai directory if empty
-        $bonsaiDir = base_path('resources/views/bonsai');
-        if (File::exists($bonsaiDir) && $this->isDirectoryEmpty($bonsaiDir)) {
+        // Remove BaseComponent.php if it exists
+        $baseComponentPath = base_path('app/View/Components/Bonsai/BaseComponent.php');
+        if (File::exists($baseComponentPath)) {
             try {
-                File::deleteDirectory($bonsaiDir);
-                $this->line("- Removed empty bonsai directory");
+                File::delete($baseComponentPath);
+                $this->line("- Removed BaseComponent.php");
             } catch (\Exception $e) {
-                $this->error("Failed to remove bonsai directory: " . $e->getMessage());
-            }
-        }
-    }
-
-    protected function cleanupBonsaiFiles()
-    {
-        // Clean up sections
-        $sectionsPath = base_path('resources/views/bonsai/sections');
-        if (File::exists($sectionsPath)) {
-            foreach (File::glob("{$sectionsPath}/*.blade.php") as $file) {
-                File::delete($file);
-                $this->line("- Removed section: " . basename($file));
-            }
-        }
-
-        // Clean up layouts
-        $layoutsPath = base_path('resources/views/bonsai/layouts');
-        if (File::exists($layoutsPath)) {
-            foreach (File::glob("{$layoutsPath}/*.blade.php") as $file) {
-                File::delete($file);
-                $this->line("- Removed layout: " . basename($file));
+                $this->error("Failed to remove BaseComponent.php: " . $e->getMessage());
             }
         }
     }
