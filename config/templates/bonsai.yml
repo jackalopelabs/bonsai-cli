@@ -10,7 +10,7 @@ sections:
   site_header:
     component: header
     data:
-      siteName: "🌳 Bonsai CLI"
+      siteName: "Bonsai CLI"
       iconComponent: "heroicon-o-command-line"
       navLinks: [
         {"url": "#features", "label": "Features"},
