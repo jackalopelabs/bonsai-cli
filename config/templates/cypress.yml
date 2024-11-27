@@ -6,7 +6,7 @@ version: 0.0.1
 components:
   - hero
   - header
-  - features
+  - card
   - pricing
   - faq
   - footer
@@ -51,6 +51,34 @@ sections:
       classes:
         wrapper: "py-20 bg-gradient-to-r from-primary to-secondary"
         content: "container mx-auto px-4"
+  
+  features_card:
+    component: card
+    data:
+      sectionId: "features"
+      sectionTitle: "Features"
+      navLinks: [
+        {"url": "#pricing", "label": "Pricing"},
+        {"url": "#faq", "label": "FAQ"}
+      ]
+      featureItems: [
+        {
+          "icon": "heroicon-o-cube",
+          "title": "Design System",
+          "description": "Beautiful design system ready out of the box."
+        },
+        {
+          "icon": "heroicon-o-puzzle-piece",
+          "title": "Components & Blocks",
+          "description": "Ready-to-use components and blocks for rapid development."
+        },
+        {
+          "icon": "heroicon-o-credit-card",
+          "title": "Payment Processing",
+          "description": "Membership and subscription functionality built-in."
+        }
+      ]
+      image: "icon-flowchart"
 
 # Define layouts that combine sections
 layouts:
@@ -58,6 +86,7 @@ layouts:
     sections:
       - site_header
       - home_hero
+      - features_card
 
 # Define WordPress pages
 pages:

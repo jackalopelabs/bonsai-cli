@@ -240,28 +240,29 @@ BLADE;
     protected function generatePages($pages)
     {
         $this->info('Generating pages...');
+        
+        // Get the template name
+        $template = $this->argument('template');
+        
         foreach ($pages as $slug => $config) {
             try {
                 $title = $config['title'] ?? Str::title($slug);
                 $layout = $config['layout'] ?? 'default';
                 
-                // Determine the template name - use 'cypress' for the homepage
-                $templateSlug = ($config['is_homepage'] ?? false) ? 'cypress' : $slug;
-                
                 // Create template file
-                $templatePath = resource_path("views/template-{$templateSlug}.blade.php");
-                $templateContent = $this->getTemplateContent($templateSlug, $layout);
+                $templatePath = resource_path("views/template-{$template}.blade.php");
+                $templateContent = $this->generateTemplateContent($template, $layout, $config);
                 $this->files->put($templatePath, $templateContent);
                 $this->info("Template file created at: {$templatePath}");
 
-                // Create or update the page
+                // Create or update the page in WordPress
                 $pageId = wp_insert_post([
                     'post_title'   => $title,
                     'post_name'    => $slug,
                     'post_status'  => 'publish',
                     'post_type'    => 'page',
                     'meta_input'   => [
-                        '_wp_page_template' => "template-{$templateSlug}.blade.php",
+                        '_wp_page_template' => "template-{$template}.blade.php",
                     ],
                 ]);
 
@@ -269,7 +270,7 @@ BLADE;
                     throw new \Exception("Failed to create page: " . $pageId->get_error_message());
                 }
 
-                $this->info("Page '{$title}' updated with ID: {$pageId}");
+                $this->info("Page '{$title}' created with ID: {$pageId}");
 
                 // Set as homepage if specified
                 if (isset($config['is_homepage']) && $config['is_homepage']) {
@@ -284,33 +285,37 @@ BLADE;
         }
     }
 
-    protected function getTemplateContent($slug, $layout)
+    protected function generateTemplateContent($template, $layout, $config)
     {
-        // For cypress template, only include home_hero section
-        if ($slug === 'cypress') {
-            return <<<BLADE
-{{--
-    Template Name: Cypress Template
---}}
-@extends('bonsai.layouts.cypress')
+        // Get layout sections from configuration
+        $layoutSections = $this->getLayoutSections($layout);
+        
+        // Generate section includes
+        $sectionIncludes = collect($layoutSections)
+            ->map(fn($section) => "@include('bonsai.sections.{$section}')")
+            ->implode("\n    ");
 
-@section('content')
-    @include('bonsai.sections.home_hero')
-@endsection
-BLADE;
-        }
-
-        // For other templates...
         return <<<BLADE
 {{--
-    Template Name: {$layout} Template
+    Template Name: {$template} Template
 --}}
-@extends('bonsai.layouts.{$layout}')
+@extends('layouts.app')
 
 @section('content')
-    {{-- Add sections here --}}
+    {$sectionIncludes}
 @endsection
 BLADE;
+    }
+
+    protected function getLayoutSections($layoutName)
+    {
+        // Get the template name and config
+        $template = $this->argument('template');
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
+        
+        // Get sections from the layout configuration
+        return $config['layouts'][$layoutName]['sections'] ?? [];
     }
 
     protected function generateDatabase($database)

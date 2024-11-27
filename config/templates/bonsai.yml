@@ -5,6 +5,7 @@ version: 0.0.1
 components:
   - hero
   - header
+  - card
 
 sections:
   site_header:
@@ -38,11 +39,40 @@ sections:
         dropdownIcon: "heroicon-s-chevron-down"
         buttonLinkIcon: "heroicon-s-arrow-down-tray"
         secondaryIcon: "heroicon-s-arrow-right"
+  
+  services_card:
+    component: card
+    data:
+      sectionId: "services"
+      sectionTitle: "<span class=\"hidden sm:inline\">Our</span> Services"
+      navLinks: [
+        {"url": "#features", "label": "Features"},
+        {"url": "#docs", "label": "Documentation"}
+      ]
+      featureItems: [
+        {
+          "icon": "heroicon-o-command-line",
+          "title": "Component Generation",
+          "description": "Generate reusable components with a single command."
+        },
+        {
+          "icon": "heroicon-o-puzzle-piece",
+          "title": "Section Builder",
+          "description": "Create and manage page sections with dynamic data."
+        },
+        {
+          "icon": "heroicon-o-template",
+          "title": "Template System",
+          "description": "Pre-built templates for rapid WordPress development."
+        }
+      ]
 
 layouts:
   bonsai:
     sections:
+      - site_header
       - home_hero
+      - services_card
 
 pages:
   home:
