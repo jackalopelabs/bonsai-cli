@@ -70,29 +70,13 @@ class LayoutCommand extends Command
                 @include('sections.header')
         
                 <div id="main" class="max-w-5xl mx-auto">
-                    <div class="{{ $containerInnerClasses ?? '' }}">
-                        @include('bonsai.sections.home_hero')
-                        @include('bonsai.sections.features')
-                        @include('bonsai.sections.services_faq')
+                    <div class="{{ \$containerInnerClasses }}">
+                        <h1>Cypress Layout</h1>
                     </div>
                 </div>
         
-                <div class="max-w-5xl mx-auto">
-                    <div class="{{ $containerInnerClasses ?? '' }}">
-                        {{-- Additional sections can be added here --}}
-                    </div>
-                </div>
-        
-                <!-- Modal Include -->
-                <div x-cloak x-show="openModal">
-                    {{-- @include('layouts.modals') --}}
-                </div>
                 @include('sections.footer')
             </div>
-        
-            @php(do_action('get_footer'))
-            @php(wp_footer())
-            @include('utils.scripts')
         </div>    
     
         @php(do_action('get_footer'))

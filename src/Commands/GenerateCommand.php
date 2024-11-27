@@ -201,8 +201,27 @@ BLADE;
     protected function generateLayouts($layouts)
     {
         $this->info('Generating layouts...');
+        
+        // Get the template name
+        $template = $this->argument('template');
+        
+        // If this is the cypress template, ensure the cypress layout is created first
+        if ($template === 'cypress') {
+            $this->info('Creating cypress layout...');
+            $this->call('bonsai:layout', [
+                'name' => 'cypress',
+                '--sections' => 'home_hero,features,services_faq'
+            ]);
+        }
+
+        // Then process any additional layouts from the config
         foreach ($layouts as $layout => $config) {
             try {
+                // Skip cypress layout if it was already created
+                if ($template === 'cypress' && $layout === 'cypress') {
+                    continue;
+                }
+
                 $params = [
                     'name' => $layout
                 ];
