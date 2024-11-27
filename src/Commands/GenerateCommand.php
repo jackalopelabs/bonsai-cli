@@ -256,9 +256,12 @@ BLADE;
                 $title = $config['title'] ?? Str::title($slug);
                 $layout = $config['layout'] ?? 'default';
                 
+                // Determine the template name - use 'cypress' for the homepage
+                $templateSlug = ($config['is_homepage'] ?? false) ? 'cypress' : $slug;
+                
                 // Create template file
-                $templatePath = resource_path("views/template-{$slug}.blade.php");
-                $templateContent = $this->getTemplateContent($slug, $layout);
+                $templatePath = resource_path("views/template-{$templateSlug}.blade.php");
+                $templateContent = $this->getTemplateContent($templateSlug, $layout);
                 $this->files->put($templatePath, $templateContent);
                 $this->info("Template file created at: {$templatePath}");
 
@@ -269,7 +272,7 @@ BLADE;
                     'post_status'  => 'publish',
                     'post_type'    => 'page',
                     'meta_input'   => [
-                        '_wp_page_template' => "template-{$slug}.blade.php",
+                        '_wp_page_template' => "template-{$templateSlug}.blade.php",
                     ],
                 ]);
 
