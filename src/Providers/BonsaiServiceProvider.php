@@ -20,6 +20,8 @@ class BonsaiServiceProvider extends ServiceProvider
         $this->app->singleton(GenerateCommand::class);
         $this->app->singleton(CleanupCommand::class);
 
+        $this->app->register(BonsaiComponentServiceProvider::class);
+
         $this->commands([
             BonsaiInitCommand::class,
             ComponentCommand::class,

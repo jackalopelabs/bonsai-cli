@@ -42,34 +42,40 @@ class BonsaiInitCommand extends Command
         // Ask about configuration preference upfront
         $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
     
-        // Store the preference for use in other commands
-        if ($useDefault) {
-            $this->info('Using default configurations for all components...');
+        try {
+            // Step 1: Create required directories
+            $this->createDirectories();
+    
+            // Step 2: Setup component namespace and base class
+            $this->setupComponentNamespace();
+    
+            // Step 3: Install all components
+            $this->installComponents($useDefault);
+    
+            // Step 4: Create sections for components
+            $this->createSections($useDefault);
+    
+            // Step 5: Create layout
+            $this->createLayout();
+    
+            // Step 6: Create the Components page
+            $this->createComponentsPage();
+    
+            // Step 7: Setup local config directory
+            $this->setupLocalConfig();
+    
+            $this->info('🌳 Bonsai initialization completed successfully!');
+            $this->info("\nNext steps:");
+            $this->line(" 1. Create your site configuration in config/bonsai/");
+            $this->line(" 2. Run 'wp acorn bonsai:generate [template]' to generate your site");
+            $this->line(" 3. Available templates: cypress, jackalope (or create your own)");
+    
+        } catch (\Exception $e) {
+            $this->error("Initialization failed: " . $e->getMessage());
+            return 1;
         }
     
-        // Step 1: Create required directories
-        $this->createDirectories();
-    
-        // Step 2: Install all components
-        $this->installComponents($useDefault);
-    
-        // Step 3: Create sections for components
-        $this->createSections($useDefault);
-    
-        // Step 4: Create layout
-        $this->createLayout();
-    
-        // Step 5: Create the Components page
-        $this->createComponentsPage();
-    
-        // Step 6: Setup local config directory
-        $this->setupLocalConfig();
-    
-        $this->info('🌳 Bonsai initialization completed successfully!');
-        $this->info("\nNext steps:");
-        $this->line(" 1. Create your site configuration in config/bonsai/");
-        $this->line(" 2. Run 'wp acorn bonsai:generate [template]' to generate your site");
-        $this->line(" 3. Available templates: cypress, jackalope (or create your own)");
+        return 0;
     }
 
     protected function createDirectories()
@@ -221,12 +227,133 @@ YAML;
     protected function installComponents($useDefault = false)
     {
         $this->info('Installing components...');
+        
         foreach ($this->components as $component => $description) {
-            $this->call('bonsai:component', [
-                'name' => $component,
-                '--default' => $useDefault,  // Pass this flag to the component command
-            ]);
+            try {
+                $componentName = is_array($component) ? $component : $component;
+                $this->info("Installing component: {$componentName}");
+
+                // 1. Create the component class
+                $this->createComponentClass($componentName);
+
+                // 2. Copy the component template
+                $this->copyComponentTemplate($componentName);
+
+            } catch (\Exception $e) {
+                $this->warn("Warning: Could not generate component '{$componentName}': " . $e->getMessage());
+            }
         }
+    }
+
+    protected function createComponentClass($componentName)
+    {
+        $className = str_replace(['-', '_'], '', ucwords($componentName, '-_'));
+        $classPath = app_path("View/Components/Bonsai/{$className}.php");
+        
+        // Get component-specific properties
+        $props = $this->getComponentProperties($componentName);
+        
+        if (!$this->files->exists($classPath)) {
+            $constructorParams = $this->buildConstructorParams($props);
+            
+            $content = <<<PHP
+<?php
+
+namespace App\View\Components\Bonsai;
+
+class {$className} extends BaseComponent
+{
+    public function __construct({$constructorParams})
+    {
+        // Constructor logic here if needed
+    }
+
+    public function render()
+    {
+        return view('bonsai.components.' . strtolower('{$componentName}'));
+    }
+}
+PHP;
+            
+            try {
+                $this->files->put($classPath, $content);
+                $this->info("Created component class: {$classPath}");
+            } catch (\Exception $e) {
+                $this->error("Failed to create component class: " . $e->getMessage());
+                throw $e;
+            }
+        }
+    }
+
+    protected function getComponentProperties($componentName)
+    {
+        // Define properties for each component type
+        $properties = [
+            'hero' => [
+                'title' => 'string',
+                'subtitle' => 'string',
+                'description' => 'string',
+                'imagePath' => 'string',
+                'l1' => 'string',
+                'l2' => 'string',
+                'l3' => 'string',
+                'l4' => 'string',
+                'primaryText' => 'string',
+                'primaryLink' => 'string',
+                'secondaryText' => 'string',
+                'secondaryLink' => 'string',
+            ],
+            'faq' => [
+                'title' => 'string',
+                'faqs' => 'array',
+            ],
+            // Add more component properties as needed
+        ];
+
+        return $properties[$componentName] ?? [];
+    }
+
+    protected function buildConstructorParams($props)
+    {
+        $params = [];
+        foreach ($props as $prop => $type) {
+            $params[] = "public ?{$type} \${$prop} = null";
+        }
+        return implode(",\n        ", $params);
+    }
+
+    protected function copyComponentTemplate($componentName)
+    {
+        // Check possible locations for component template
+        $possiblePaths = [
+            __DIR__ . "/../../templates/components/{$componentName}.blade.php",
+            base_path("resources/views/bonsai/components/{$componentName}.blade.php")
+        ];
+
+        $templatePath = null;
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $templatePath = $path;
+                break;
+            }
+        }
+
+        if (!$templatePath) {
+            // Create a basic component if template not found
+            $this->createBasicComponent($componentName);
+            return;
+        }
+
+        // Ensure the bonsai components directory exists
+        $targetDir = base_path("resources/views/bonsai/components");
+        if (!$this->files->exists($targetDir)) {
+            $this->files->makeDirectory($targetDir, 0755, true);
+        }
+
+        // Copy component to bonsai components directory
+        $targetPath = "{$targetDir}/{$componentName}.blade.php";
+        $this->files->copy($templatePath, $targetPath);
+        $this->line("Component template installed at: {$targetPath}");
     }
 
     protected function createSections($useDefault = false)
@@ -313,7 +440,7 @@ YAML;
                     <p class="text-gray-600 mb-6">{$description}</p>
                     <div class="bg-white rounded-lg p-6 shadow-lg">
                         @if(View::exists('bonsai.components.{$component}'))
-                            <x-{$component} {{\$this->getExampleData('{$component}')}} />
+                            <x-bonsai::{$component} {{\$this->getExampleData('{$component}')}} />
                         @else
                             <div class="text-red-500">Component not found: {$component}</div>
                         @endif
@@ -356,5 +483,37 @@ function getExampleData(\$component) {
 }
 @endphp
 BLADE;
+    }
+
+    protected function setupComponentNamespace()
+    {
+        // Create the App\View\Components\Bonsai directory if it doesn't exist
+        $componentsDir = app_path('View/Components/Bonsai');
+        if (!$this->files->isDirectory($componentsDir)) {
+            $this->files->makeDirectory($componentsDir, 0755, true);
+        }
+
+        // Create a base component class
+        $baseComponentPath = "{$componentsDir}/BaseComponent.php";
+        if (!$this->files->exists($baseComponentPath)) {
+            $content = <<<PHP
+<?php
+
+namespace App\View\Components\Bonsai;
+
+use Illuminate\View\Component;
+
+class BaseComponent extends Component
+{
+    public function render()
+    {
+        // Get the component name from the class name
+        \$name = strtolower(class_basename(\$this));
+        return view("bonsai.components.{\$name}");
+    }
+}
+PHP;
+            $this->files->put($baseComponentPath, $content);
+        }
     }
 }
