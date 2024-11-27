@@ -25,19 +25,10 @@ class BonsaiComponentServiceProvider extends ServiceProvider
                 // Register both namespaced and aliased components
                 Blade::componentNamespace('App\\View\\Components\\Bonsai', 'bonsai');
                 
-                // Register view components with aliases
-                $components = [
-                    'hero' => 'bonsai-hero',
-                    'cta' => 'bonsai-cta',
-                    'widget' => 'bonsai-widget',
-                    // Add other components as needed
-                ];
-
-                foreach ($components as $name => $alias) {
-                    Blade::component("bonsai.components.{$name}", $alias);
-                }
+                // Register only the hero component
+                Blade::component('bonsai.components.hero', 'bonsai-hero');
                 
-                \Log::info('Successfully registered Bonsai components');
+                \Log::info('Successfully registered Bonsai hero component');
             }
         } catch (\Exception $e) {
             \Log::error("Error registering components: " . $e->getMessage());

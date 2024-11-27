@@ -14,19 +14,7 @@ class BonsaiInitCommand extends Command
     protected $files;
 
     protected $components = [
-        'accordion' => 'Interactive accordion component for toggling content visibility',
-        'alert' => 'Contextual feedback messages for typical user actions',
-        'button' => 'Customizable button component with multiple variants',
-        'card-component' => 'Versatile card component for displaying content',
-        'card-featured' => 'Featured card with enhanced visual elements',
-        'cta' => 'Call-to-action component for user engagement',
-        'faq' => 'Frequently asked questions component with expandable answers',
-        'hero' => 'Hero section for prominent page headers',
-        'list-item' => 'Styled list items for organized content',
-        'modal' => 'Modal dialog component for overlaid content',
-        'slideshow' => 'Dynamic slideshow for showcasing content',
-        'table' => 'Data table component with sorting and filtering',
-        'widget' => 'Multi-purpose widget component with various layouts'
+        'hero' => 'Hero section for prominent page headers'
     ];
 
     public function __construct(Filesystem $files)
@@ -390,20 +378,8 @@ PHP;
         $this->info('Creating example sections...');
         
         $this->call('bonsai:section', [
-            'name' => 'hero-example',
+            'name' => 'home_hero',
             '--component' => 'hero',
-            '--default' => $useDefault,
-        ]);
-    
-        $this->call('bonsai:section', [
-            'name' => 'faq-example',
-            '--component' => 'faq',
-            '--default' => $useDefault,
-        ]);
-    
-        $this->call('bonsai:section', [
-            'name' => 'slideshow-example',
-            '--component' => 'slideshow',
             '--default' => $useDefault,
         ]);
     }
@@ -412,8 +388,8 @@ PHP;
     {
         $this->info('Creating components layout...');
         $this->call('bonsai:layout', [
-            'name' => 'components',
-            '--sections' => 'hero-example,slideshow-example,faq-example'
+            'name' => 'cypress',
+            '--sections' => 'home_hero'
         ]);
     }
 

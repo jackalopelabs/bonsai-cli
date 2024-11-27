@@ -47,269 +47,62 @@ class SectionCommand extends Command
 
     protected function getComponentSchema($componentName)
     {
-        $schemas = [
-            'hero' => [
-                'title' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter hero title',
-                    'default' => 'Welcome to Cypress'
-                ],
-                'subtitle' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter hero subtitle',
-                    'default' => 'Modern Solutions for Modern Businesses'
-                ],
-                'description' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter hero description',
-                    'default' => 'Empowering your business with cutting-edge solutions'
-                ],
-                'imagePaths' => [
-                    'type' => 'array',
-                    'prompt' => 'Enter image paths (comma-separated)',
-                    'default' => ['images/hero-main.jpg']
-                ],
-                'buttonText' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter primary button text',
-                    'default' => 'Get Started'
-                ],
-                'buttonLink' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter primary button link',
-                    'default' => '#contact'
-                ],
-                'secondaryText' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter secondary button text',
-                    'default' => 'Watch Demo'
-                ],
-                'secondaryLink' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter secondary button link',
-                    'default' => '#demo'
-                ],
-                'buttonLinkIcon' => [
-                    'type' => 'boolean',
-                    'prompt' => 'Show button link icon? (yes/no)',
-                    'default' => true
-                ],
-                'secondaryIcon' => [
-                    'type' => 'boolean',
-                    'prompt' => 'Show secondary icon? (yes/no)',
-                    'default' => true
-                ]
+        if ($componentName !== 'hero') {
+            return [];
+        }
+
+        return [
+            'title' => [
+                'type' => 'string',
+                'prompt' => 'Enter hero title',
+                'default' => 'Welcome to Cypress'
             ],
-            'slideshow' => [
-                'title' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter section title',
-                    'default' => 'Latest News & Announcements'
-                ],
-                'announcements' => [
-                    'type' => 'array',
-                    'prompt' => 'How many announcements?',
-                    'default' => 3,
-                    'schema' => [
-                        'title' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter announcement title'
-                        ],
-                        'description' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter announcement description'
-                        ],
-                        'link' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter announcement link'
-                        ],
-                        'cta' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter call to action text',
-                            'default' => 'Learn More'
-                        ],
-                        'category' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter announcement category',
-                            'default' => 'News'
-                        ],
-                        'isNew' => [
-                            'type' => 'boolean',
-                            'prompt' => 'Is this a new announcement? (yes/no)',
-                            'default' => 'no'
-                        ],
-                        'backgroundImage' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter background image path',
-                            'default' => 'images/announcement-bg.jpg'
-                        ]
-                    ]
-                ]
+            'subtitle' => [
+                'type' => 'string',
+                'prompt' => 'Enter hero subtitle',
+                'default' => 'Modern Solutions for Modern Businesses'
             ],
-            'faq' => [
-                'title' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter FAQ section title',
-                    'default' => 'Frequently Asked Questions'
-                ],
-                'faqs' => [
-                    'type' => 'array',
-                    'prompt' => 'How many FAQ items?',
-                    'default' => 3,
-                    'schema' => [
-                        'question' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter question'
-                        ],
-                        'answer' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter answer'
-                        ]
-                    ]
-                ]
+            'description' => [
+                'type' => 'string',
+                'prompt' => 'Enter hero description',
+                'default' => 'A modern web testing tool for modern applications'
             ],
-            'widget' => [
-                'items' => [
-                    'type' => 'array',
-                    'prompt' => 'How many widget items?',
-                    'default' => 3,
-                    'schema' => [
-                        'id' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter item ID (e.g., widget-1)',
-                            'default' => 'widget-'
-                        ],
-                        'title' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter item title'
-                        ],
-                        'content' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter item content'
-                        ],
-                        'icon' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter Heroicon component name (e.g., heroicon-o-check)',
-                            'default' => 'heroicon-o-check'
-                        ],
-                        'cta' => [
-                            'type' => 'object',
-                            'schema' => [
-                                'title' => [
-                                    'type' => 'string',
-                                    'prompt' => 'Enter CTA title'
-                                ],
-                                'link' => [
-                                    'type' => 'string',
-                                    'prompt' => 'Enter CTA link'
-                                ],
-                                'imagePath' => [
-                                    'type' => 'string',
-                                    'prompt' => 'Enter CTA image path'
-                                ]
-                            ]
-                        ],
-                        'listItems' => [
-                            'type' => 'array',
-                            'prompt' => 'How many list items?',
-                            'schema' => [
-                                'number' => [
-                                    'type' => 'string',
-                                    'prompt' => 'Enter item number'
-                                ],
-                                'itemName' => [
-                                    'type' => 'string',
-                                    'prompt' => 'Enter item name'
-                                ],
-                                'text' => [
-                                    'type' => 'string',
-                                    'prompt' => 'Enter item text'
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+            'imagePaths' => [
+                'type' => 'array',
+                'prompt' => 'Enter image paths (comma-separated)',
+                'default' => ['images/hero-main.jpg']
             ],
-            'card-featured' => [
-                'title' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter card title'
-                ],
-                'subtitle' => [
-                    'type' => 'array',
-                    'prompt' => 'How many features?',
-                    'schema' => [
-                        'title' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter feature title'
-                        ],
-                        'description' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter feature description'
-                        ],
-                        'icon' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter Heroicon component name',
-                            'default' => 'heroicon-o-check'
-                        ]
-                    ]
-                ],
-                'items' => [
-                    'type' => 'array',
-                    'prompt' => 'How many items?',
-                    'schema' => [
-                        'title' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter item title'
-                        ]
-                    ]
-                ],
-                'imagePath' => [
-                    'type' => 'string',
-                    'prompt' => 'Enter image path',
-                    'default' => 'images/featured.jpg'
-                ],
-                'playIcon' => [
-                    'type' => 'boolean',
-                    'prompt' => 'Show play icon? (yes/no)',
-                    'default' => 'no'
-                ]
+            'buttonText' => [
+                'type' => 'string',
+                'prompt' => 'Enter primary button text',
+                'default' => 'Get Started'
             ],
-            'table' => [
-                'products' => [
-                    'type' => 'array',
-                    'prompt' => 'How many products?',
-                    'schema' => [
-                        'name' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter product name'
-                        ],
-                        'ref' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter product reference'
-                        ],
-                        'dimensions' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter dimensions'
-                        ],
-                        'woundPadSize' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter wound pad size'
-                        ],
-                        'quantityPerBox' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter quantity per box'
-                        ],
-                        'hcpcs' => [
-                            'type' => 'string',
-                            'prompt' => 'Enter HCPCS code'
-                        ]
-                    ]
-                ]
+            'buttonLink' => [
+                'type' => 'string',
+                'prompt' => 'Enter primary button link',
+                'default' => '#contact'
+            ],
+            'secondaryText' => [
+                'type' => 'string',
+                'prompt' => 'Enter secondary button text',
+                'default' => 'Watch Demo'
+            ],
+            'secondaryLink' => [
+                'type' => 'string',
+                'prompt' => 'Enter secondary button link',
+                'default' => '#demo'
+            ],
+            'buttonLinkIcon' => [
+                'type' => 'boolean',
+                'prompt' => 'Show button link icon? (yes/no)',
+                'default' => true
+            ],
+            'secondaryIcon' => [
+                'type' => 'boolean',
+                'prompt' => 'Show secondary icon? (yes/no)',
+                'default' => true
             ]
         ];
-
-        return $schemas[$componentName] ?? [];
     }
 
 
