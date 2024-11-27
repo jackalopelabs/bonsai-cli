@@ -58,15 +58,16 @@ class LayoutCommand extends Command
         @include('utils.styles')
     </head>
 
-    <body @php(body_class('bg-gray-100'))>
+    <body @php(body_class())>
         @php(wp_body_open())
+        @php($containerInnerClasses = 'container mx-auto px-4 py-8')
 
         <div id="app">
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
 
-            @include('sections.header')
+            @includeIf('sections.header')
 
             <main id="main" class="max-w-5xl mx-auto">
                 <div class="{{ $containerInnerClasses }}">
@@ -74,7 +75,7 @@ class LayoutCommand extends Command
                 </div>
             </main>
 
-            @include('sections.footer')
+            @includeIf('sections.footer')
         </div>
 
         @php(do_action('get_footer'))
