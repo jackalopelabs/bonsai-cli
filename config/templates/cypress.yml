@@ -1,47 +1,95 @@
-name: Cypress Template
-description: Modern SaaS landing page template
-version: 1.0.0
+name: Bonsai Cypress
+description: Modern SaaS landing page template for WordPress
+version: 0.0.1
 
+# Define required components
 components:
   - hero
   - header
+  - features
+  - pricing
+  - faq
+  - footer
 
+# Define sections with component mappings and data
 sections:
-  header:
+  site_header:
     component: header
     data:
-      siteName: "Cypress"
-      iconComponent: "heroicon-o-cube-transparent"
-      navLinks: [
+      siteName: "Bonsai Cypress"
+      logo: "/images/logo.svg"
+      menuLocation: "primary_navigation"
+      navItems: [
         {"url": "#features", "label": "Features"},
         {"url": "#pricing", "label": "Pricing"},
         {"url": "#faq", "label": "FAQ"}
       ]
-      primaryLink: "#signup"
-      containerClasses: "max-w-5xl mx-auto"
-      containerInnerClasses: "px-6"
+      ctaButton:
+        text: "Get Started"
+        url: "#signup"
+        classes: "btn btn-primary"
+      containerClasses: "container mx-auto px-4"
   
   home_hero:
     component: hero
     data:
-      title: "Welcome to Cypress"
-      subtitle: "Modern Solutions for Modern Businesses"
-      description: "A modern web testing tool for modern applications"
-      imagePaths: ["https://placehold.co/600x400/png"]
-      buttonText: "Get Started"
-      buttonLink: "#contact"
-      secondaryText: "Watch Demo"
-      secondaryLink: "#demo"
-      buttonLinkIcon: true
-      secondaryIcon: true
+      title: "Welcome to Bonsai Cypress"
+      subtitle: "Modern WordPress Development"
+      description: "Build beautiful, component-based WordPress sites faster than ever"
+      images:
+        - path: "/images/hero-main.jpg"
+          alt: "Bonsai Cypress Demo"
+      buttons:
+        primary:
+          text: "Get Started"
+          url: "#contact"
+          icon: "arrow-right"
+        secondary:
+          text: "Watch Demo"
+          url: "#demo"
+          icon: "play"
+      classes:
+        wrapper: "py-20 bg-gradient-to-r from-primary to-secondary"
+        content: "container mx-auto px-4"
 
+# Define layouts that combine sections
 layouts:
-  cypress:
+  cypress_main:
     sections:
+      - site_header
       - home_hero
 
+# Define WordPress pages
 pages:
   home:
-    title: "Cypress"
-    layout: cypress
+    title: "Home | Bonsai Cypress"
+    layout: cypress_main
+    template: front-page
+    meta:
+      _wp_page_template: templates/template-cypress.blade.php
     is_homepage: true
+
+# WordPress specific configurations
+wordpress:
+  menus:
+    primary_navigation:
+      location: "primary_navigation"
+      name: "Primary Navigation"
+  
+  theme_support:
+    - title-tag
+    - post-thumbnails
+    - menus
+    
+  image_sizes:
+    hero_image:
+      width: 1920
+      height: 1080
+      crop: true
+
+# Asset compilation settings
+assets:
+  styles:
+    - resources/styles/cypress.scss
+  scripts:
+    - resources/scripts/cypress.js
