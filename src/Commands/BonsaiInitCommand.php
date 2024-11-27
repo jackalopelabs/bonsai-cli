@@ -377,6 +377,14 @@ PHP;
     {
         $this->info('Creating example sections...');
         
+        // Create header section
+        $this->call('bonsai:section', [
+            'name' => 'header',
+            '--component' => 'header',
+            '--default' => $useDefault,
+        ]);
+        
+        // Create hero section
         $this->call('bonsai:section', [
             'name' => 'home_hero',
             '--component' => 'hero',
@@ -389,7 +397,7 @@ PHP;
         $this->info('Creating components layout...');
         $this->call('bonsai:layout', [
             'name' => 'cypress',
-            '--sections' => 'home_hero'
+            '--sections' => 'header,home_hero'
         ]);
     }
 

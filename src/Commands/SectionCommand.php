@@ -47,62 +47,98 @@ class SectionCommand extends Command
 
     protected function getComponentSchema($componentName)
     {
-        if ($componentName !== 'hero') {
-            return [];
-        }
-
-        return [
-            'title' => [
-                'type' => 'string',
-                'prompt' => 'Enter hero title',
-                'default' => 'Welcome to Cypress'
+        $schemas = [
+            'hero' => [
+                'title' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter hero title',
+                    'default' => 'Welcome to Cypress'
+                ],
+                'subtitle' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter hero subtitle',
+                    'default' => 'Modern Solutions for Modern Businesses'
+                ],
+                'description' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter hero description',
+                    'default' => 'A modern web testing tool for modern applications'
+                ],
+                'imagePaths' => [
+                    'type' => 'array',
+                    'prompt' => 'Enter image paths (comma-separated)',
+                    'default' => ['https://placehold.co/600x400/png']
+                ],
+                'buttonText' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter primary button text',
+                    'default' => 'Get Started'
+                ],
+                'buttonLink' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter primary button link',
+                    'default' => '#contact'
+                ],
+                'secondaryText' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter secondary button text',
+                    'default' => 'Watch Demo'
+                ],
+                'secondaryLink' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter secondary button link',
+                    'default' => '#demo'
+                ],
+                'buttonLinkIcon' => [
+                    'type' => 'boolean',
+                    'prompt' => 'Show button link icon? (yes/no)',
+                    'default' => true
+                ],
+                'secondaryIcon' => [
+                    'type' => 'boolean',
+                    'prompt' => 'Show secondary icon? (yes/no)',
+                    'default' => true
+                ]
             ],
-            'subtitle' => [
-                'type' => 'string',
-                'prompt' => 'Enter hero subtitle',
-                'default' => 'Modern Solutions for Modern Businesses'
-            ],
-            'description' => [
-                'type' => 'string',
-                'prompt' => 'Enter hero description',
-                'default' => 'A modern web testing tool for modern applications'
-            ],
-            'imagePaths' => [
-                'type' => 'array',
-                'prompt' => 'Enter image paths (comma-separated)',
-                'default' => ['https://placehold.co/600x400/png']
-            ],
-            'buttonText' => [
-                'type' => 'string',
-                'prompt' => 'Enter primary button text',
-                'default' => 'Get Started'
-            ],
-            'buttonLink' => [
-                'type' => 'string',
-                'prompt' => 'Enter primary button link',
-                'default' => '#contact'
-            ],
-            'secondaryText' => [
-                'type' => 'string',
-                'prompt' => 'Enter secondary button text',
-                'default' => 'Watch Demo'
-            ],
-            'secondaryLink' => [
-                'type' => 'string',
-                'prompt' => 'Enter secondary button link',
-                'default' => '#demo'
-            ],
-            'buttonLinkIcon' => [
-                'type' => 'boolean',
-                'prompt' => 'Show button link icon? (yes/no)',
-                'default' => true
-            ],
-            'secondaryIcon' => [
-                'type' => 'boolean',
-                'prompt' => 'Show secondary icon? (yes/no)',
-                'default' => true
+            'header' => [
+                'siteName' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter site name',
+                    'default' => 'Cypress'
+                ],
+                'iconComponent' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter icon component name',
+                    'default' => 'icon-bonsai'
+                ],
+                'navLinks' => [
+                    'type' => 'array',
+                    'prompt' => 'How many navigation links?',
+                    'default' => [
+                        ['url' => '#features', 'label' => 'Features'],
+                        ['url' => '#pricing', 'label' => 'Pricing'],
+                        ['url' => '#faq', 'label' => 'FAQ'],
+                    ]
+                ],
+                'primaryLink' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter primary link URL',
+                    'default' => '#signup'
+                ],
+                'containerClasses' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter container classes',
+                    'default' => 'max-w-5xl mx-auto'
+                ],
+                'containerInnerClasses' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter inner container classes',
+                    'default' => 'px-6'
+                ]
             ]
         ];
+
+        return $schemas[$componentName] ?? [];
     }
 
 

@@ -4,8 +4,23 @@ version: 1.0.0
 
 components:
   - hero
+  - header
 
 sections:
+  header:
+    component: header
+    data:
+      siteName: "Cypress"
+      iconComponent: "icon-bonsai"
+      navLinks: [
+        {"url": "#features", "label": "Features"},
+        {"url": "#pricing", "label": "Pricing"},
+        {"url": "#faq", "label": "FAQ"}
+      ]
+      primaryLink: "#signup"
+      containerClasses: "max-w-5xl mx-auto"
+      containerInnerClasses: "px-6"
+  
   home_hero:
     component: hero
     data:
@@ -23,6 +38,7 @@ sections:
 layouts:
   cypress:
     sections:
+      - header
       - home_hero
 
 pages:
