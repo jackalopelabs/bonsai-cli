@@ -12,15 +12,14 @@ class TreeGenerator
         'age' => 'young',
         'style' => 'formal',
         'seed' => null,
-        'multiplier' => 5,  // Controls branch density
-        'life' => 32       // Controls overall size
+        'multiplier' => 5,
+        'life' => 32
     ];
 
     const BRANCH_TYPE_TRUNK = 'trunk';
     const BRANCH_TYPE_SHOOT_LEFT = 'shootLeft';
     const BRANCH_TYPE_SHOOT_RIGHT = 'shootRight';
     const BRANCH_TYPE_DYING = 'dying';
-    const BRANCH_TYPE_DEAD = 'dead';
 
     public function generate(array $options = [])
     {
@@ -32,10 +31,10 @@ class TreeGenerator
 
         $tree = new BonsaiTree($options['age'], $options['style']);
         
-        // Initialize the growth grid
+        // Smaller grid for more controlled growth
         $grid = [];
-        $maxWidth = 60;
-        $maxHeight = 20;
+        $maxWidth = 40;  // Reduced from 60
+        $maxHeight = 15; // Reduced from 20
         
         for ($y = 0; $y < $maxHeight; $y++) {
             for ($x = 0; $x < $maxWidth; $x++) {
@@ -43,112 +42,128 @@ class TreeGenerator
             }
         }
 
-        // Start growing from the bottom center
         $startX = (int)($maxWidth / 2);
         $startY = $maxHeight - 1;
         
-        $this->growBranch($grid, $startX, $startY, self::BRANCH_TYPE_TRUNK, $options['life'], $options['multiplier']);
+        // Start with a strong trunk
+        $this->growTrunk($grid, $startX, $startY, $options['life'], $options['multiplier']);
         
         $tree->setGrid($grid);
         return $tree;
     }
 
+    protected function growTrunk(&$grid, $x, $y, $life, $multiplier)
+    {
+        $height = 0;
+        $maxHeight = (int)($life * 0.7); // Trunk uses 70% of life
+        
+        while ($height < $maxHeight && $y > 0) {
+            // Trunk grows mostly straight up with slight variation
+            $dx = (rand(0, 10) < 8) ? 0 : (rand(0, 1) ? 1 : -1);
+            $y--;
+            $x += $dx;
+            
+            if ($x < 0 || $x >= count($grid[0])) continue;
+            
+            $grid[$y][$x] = '|';
+            
+            // Add branches every few steps
+            if ($height > 2 && $height % 2 == 0) {
+                $branchLife = (int)($life * 0.3); // Branches get 30% of life
+                if (rand(0, 1)) {
+                    $this->growBranch($grid, $x, $y, self::BRANCH_TYPE_SHOOT_LEFT, $branchLife, $multiplier);
+                }
+                if (rand(0, 1)) {
+                    $this->growBranch($grid, $x, $y, self::BRANCH_TYPE_SHOOT_RIGHT, $branchLife, $multiplier);
+                }
+            }
+            
+            $height++;
+        }
+        
+        // Add crown at the top
+        $this->addCrown($grid, $x, $y);
+    }
+
     protected function growBranch(&$grid, $x, $y, $type, $life, $multiplier)
     {
-        $branches = 0;
-        $maxBranches = $multiplier * 10;
-
-        while ($life > 0 && $y >= 0) {
-            $life--;
+        $length = 0;
+        $maxLength = (int)($life * 0.5);
+        
+        while ($length < $maxLength && $y > 0) {
+            list($dx, $dy) = $this->calculateBranchDirection($type, $length);
             
-            // Calculate growth direction
-            list($dx, $dy) = $this->calculateGrowthDirection($type, $life, $multiplier);
-            
-            // Update position
             $x += $dx;
             $y += $dy;
             
-            // Ensure we stay within bounds
-            if ($x < 0 || $x >= count($grid[0]) || $y < 0 || $y >= count($grid)) {
-                break;
-            }
-
-            // Add branch character
-            $char = $this->chooseBranchCharacter($type, $dx, $dy);
-            $grid[$y][$x] = $char;
-
-            // Chance to create new branches
-            if ($branches < $maxBranches && $life > 4) {
-                if (rand(0, 10) < $multiplier) {
-                    $branchType = (rand(0, 1) == 0) ? self::BRANCH_TYPE_SHOOT_LEFT : self::BRANCH_TYPE_SHOOT_RIGHT;
-                    $this->growBranch($grid, $x, $y, $branchType, $life - 2, $multiplier);
-                    $branches++;
-                }
-            }
-
-            // Create leaves at branch ends
-            if ($life < 3) {
+            if ($x < 0 || $x >= count($grid[0]) || $y < 0 || $y >= count($grid)) break;
+            
+            $grid[$y][$x] = $this->chooseBranchCharacter($type, $dx, $dy);
+            
+            if ($length > 2 && rand(0, 10) < 3) {
                 $this->addLeaves($grid, $x, $y);
             }
+            
+            $length++;
         }
+        
+        // Add leaves at branch end
+        $this->addLeaves($grid, $x, $y);
     }
 
-    protected function calculateGrowthDirection($type, $life, $multiplier)
+    protected function calculateBranchDirection($type, $length)
     {
-        $dx = 0;
-        $dy = 0;
-
-        switch ($type) {
-            case self::BRANCH_TYPE_TRUNK:
-                $dy = -1;  // Grow upward
-                $dx = rand(-1, 1);  // Slight random horizontal movement
-                break;
-
-            case self::BRANCH_TYPE_SHOOT_LEFT:
-                $dy = rand(0, 1) ? -1 : 0;
-                $dx = rand(0, 2) == 0 ? -1 : 0;
-                break;
-
-            case self::BRANCH_TYPE_SHOOT_RIGHT:
-                $dy = rand(0, 1) ? -1 : 0;
-                $dx = rand(0, 2) == 0 ? 1 : 0;
-                break;
-
-            case self::BRANCH_TYPE_DYING:
-                $dy = 0;
-                $dx = rand(-1, 1);
-                break;
+        if ($type === self::BRANCH_TYPE_SHOOT_LEFT) {
+            return [
+                rand(0, 2) == 0 ? -1 : 0,
+                rand(0, 2) == 0 ? -1 : 0
+            ];
+        } else {
+            return [
+                rand(0, 2) == 0 ? 1 : 0,
+                rand(0, 2) == 0 ? -1 : 0
+            ];
         }
-
-        return [$dx, $dy];
     }
 
     protected function chooseBranchCharacter($type, $dx, $dy)
     {
-        switch ($type) {
-            case self::BRANCH_TYPE_TRUNK:
-                return $dy < 0 ? '|' : ($dx < 0 ? '\\' : '/');
-            case self::BRANCH_TYPE_SHOOT_LEFT:
-            case self::BRANCH_TYPE_SHOOT_RIGHT:
-                return $dx == 0 ? '|' : ($dx < 0 ? '\\' : '/');
-            case self::BRANCH_TYPE_DYING:
-                return '~';
-            default:
-                return '|';
-        }
+        if ($dx == 0 && $dy == 0) return '|';
+        if ($dx < 0) return '\\';
+        if ($dx > 0) return '/';
+        return '|';
     }
 
     protected function addLeaves(&$grid, $x, $y)
     {
-        $leafChars = ['*', '&', '^', '@'];
+        $leafChars = ['*', '&', '^'];
         $positions = [
             [$x-1, $y], [$x+1, $y],
-            [$x, $y-1], [$x, $y+1]
+            [$x, $y-1],
+            [$x-1, $y-1], [$x+1, $y-1]
         ];
 
         foreach ($positions as [$leafX, $leafY]) {
             if (isset($grid[$leafY][$leafX]) && $grid[$leafY][$leafX] == ' ') {
-                $grid[$leafY][$leafX] = $leafChars[array_rand($leafChars)];
+                if (rand(0, 2) == 0) { // Only add leaves sometimes
+                    $grid[$leafY][$leafX] = $leafChars[array_rand($leafChars)];
+                }
+            }
+        }
+    }
+
+    protected function addCrown(&$grid, $x, $y)
+    {
+        $leafChars = ['*', '&', '^'];
+        for ($dy = -1; $dy <= 1; $dy++) {
+            for ($dx = -2; $dx <= 2; $dx++) {
+                $newX = $x + $dx;
+                $newY = $y + $dy;
+                if (isset($grid[$newY][$newX]) && $grid[$newY][$newX] == ' ') {
+                    if (rand(0, 1)) {
+                        $grid[$newY][$newX] = $leafChars[array_rand($leafChars)];
+                    }
+                }
             }
         }
     }
