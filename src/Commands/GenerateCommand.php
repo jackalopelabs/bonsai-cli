@@ -153,7 +153,7 @@ class GenerateCommand extends Command
         // Set the target directory based on component type
         $targetDir = match(true) {
             $isIcon => resource_path("views/bonsai/components/icons"),
-            $isSubComponent => resource_path("views/bonsai/components/widget"),
+            $isSubComponent => resource_path("views/bonsai/components"),
             default => resource_path("views/bonsai/components")
         };
 
