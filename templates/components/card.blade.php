@@ -12,12 +12,16 @@
         <div class="flex flex-col sm:flex-row flex-wrap items-start mb-6 justify-center md:justify-center" x-data="scrollHandler">
             <h2 class="text-lg text-gray-700 bg-white p-3 rounded-lg mr-4 mb-4 sm:mb-0">
                 {!! $sectionTitle !!}
-                <x-heroicon-s-chevron-down class="text-gray-900 w-4 h-4 ml-2 inline-block align-middle"/>
+                <svg class="w-4 h-4 ml-2 inline-block align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
             </h2>
             @foreach ($navLinks as $link)
                 <a href="{{ $link['url'] }}" class="text-lg text-gray-700 p-3 mb-4 sm:mb-0 hidden sm:inline" x-on:click.prevent="scrollTo('{{ $link['url'] }}')">
                     {{ $link['label'] }}
-                    <x-heroicon-s-chevron-down class="text-gray-900 w-4 h-4 ml-2 inline-block align-middle"/>
+                    <svg class="w-4 h-4 ml-2 inline-block align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </a>
             @endforeach
         </div>
@@ -39,13 +43,9 @@
                 @foreach ($featureItems as $item)
                     <div class="flex items-start space-x-4 bg-white rounded-xl p-3">
                         <div class="shrink-0">
-                            @php
-                                $iconName = str_replace('heroicon-', '', $item['icon']);
-                                $iconType = strpos($iconName, 'o-') === 0 ? 'outline' : 'solid';
-                                $iconName = str_replace(['o-', 's-'], '', $iconName);
-                            @endphp
+                            <!-- Simple icon fallback -->
                             <svg class="h-6 w-6 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                @include("vendor.blade-heroicons.{$iconType}.{$iconName}")
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </div>
                         <div>
