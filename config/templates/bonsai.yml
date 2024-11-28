@@ -7,6 +7,7 @@ components:
   - header
   - card
   - widget
+  - pricing-box
 
 sections:
   site_header:
@@ -132,6 +133,49 @@ sections:
               itemName: "WordPress Integration"
               text: "Seamlessly works with WordPress and Sage"
 
+  pricing:
+    component: pricing
+    data:
+      title: "Choose Your Plan"
+      subtitle: "Limited-time pricing available now"
+      description: "Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel."
+      pricingBoxes: [
+        {
+          "icon": "heroicon-o-command-line",
+          "iconColor": "text-gray-400",
+          "planType": "Basic",
+          "price": "Free",
+          "features": [
+            "Generate components",
+            "Basic templates",
+            "Documentation access"
+          ],
+          "ctaLink": "#get-started",
+          "ctaText": "Get Started",
+          "ctaColor": "bg-white",
+          "iconBtn": "heroicon-o-arrow-right",
+          "iconBtnColor": "text-gray-500"
+        },
+        {
+          "icon": "heroicon-o-puzzle-piece",
+          "iconColor": "text-gray-500",
+          "planType": "Pro",
+          "price": "$99<span class=\"text-xs text-gray-400\">/yr</span>",
+          "features": [
+            "All Basic features",
+            "Custom components",
+            "Advanced templates",
+            "Priority support",
+            "Early access"
+          ],
+          "ctaLink": "#buy-pro",
+          "ctaText": "Buy Now",
+          "ctaColor": "bg-gradient-to-r from-emerald-600 to-green-500 text-white",
+          "iconBtn": "heroicon-o-shopping-cart",
+          "iconBtnColor": "text-white"
+        }
+      ]
+
 layouts:
   bonsai:
     sections:
@@ -139,6 +183,7 @@ layouts:
       - home_hero
       - services_card
       - features_widget
+      - pricing
 
 pages:
   home:

@@ -1,363 +1,125 @@
 # 🌳 Bonsai CLI
 
-A WordPress CLI tool for generating and managing reusable components, sections, and layouts in Roots-based WordPress projects.
+A WordPress CLI tool for generating and managing reusable components in Roots-based projects.
+
+## Features
+
+- 🎨 Component Generation
+- 📦 Section Builder
+- 🏗️ Template System
+- 🔧 WordPress Integration
 
 ## Installation
-
-Install via Composer:
 
 ```bash
 composer require jackalopelabs/bonsai-cli
 ```
 
-## Features
-
-- ⚡️ Quick setup with `bonsai:init`
-- 🧱 Pre-built components library
-- 📑 Template generation system
-- 🎨 Section builder with dynamic data
-- 📐 Layout management
-- 🧹 Cleanup utilities
-
-## Commands
-
-### Initialize Project
+## Basic Usage
 
 ```bash
-wp acorn bonsai:init
+# Initialize a new Bonsai project
+./scripts/bonsai.sh acorn bonsai:init
+
+# Generate a site from a template
+./scripts/bonsai.sh acorn bonsai:generate bonsai --env=development
+
+# Clean up generated files
+./scripts/bonsai.sh acorn bonsai:cleanup --force
 ```
-
-This sets up your project with:
-- Base component library
-- Example sections
-- Default layouts
-- Components page
-- Local configuration directory
-
-### Generate Site Template
-
-```bash
-wp acorn bonsai:generate [template]
-```
-
-Available templates:
-- `cypress` - Modern SaaS landing page
-- `jackalope` - Agency/portfolio site
-
-Options:
-- `--config=path/to/config.yml` - Use custom config file
-
-### Create Components
-
-```bash
-wp acorn bonsai:component [name]
-```
-
-Available components:
-- hero
-- faq
-- cta
-- card-featured
-- slideshow
-- widget
-- table
-
-### Create Sections
-
-```bash
-wp acorn bonsai:section [name] --component=[component] [--default]
-```
-
-Options:
-- `--component` - Specify component type
-- `--default` - Use default configuration without prompting
-
-### Create Layouts
-
-```bash
-wp acorn bonsai:layout [name] --sections=[section1,section2]
-```
-
-### Cleanup
-
-```bash
-wp acorn bonsai:cleanup [--force]
-```
-
-Removes all generated:
-- Components
-- Sections
-- Layouts
-- Pages
-- Templates
-- Menu items
-
-## Project Structure
-
-```
-resources/views/
-├── bonsai/
-│   ├── components/
-│   ├── sections/
-│   └── layouts/
-└── templates/
-```
-
-## Detailed Examples
-
-### 1. Building a Landing Page
-
-```bash
-# Initialize Bonsai
-wp acorn bonsai:init
-
-# Create sections using default content
-wp acorn bonsai:section home_hero --component=hero --default
-wp acorn bonsai:section features --component=card-featured --default
-wp acorn bonsai:section faq --component=faq --default
-
-# Create a layout combining the sections
-wp acorn bonsai:layout landing --sections=home_hero,features,faq
-
-# Generate the complete site
-wp acorn bonsai:generate custom --config=config/bonsai/landing.yml
-```
-
-### 2. Custom Section Configuration
-
-```yaml
-# config/bonsai/custom-hero.yml
-sections:
-  home_hero:
-    component: hero
-    data:
-      title: "Welcome to Our Platform"
-      subtitle: "The Future of Web Development"
-      description: "Build better websites faster with our tools"
-      imagePath: "images/hero-main.jpg"
-      l1: "Easy to Use"
-      l2: "Fully Customizable"
-      l3: "Built for Speed"
-      l4: "SEO Optimized"
-      primaryText: "Get Started"
-      primaryLink: "#signup"
-      secondaryText: "Learn More"
-```
-
-### 3. Dynamic Component Generation
-
-```php
-// Create a custom FAQ section
-wp acorn bonsai:section product_faq --component=faq
-
-// Example responses to prompts:
-// Title: Product FAQ
-// Number of FAQs: 3
-// FAQ #1 Question: How do I install the product?
-// FAQ #1 Answer: Installation is simple...
-```
-
-### 4. Advanced Layout Configuration
-
-```php
-// Create a complex page layout
-wp acorn bonsai:layout documentation --sections=doc_header,api_reference,code_examples,support_faq
-
-// The layout will be generated at:
-// resources/views/bonsai/layouts/documentation.blade.php
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **WSOD (White Screen of Death) After Generation**
-   ```bash
-   # First, check theme settings
-   wp option get template
-   wp option get stylesheet
-   
-   # If incorrect, clean up and regenerate
-   wp acorn bonsai:cleanup --force
-   wp acorn bonsai:generate [template]
-   ```
-
-2. **Missing Components**
-   ```bash
-   # Verify component installation
-   ls resources/views/bonsai/components
-   
-   # Reinstall specific component
-   wp acorn bonsai:component [name]
-   ```
-
-3. **Layout Not Finding Sections**
-   ```bash
-   # Check section paths
-   ls resources/views/bonsai/sections
-   
-   # Regenerate sections if missing
-   wp acorn bonsai:section [name] --component=[type] --default
-   ```
-
-4. **Asset Path Issues**
-   ```bash
-   # Verify public path in bud.config.ts
-   .setPublicPath(`/content/themes/[theme-name]/public/`)
-   ```
-
-5. **Database Cleanup Issues**
-   ```bash
-   # Force cleanup and reset
-   wp acorn bonsai:cleanup --force
-   wp cache flush
-   ```
-
-### Debug Steps
-
-1. **Component Generation**
-   - Check component exists in package templates
-   - Verify component schema in SectionCommand
-   - Ensure proper permissions on directories
-
-2. **Section Building**
-   - Validate section data format
-   - Check for missing dependencies
-   - Verify blade template syntax
-
-3. **Layout Issues**
-   - Confirm section files exist
-   - Check section naming consistency
-   - Verify blade includes syntax
-
-4. **General Debug**
-   ```bash
-   # Enable WordPress debug mode
-   wp config set WP_DEBUG true --raw
-   wp config set WP_DEBUG_LOG true --raw
-   
-   # Check logs
-   tail -f wp-content/debug.log
-   ```
 
 ## Configuration
 
-Create custom site configurations in `config/bonsai/`:
-
+### Local Configuration
+Create a local configuration file in your project:
 ```yaml
-name: My Site
-description: Site description
-version: 1.0.0
-
+# config/bonsai/custom.yml
+name: Custom Template
 components:
   - hero
-  - faq
-  - slideshow
-
+  - header
 sections:
-  home_hero:
-    component: hero
+  site_header:
+    component: header
     data:
-      title: "Welcome"
-      # ... component-specific data
-
-layouts:
-  main:
-    sections:
-      - home_hero
-      - features
-
-pages:
-  home:
-    title: "Home"
-    layout: main
+      siteName: "Your Site"
+# ...
 ```
 
-## Best Practices
+### Using Templates
+Bonsai comes with pre-built templates:
+- bonsai.yml (Default template)
+- cypress.yml (Modern SaaS template)
 
-1. Always run `bonsai:cleanup` before regenerating a site
-2. Use version control to track your configurations
-3. Store sensitive data in `.env` rather than config files
-4. Create reusable sections for common patterns
+## Component Development
 
-## Compatibility
+### Adding New Components
 
-- WordPress 6.0+
-- Roots Stack (Sage, Bedrock, or Radicle)
-- PHP 8.0+
-- Composer 2.0+
+1. Create component template:
+```php
+// templates/components/pricing-box.blade.php
+@props([
+    'title',
+    'price',
+    'features'
+])
+// Component markup...
+```
+
+2. Add to bonsai.yml:
+```yaml
+components:
+  - pricing-box
+
+sections:
+  pricing:
+    component: pricing
+    data:
+      title: "Pricing"
+      # ...
+```
+
+3. Register in BonsaiServiceProvider:
+```php
+Blade::component('bonsai.components.pricing-box', 'pricing-box');
+```
+
+### Component Structure
+- Components should be self-contained
+- Use props for data injection
+- Follow Blade component conventions
+- Include fallback options for icons/images
+
+### Icons Support
+Bonsai supports both Heroicons and custom SVG icons:
+
+```bash
+# Install Heroicons (optional)
+composer require blade-ui-kit/blade-heroicons
+
+# Publish configuration
+wp @development acorn vendor:publish --tag=blade-icons
+```
+
+## Contributing
+
+### Development Setup
+1. Clone the repository
+2. Install dependencies
+3. Run tests
+
+### Adding Components to Bonsai CLI
+1. Create component in templates/components/
+2. Add section template if needed
+3. Update bonsai.yml with component configuration
+4. Add documentation
+5. Submit PR
+
+### Testing
+```bash
+composer test
+```
 
 ## License
 
-MIT License. See [LICENSE](LICENSE.md) for more information.
-
-# Bonsai Script
-
-A wrapper script for running Bonsai CLI commands across different environments with automatic asset rebuilding.
-
-## Usage
-
-From your project root:
-
-```bash
-./scripts/bonsai.sh <command> [--env=environment]
-```
-
-### Environments
-
-- `--env=development` (default)
-- `--env=staging`
-- `--env=production`
-
-You can also use the shorthand:
-- `--development`
-- `--staging`
-- `--production`
-
-### Examples
-
-```bash
-# Initialize Bonsai in development (default)
-./scripts/bonsai.sh acorn bonsai:init
-
-# Generate a site using the cypress template on staging
-./scripts/bonsai.sh acorn bonsai:generate cypress --env=staging
-
-# Clean up Bonsai files in production
-./scripts/bonsai.sh acorn bonsai:cleanup --env=production
-```
-
-### Asset Building
-
-- Development environment automatically rebuilds assets after Bonsai commands
-- Staging and production environments skip asset rebuilding
-- Asset rebuilding is only triggered for Bonsai-specific commands
-
-### Command Structure
-
-```
-./scripts/bonsai.sh [command] [--env=environment]
-
-command:          The Bonsai command to execute (e.g., acorn bonsai:init)
---env:           Target environment (development|staging|production)
-```
-
-## Features
-
-- Environment-specific command execution
-- Automatic asset rebuilding in development
-- Clear feedback and error messages
-- Defaults to development environment if none specified
-- Maintains proper exit codes from WP-CLI commands
-
-## Requirements
-
-- WP-CLI with configured environments (@development, @staging, @production)
-- Yarn for asset building (development only)
-- Proper SSH access to remote environments
-
-## Notes
-
-- Run the script from your project root directory
-- Make sure the script is executable (`chmod +x scripts/bonsai.sh`)
-- Asset rebuilding only occurs in development and only for Bonsai commands
+MIT License. See [LICENSE](LICENSE) for more information.
