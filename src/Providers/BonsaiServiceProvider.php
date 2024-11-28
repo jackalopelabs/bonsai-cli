@@ -4,8 +4,6 @@ namespace Jackalopelabs\BonsaiCli\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
-use BladeUI\Icons\Factory as IconFactory;
-use BladeUI\Icons\IconsManifest;
 use Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand;
 use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
 use Jackalopelabs\BonsaiCli\Commands\CleanupCommand;
@@ -16,23 +14,12 @@ use Jackalopelabs\BonsaiCli\Commands\GenerateCommand;
 
 class BonsaiServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     */
     public function register()
     {   
-        $this->app->singleton(BonsaiInitCommand::class);
-        $this->app->singleton(ComponentCommand::class);
-        $this->app->singleton(GenerateCommand::class);
-        $this->app->singleton(CleanupCommand::class);
-
-        $this->app->register(BonsaiComponentServiceProvider::class);
-
-        // Register Blade Icons
-        $this->callAfterResolving(IconFactory::class, function (IconFactory $factory) {
-            $factory->add('heroicons', [
-                'path' => __DIR__.'/../../vendor/blade-ui-kit/blade-heroicons/resources/svg',
-                'prefix' => 'heroicon',
-            ]);
-        });
-
+        // Register commands
         $this->commands([
             BonsaiInitCommand::class,
             ComponentCommand::class,
@@ -44,6 +31,9 @@ class BonsaiServiceProvider extends ServiceProvider
         ]);
     }
 
+    /**
+     * Bootstrap any application services.
+     */
     public function boot()
     {
         try {
@@ -54,15 +44,6 @@ class BonsaiServiceProvider extends ServiceProvider
             
             // Register icon components
             Blade::component('bonsai.components.icons.flowchart', 'icon-flowchart');
-
-            // Register Blade Icons
-            if (class_exists(\BladeUI\Icons\BladeIconsServiceProvider::class)) {
-                $this->app->register(\BladeUI\Icons\BladeIconsServiceProvider::class);
-            }
-            
-            if (class_exists(\BladeUI\Heroicons\BladeHeroiconsServiceProvider::class)) {
-                $this->app->register(\BladeUI\Heroicons\BladeHeroiconsServiceProvider::class);
-            }
 
         } catch (\Exception $e) {
             // Log error or handle gracefully
