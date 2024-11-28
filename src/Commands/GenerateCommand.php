@@ -31,8 +31,11 @@ class GenerateCommand extends Command
             $this->info("Starting Bonsai site generation for template: {$template}");
             $this->info("Using config: {$configPath}");
             
+            // Check Heroicons setup before generating components
+            $hasHeroicons = $this->checkHeroiconsSetup();
+            
             // Execute generation steps in sequence
-            $this->generateComponents($config['components'] ?? []);
+            $this->generateComponents($config['components'] ?? [], $hasHeroicons);
             $this->generateSections($config['sections'] ?? []);
             $this->generateLayouts($config['layouts'] ?? []);
             $this->generatePages($config['pages'] ?? []);
@@ -73,15 +76,16 @@ class GenerateCommand extends Command
         return Yaml::parseFile($path);
     }
 
-    protected function generateComponents($components)
+    protected function generateComponents($components, $hasHeroicons = false)
     {
         $this->info('Generating components...');
         
-        // Check for blade-heroicons
-        if (!class_exists(\BladeUI\Heroicons\BladeHeroiconsServiceProvider::class)) {
-            $this->warn('⚠️  blade-heroicons package not found. Icons will use fallback SVGs.');
-            $this->warn('To install blade-heroicons, run: composer require blade-ui-kit/blade-heroicons');
+        if (!$hasHeroicons) {
+            $this->info('Using fallback SVG icons since Heroicons is not properly configured.');
         }
+        
+        // Pass $hasHeroicons to the component templates so they can use appropriate icon handling
+        putenv("BONSAI_HAS_HEROICONS=" . ($hasHeroicons ? "true" : "false"));
         
         // If components is a simple array, convert to associative
         if (isset($components[0])) {
@@ -531,5 +535,87 @@ BLADE;
         $targetPath = "{$targetDir}/{$iconName}.blade.php";
         $this->files->copy($sourcePath, $targetPath);
         $this->info("Installed icon at: {$targetPath}");
+    }
+
+    protected function checkHeroiconsSetup()
+    {
+        $this->info('Checking Heroicons setup...');
+
+        // Check if blade-icons is installed
+        if (!class_exists(\BladeUI\Icons\BladeIconsServiceProvider::class)) {
+            $this->warn('⚠️  blade-icons package not found.');
+            $this->warn('Run: composer require blade-ui-kit/blade-icons');
+            return false;
+        }
+
+        // Check if blade-heroicons is installed
+        if (!class_exists(\BladeUI\Heroicons\BladeHeroiconsServiceProvider::class)) {
+            $this->warn('⚠️  blade-heroicons package not found.');
+            $this->warn('Run: composer require blade-ui-kit/blade-heroicons');
+            return false;
+        }
+
+        // Check if config exists and publish if needed
+        if (!file_exists(config_path('blade-icons.php'))) {
+            $this->info('Publishing blade-icons configuration...');
+            $this->call('vendor:publish', [
+                '--tag' => 'blade-icons'
+            ]);
+
+            // Update the config with correct paths
+            $configPath = config_path('blade-icons.php');
+            if (file_exists($configPath)) {
+                $config = file_get_contents($configPath);
+                $config = str_replace(
+                    "'path' => public_path('icons')",
+                    "'path' => resource_path('images/icons')",
+                    $config
+                );
+                file_put_contents($configPath, $config);
+                $this->info('Updated blade-icons config with correct paths.');
+            }
+        }
+
+        // Register providers in config/app.php if not already registered
+        $appConfig = config_path('app.php');
+        if (file_exists($appConfig)) {
+            $content = file_get_contents($appConfig);
+            $providers = [
+                \BladeUI\Icons\BladeIconsServiceProvider::class,
+                \BladeUI\Heroicons\BladeHeroiconsServiceProvider::class,
+            ];
+
+            $modified = false;
+            foreach ($providers as $provider) {
+                if (strpos($content, $provider) === false) {
+                    // Find the providers array
+                    $pattern = "/('providers' => \[\s*)(.*?)(\s*\])/s";
+                    if (preg_match($pattern, $content, $matches)) {
+                        $newContent = $matches[1] . $matches[2] . "        " . $provider . "::class,\n" . $matches[3];
+                        $content = str_replace($matches[0], $newContent, $content);
+                        $modified = true;
+                    }
+                }
+            }
+
+            if ($modified) {
+                file_put_contents($appConfig, $content);
+                $this->info('Added Blade Icons providers to config/app.php');
+            }
+        }
+
+        // Create icons directory if it doesn't exist
+        $iconsPath = resource_path('images/icons');
+        if (!is_dir($iconsPath)) {
+            mkdir($iconsPath, 0755, true);
+            $this->info("Created icons directory at: {$iconsPath}");
+        }
+
+        // Cache icons in production
+        if (app()->environment('production') && !cache()->has('blade-icons')) {
+            $this->call('icons:cache');
+        }
+
+        return true;
     }
 }
