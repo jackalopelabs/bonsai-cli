@@ -22,6 +22,8 @@ class BonsaiTree
     protected $trunk = ['/', '|', '\\'];
     protected $branches = ['/', '~', '\\', '|'];
 
+    protected $grid = [];
+
     public function __construct($age, $style)
     {
         $this->age = $age;
@@ -35,7 +37,39 @@ class BonsaiTree
         return $this->colors[$color] . $text . $this->colors['reset'];
     }
 
+    public function setGrid($grid)
+    {
+        $this->grid = $grid;
+    }
+
     public function render()
+    {
+        if (empty($this->grid)) {
+            return $this->renderStatic(); // Fallback to static rendering
+        }
+
+        $output = [];
+        foreach ($this->grid as $row) {
+            $line = '';
+            foreach ($row as $cell) {
+                if (in_array($cell, ['|', '\\', '/', '~'])) {
+                    $line .= $this->colorize($cell, 'brown');
+                } elseif (in_array($cell, ['*', '&', '^', '@'])) {
+                    $line .= $this->colorize($cell, 'green');
+                } else {
+                    $line .= $cell;
+                }
+            }
+            $output[] = $line;
+        }
+
+        // Add the base
+        $output[] = $this->colorize("    =============    ", 'dark_brown');
+        
+        return implode("\n", $output);
+    }
+
+    protected function renderStatic()
     {
         $tree = [];
         
