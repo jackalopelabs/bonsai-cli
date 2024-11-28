@@ -8,6 +8,16 @@ class BonsaiTree
     public $style;
     public $created_at;
     public $updated_at;
+
+    // ANSI Color codes
+    protected $colors = [
+        'brown' => "\e[38;5;130m",      // trunk color
+        'green' => "\e[38;5;106m",      // leaf color
+        'light_green' => "\e[38;5;114m", // young leaf color
+        'dark_brown' => "\e[38;5;94m",   // old trunk color
+        'reset' => "\e[0m"              // reset color
+    ];
+
     protected $leaves = ['&', '*', '^', '@', '%'];
     protected $trunk = ['/', '|', '\\'];
     protected $branches = ['/', '~', '\\', '|'];
@@ -20,22 +30,26 @@ class BonsaiTree
         $this->updated_at = time();
     }
 
+    protected function colorize($text, $color)
+    {
+        return $this->colors[$color] . $text . $this->colors['reset'];
+    }
+
     public function render()
     {
         $tree = [];
         
-        // Add branches and leaves based on style
         switch ($this->style) {
             case 'formal':
                 $tree = [
-                    "          {$this->leaves[2]}          ",
-                    "         {$this->leaves[0]}{$this->leaves[2]}{$this->leaves[0]}         ",
-                    "     {$this->leaves[1]}  {$this->leaves[2]}{$this->leaves[0]}{$this->leaves[2]}  {$this->leaves[1]}     ",
-                    "       {$this->leaves[0]}/{$this->trunk[1]}\\{$this->leaves[0]}       ",
-                    "        {$this->trunk[1]} {$this->trunk[1]}        ",
-                    "      {$this->branches[1]}{$this->trunk[1]}{$this->trunk[1]}{$this->trunk[1]}{$this->branches[3]}      ",
-                    "     {$this->branches[0]}{$this->trunk[1]}{$this->trunk[1]} {$this->trunk[1]}{$this->trunk[1]}{$this->branches[2]}     ",
-                    "    =============    "
+                    "          " . $this->colorize($this->leaves[2], 'light_green') . "          ",
+                    "         " . $this->colorize($this->leaves[0] . $this->leaves[2] . $this->leaves[0], 'green') . "         ",
+                    "     " . $this->colorize($this->leaves[1], 'green') . "  " . $this->colorize($this->leaves[2] . $this->leaves[0] . $this->leaves[2], 'light_green') . "  " . $this->colorize($this->leaves[1], 'green') . "     ",
+                    "       " . $this->colorize($this->leaves[0], 'green') . $this->colorize("/" . $this->trunk[1] . "\\", 'brown') . $this->colorize($this->leaves[0], 'green') . "       ",
+                    "        " . $this->colorize($this->trunk[1] . " " . $this->trunk[1], 'brown') . "        ",
+                    "      " . $this->colorize($this->branches[1] . $this->trunk[1] . $this->trunk[1] . $this->trunk[1] . $this->branches[3], 'dark_brown') . "      ",
+                    "     " . $this->colorize($this->branches[0] . $this->trunk[1] . $this->trunk[1] . " " . $this->trunk[1] . $this->trunk[1] . $this->branches[2], 'dark_brown') . "     ",
+                    "    " . $this->colorize("=============", 'dark_brown') . "    "
                 ];
                 break;
                 
