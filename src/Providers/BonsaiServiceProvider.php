@@ -3,6 +3,7 @@
 namespace Jackalopelabs\BonsaiCli\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
 use Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand;
 use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
 use Jackalopelabs\BonsaiCli\Commands\CleanupCommand;
@@ -35,11 +36,16 @@ class BonsaiServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        // ... other boot code ...
+        if (!class_exists('\App\View\Components\Card')) {
+            return;
+        }
 
-        // Register components
-        Blade::component('card', \App\View\Components\Card::class);
-        
-        // ... rest of boot code ...
+        // Register components only if the component class exists
+        try {
+            Blade::component('card', \App\View\Components\Card::class);
+        } catch (\Exception $e) {
+            // Log error or handle gracefully
+            \Log::error("Failed to register card component: " . $e->getMessage());
+        }
     }
 }
