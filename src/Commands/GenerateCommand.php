@@ -79,7 +79,6 @@ class GenerateCommand extends Command
         
         // If components is a simple array, convert to associative
         if (isset($components[0])) {
-            // Allow hero, header, and card components
             $components = array_filter($components, function($component) {
                 return in_array($component, ['hero', 'header', 'card']);
             });
@@ -91,8 +90,14 @@ class GenerateCommand extends Command
                 $componentName = is_array($config) ? $component : $config;
                 $this->info("Installing component: {$componentName}");
 
-                // Copy the blade template only
+                // Copy the component template
                 $this->copyComponentTemplate($componentName);
+
+                // If this is the card component, also copy its required icons
+                if ($componentName === 'card') {
+                    $this->info("Installing card component icons...");
+                    $this->copyComponentIcon('flowchart');
+                }
 
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate component '{$componentName}': " . $e->getMessage());
@@ -463,5 +468,27 @@ BLADE;
             // Store API keys in .env
             $this->updateEnvFile($keys);
         }
+    }
+
+    protected function copyComponentIcon($iconName)
+    {
+        $sourcePath = __DIR__ . "/../../templates/components/icons/{$iconName}.blade.php";
+        
+        if (!file_exists($sourcePath)) {
+            $this->error("Icon not found: {$sourcePath}");
+            return;
+        }
+
+        // Create the icons directory if it doesn't exist
+        $targetDir = resource_path("views/bonsai/components/icons");
+        if (!$this->files->exists($targetDir)) {
+            $this->files->makeDirectory($targetDir, 0755, true);
+            $this->info("Created icons directory: {$targetDir}");
+        }
+
+        // Copy the icon file
+        $targetPath = "{$targetDir}/{$iconName}.blade.php";
+        $this->files->copy($sourcePath, $targetPath);
+        $this->info("Installed icon at: {$targetPath}");
     }
 }
