@@ -208,16 +208,61 @@ BLADE;
 @endphp
 
 <div class="{{ \$class }}">
+BLADE;
+
+        // Special handling for pricing section
+        if ($componentName === 'pricing') {
+            $template .= <<<BLADE
+    
+    <section class="py-24" id="plans">
+        <div class="py-12">
+            <div class="mx-auto px-4 text-center">
+                <div class="inline-flex items-center gap-2 rounded-md bg-white text-sm px-3 py-1 text-center mb-4">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span class="text-gray-400">{{ \${$dataVarName}['subtitle'] }}</span>
+                </div>
+                <h2 class="text-5xl font-bold text-gray-900 mb-4 pt-4">{{ \${$dataVarName}['title'] }}</h2>
+                <p class="text-gray-500 mb-8">{{ \${$dataVarName}['description'] }}</p>
+            </div>
+        </div>
+
+        <div class="mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-center items-start space-y-8 md:space-y-0 md:space-x-8">
+                @foreach (\${$dataVarName}['pricingBoxes'] as \$box)
+                    <x-pricing-box 
+                        :icon="\$box['icon']"
+                        :iconColor="\$box['iconColor']"
+                        :planType="\$box['planType']"
+                        :price="\$box['price']"
+                        :features="\$box['features']"
+                        :ctaLink="\$box['ctaLink']"
+                        :ctaText="\$box['ctaText']"
+                        :ctaColor="\$box['ctaColor']"
+                        :iconBtn="\$box['iconBtn']"
+                        :iconBtnColor="\$box['iconBtnColor']"
+                    />
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+BLADE;
+        } else {
+            // Default component rendering
+            $template .= <<<BLADE
     <x-{$componentName}
 
 BLADE;
-
-        // Add props
-        foreach ($data as $key => $value) {
-            $template .= "\n        :{$key}=\"\${$dataVarName}['{$key}']\"";
+            // Add props
+            foreach ($data as $key => $value) {
+                $template .= "\n        :{$key}=\"\${$dataVarName}['{$key}']\"";
+            }
+            $template .= "\n    />";
         }
 
-        $template .= "\n    />\n</div>\n";
+        $template .= "\n</div>\n";
 
         return $template;
     }
