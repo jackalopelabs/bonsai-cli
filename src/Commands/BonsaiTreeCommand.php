@@ -15,8 +15,7 @@ class BonsaiTreeCommand extends Command
                           {--age= : Age category for the tree}
                           {--style= : Bonsai style (formal, informal, slanting, cascade)}
                           {--seed= : Random seed for generation}
-                          {--force : Force regeneration of existing tree}
-                          {--verbose : Show detailed output}';
+                          {--force : Force regeneration of existing tree}';
 
     protected $description = 'Generate and manage ASCII art bonsai trees';
 
@@ -35,8 +34,7 @@ class BonsaiTreeCommand extends Command
         $action = $this->argument('action');
         $config = $this->option('config');
 
-        // Enable verbose output if requested
-        if ($this->option('verbose')) {
+        if ($this->getVerbosity() > Command::VERBOSITY_NORMAL) {
             $this->generator->enableDebug();
         }
 
