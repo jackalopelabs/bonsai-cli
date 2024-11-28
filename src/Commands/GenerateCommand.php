@@ -362,8 +362,13 @@ BLADE;
         // Get layout sections from configuration
         $layoutSections = $this->getLayoutSections($layout);
         
+        // Filter out site_header from sections since it's in the layout
+        $contentSections = array_filter($layoutSections, function($section) {
+            return $section !== 'site_header';
+        });
+        
         // Generate section includes
-        $sectionIncludes = collect($layoutSections)
+        $sectionIncludes = collect($contentSections)
             ->map(fn($section) => "@include('bonsai.sections.{$section}')")
             ->implode("\n    ");
 
