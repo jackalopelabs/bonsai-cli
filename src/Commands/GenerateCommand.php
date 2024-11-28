@@ -80,7 +80,15 @@ class GenerateCommand extends Command
         // If components is a simple array, convert to associative
         if (isset($components[0])) {
             $components = array_filter($components, function($component) {
-                return in_array($component, ['hero', 'header', 'card', 'widget', 'accordion', 'cta', 'list-item']);
+                return in_array($component, [
+                    'hero',
+                    'header', 
+                    'card',
+                    'widget', 
+                    'accordion',
+                    'cta',
+                    'list-item'
+                ]);
             });
             $components = array_combine($components, array_fill(0, count($components), []));
         }

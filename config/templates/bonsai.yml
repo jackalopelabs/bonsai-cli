@@ -6,6 +6,7 @@ components:
   - hero
   - header
   - card
+  - widget
 
 sections:
   site_header:
