@@ -251,7 +251,7 @@ BLADE;
         @include('utils.styles')
     </head>
 
-    <body @php(body_class())>
+    <body @php(body_class('bg-gray-100'))>
         @php(wp_body_open())
 
         <div id="app">
