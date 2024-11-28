@@ -2,106 +2,31 @@
 
 namespace Jackalopelabs\BonsaiCli\Storage;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\File;
-use Jackalopelabs\BonsaiCli\Models\BonsaiTree;
-
 class BonsaiTreeStorage
 {
-    protected $storagePath;
-    protected $cachePrefix = 'bonsai_tree_';
+    protected $trees = [];
 
-    public function __construct()
+    public function store($config, $tree)
     {
-        $this->storagePath = config('bonsai.storage.path', storage_path('bonsai/trees'));
-        
-        if (!File::exists($this->storagePath)) {
-            File::makeDirectory($this->storagePath, 0755, true);
-        }
-    }
-
-    public function store(string $configPath, BonsaiTree $tree)
-    {
-        $key = $this->getKeyFromConfig($configPath);
-        $data = $tree->toArray();
-        
-        // Store the tree data
-        File::put(
-            $this->getStoragePath($key),
-            json_encode($data, JSON_PRETTY_PRINT)
-        );
-
-        // Cache the tree for quick access
-        Cache::put($this->cachePrefix . $key, $data, now()->addHours(24));
-
+        $this->trees[$config] = $tree;
         return true;
     }
 
-    public function get(string $configPath): ?BonsaiTree
+    public function get($config)
     {
-        $key = $this->getKeyFromConfig($configPath);
-        
-        // Try to get from cache first
-        $data = Cache::get($this->cachePrefix . $key);
-        
-        if (!$data) {
-            $path = $this->getStoragePath($key);
-            if (!File::exists($path)) {
-                return null;
-            }
-            
-            $data = json_decode(File::get($path), true);
-            
-            // Cache for future requests
-            Cache::put($this->cachePrefix . $key, $data, now()->addHours(24));
+        if (!isset($this->trees[$config])) {
+            throw new \Exception("No tree found for config: {$config}");
         }
-
-        return new BonsaiTree($data);
+        return $this->trees[$config];
     }
 
-    public function exists(string $configPath): bool
+    public function exists($config)
     {
-        $key = $this->getKeyFromConfig($configPath);
-        return File::exists($this->getStoragePath($key));
+        return isset($this->trees[$config]);
     }
 
-    public function all(): array
+    public function all()
     {
-        $trees = [];
-        $files = File::files($this->storagePath);
-
-        foreach ($files as $file) {
-            $key = pathinfo($file, PATHINFO_FILENAME);
-            $data = json_decode(File::get($file), true);
-            $trees[$key] = new BonsaiTree($data);
-        }
-
-        return $trees;
-    }
-
-    public function delete(string $configPath): bool
-    {
-        $key = $this->getKeyFromConfig($configPath);
-        $path = $this->getStoragePath($key);
-        
-        // Remove from cache
-        Cache::forget($this->cachePrefix . $key);
-        
-        // Remove file if it exists
-        if (File::exists($path)) {
-            return File::delete($path);
-        }
-
-        return false;
-    }
-
-    protected function getKeyFromConfig(string $configPath): string
-    {
-        return md5($configPath);
-    }
-
-    protected function getStoragePath(string $key): string
-    {
-        return $this->storagePath . '/' . $key . '.json';
+        return $this->trees;
     }
 } 
