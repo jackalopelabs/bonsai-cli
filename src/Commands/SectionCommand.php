@@ -208,7 +208,7 @@ BLADE;
 @endphp
 
 <div class="{{ \$class }}">
-    <x-bonsai-{$componentName}
+    <x-{$componentName}
 
 BLADE;
 

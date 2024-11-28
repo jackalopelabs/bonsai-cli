@@ -32,4 +32,14 @@ class BonsaiServiceProvider extends ServiceProvider
             CleanupCommand::class,
         ]);
     }
+
+    public function boot()
+    {
+        // ... other boot code ...
+
+        // Register components
+        Blade::component('card', \App\View\Components\Card::class);
+        
+        // ... rest of boot code ...
+    }
 }
