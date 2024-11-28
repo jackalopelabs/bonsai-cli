@@ -23,10 +23,15 @@ class TreeGenerator
     {
         $options = array_merge($this->defaultOptions, $options);
         
-        // Create a proper BonsaiTree instance instead of stdClass
+        // Set random seed if provided
+        if ($options['seed']) {
+            srand($options['seed']);
+        }
+        
+        // Create tree with specified style
         $tree = new BonsaiTree(
             $options['age'],
-            $options['style']
+            $options['style'] ?? 'formal'
         );
 
         if ($this->debug) {
@@ -38,6 +43,10 @@ class TreeGenerator
 
     public function age($tree)
     {
+        // Age the tree by changing its style slightly
+        $styles = ['formal', 'informal', 'slanting'];
+        $currentIndex = array_search($tree->style, $styles);
+        $tree->style = $styles[($currentIndex + 1) % count($styles)];
         $tree->updated_at = time();
         return $tree;
     }
