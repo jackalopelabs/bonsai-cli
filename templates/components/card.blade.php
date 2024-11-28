@@ -28,7 +28,7 @@
             <div class="md:w-1/2 mx-auto">
                 @if ($image)
                     <!-- Option A: Using Blade Component -->
-                    <x-dynamic-component :component="$image" class="w-full" />
+                    {{-- <x-dynamic-component :component="$image" class="w-full" /> --}}
                 @else
                     @include('bonsai.components.icons.flowchart', ['attributes' => 'class="w-full"'])
                 @endif
@@ -39,7 +39,14 @@
                 @foreach ($featureItems as $item)
                     <div class="flex items-start space-x-4 bg-white rounded-xl p-3">
                         <div class="shrink-0">
-                            <x-dynamic-component :component="$item['icon']" class="h-6 w-6 text-indigo-500" />
+                            @php
+                                $iconName = str_replace('heroicon-', '', $item['icon']);
+                                $iconType = strpos($iconName, 'o-') === 0 ? 'outline' : 'solid';
+                                $iconName = str_replace(['o-', 's-'], '', $iconName);
+                            @endphp
+                            <svg class="h-6 w-6 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                @include("vendor.blade-heroicons.{$iconType}.{$iconName}")
+                            </svg>
                         </div>
                         <div>
                             <h3 class="text-lg font-semibold">{{ $item['title'] }}</h3>
