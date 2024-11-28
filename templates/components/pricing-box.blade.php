@@ -11,7 +11,7 @@
     'iconBtnColor', // Icon color for the CTA button
 ])
 
-<div class="bg-white bg-opacity-50 rounded-xl shadow-lg overflow-hidden mx-auto text-center my-3 transition-transform transform hover:scale-105 {{ $planType == 'Pro' ? 'border border-emerald-500' : '' }}">
+<div class="bg-white bg-opacity-50 rounded-xl shadow-lg overflow-hidden mx-auto md:mx-0 text-center my-3 transition-transform transform hover:scale-105 {{ $planType == 'Pro' ? 'border border-emerald-500' : '' }}">
     <div class="p-6">
         <svg 
             class="{{ $iconColor }} inline-block h-12 w-12 mt-8 mb-4"
