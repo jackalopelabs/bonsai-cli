@@ -3,7 +3,6 @@
 namespace Jackalopelabs\BonsaiCli\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Blade;
 use Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand;
 use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
 use Jackalopelabs\BonsaiCli\Commands\CleanupCommand;
@@ -15,9 +14,6 @@ use Jackalopelabs\BonsaiCli\Commands\BonsaiTreeCommand;
 
 class BonsaiServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register()
     {   
         // Register commands
@@ -38,30 +34,8 @@ class BonsaiServiceProvider extends ServiceProvider
         );
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot()
     {
-        try {
-            // Register anonymous components
-            Blade::component('bonsai.components.header', 'header');
-            Blade::component('bonsai.components.hero', 'hero');
-            Blade::component('bonsai.components.card', 'card');
-            Blade::component('bonsai.components.widget', 'widget');
-            Blade::component('bonsai.components.accordion', 'accordion');
-            Blade::component('bonsai.components.cta', 'cta');
-            Blade::component('bonsai.components.list-item', 'list-item');
-            Blade::component('bonsai.components.pricing-box', 'pricing-box');
-            
-            // Register icon components
-            Blade::component('bonsai.components.icons.flowchart', 'icon-flowchart');
-
-        } catch (\Exception $e) {
-            // Log error or handle gracefully
-            \Log::error("Failed to register components: " . $e->getMessage());
-        }
-
         // Publish config
         $this->publishes([
             __DIR__.'/../../config/bonsai.php' => config_path('bonsai.php'),

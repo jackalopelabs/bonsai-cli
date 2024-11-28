@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Yaml\Yaml;
+use Jackalopelabs\BonsaiCli\Generators\TreeGenerator;
 
 class GenerateCommand extends Command
 {
@@ -44,6 +45,17 @@ class GenerateCommand extends Command
             
             $this->info('🌳 Bonsai site generation completed successfully!');
             
+            // After successful generation, create and display a bonsai tree
+            $generator = new TreeGenerator();
+            $tree = $generator->generate([
+                'style' => 'formal',
+                'season' => 'spring'
+            ]);
+
+            $this->info("\nGenerated site successfully! 🌟\n");
+            $this->line($tree->render());
+            
+            return 0;
         } catch (\Exception $e) {
             $this->error("Error generating site: " . $e->getMessage());
             return 1;
