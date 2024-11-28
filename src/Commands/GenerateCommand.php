@@ -229,35 +229,57 @@ BLADE;
     {
         $this->info('Generating layouts...');
         
-        // Get the template name
-        $template = $this->argument('template');
-        
-        // If this is the cypress template, ensure the cypress layout is created first
-        if ($template === 'cypress') {
-            $this->info('Creating cypress layout...');
-            $this->call('bonsai:layout', [
-                'name' => 'cypress',
-                '--sections' => 'home_hero,features,services_faq'
-            ]);
-        }
-
-        // Then process any additional layouts from the config
         foreach ($layouts as $layout => $config) {
             try {
-                // Skip cypress layout if it was already created
-                if ($template === 'cypress' && $layout === 'cypress') {
-                    continue;
+                // Create the layout file
+                $layoutPath = resource_path("views/bonsai/layouts/{$layout}.blade.php");
+                
+                // Ensure the layouts directory exists
+                if (!$this->files->exists(dirname($layoutPath))) {
+                    $this->files->makeDirectory(dirname($layoutPath), 0755, true);
                 }
+                
+                // Generate the layout content
+                $layoutContent = <<<BLADE
+<!doctype html>
+<html @php(language_attributes())>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        @php(do_action('get_header'))
+        @php(wp_head())
+        @include('utils.styles')
+    </head>
 
-                $params = [
-                    'name' => $layout
-                ];
+    <body @php(body_class())>
+        @php(wp_body_open())
 
-                if (isset($config['sections'])) {
-                    $params['--sections'] = implode(',', $config['sections']);
-                }
+        <div id="app">
+            <a class="sr-only focus:not-sr-only" href="#main">
+                {{ __('Skip to content', 'radicle') }}
+            </a>
 
-                $this->call('bonsai:layout', $params);
+            @include('bonsai.sections.site_header')
+
+            <main id="main" class="max-w-5xl mx-auto">
+                <div class="{{ \$containerInnerClasses }}">
+                    @yield('content')
+                </div>
+            </main>
+
+            @include('sections.footer')
+        </div>
+
+        @php(do_action('get_footer'))
+        @php(wp_footer())
+        @include('utils.scripts')
+    </body>
+</html>
+BLADE;
+
+                $this->files->put($layoutPath, $layoutContent);
+                $this->info("Created layout file: {$layoutPath}");
+
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate layout '{$layout}': " . $e->getMessage());
             }
@@ -326,10 +348,11 @@ BLADE;
 {{--
     Template Name: {$template} Template
 --}}
-@extends('layouts.app')
+@extends('bonsai.layouts.{$layout}')
 
 @section('content')
-    {$sectionIncludes}
+    @include('bonsai.sections.home_hero')
+    @include('bonsai.sections.services_card')
 @endsection
 BLADE;
     }
