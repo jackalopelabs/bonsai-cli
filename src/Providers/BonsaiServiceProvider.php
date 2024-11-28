@@ -11,6 +11,7 @@ use Jackalopelabs\BonsaiCli\Commands\LayoutCommand;
 use Jackalopelabs\BonsaiCli\Commands\PageCommand;
 use Jackalopelabs\BonsaiCli\Commands\SectionCommand;
 use Jackalopelabs\BonsaiCli\Commands\GenerateCommand;
+use Jackalopelabs\BonsaiCli\Commands\BonsaiTreeCommand;
 
 class BonsaiServiceProvider extends ServiceProvider
 {
@@ -28,7 +29,13 @@ class BonsaiServiceProvider extends ServiceProvider
             SectionCommand::class,
             GenerateCommand::class,
             CleanupCommand::class,
+            BonsaiTreeCommand::class,
         ]);
+
+        // Register config
+        $this->mergeConfigFrom(
+            __DIR__.'/../../config/bonsai.php', 'bonsai'
+        );
     }
 
     /**
@@ -54,5 +61,10 @@ class BonsaiServiceProvider extends ServiceProvider
             // Log error or handle gracefully
             \Log::error("Failed to register components: " . $e->getMessage());
         }
+
+        // Publish config
+        $this->publishes([
+            __DIR__.'/../../config/bonsai.php' => config_path('bonsai.php'),
+        ], 'bonsai-config');
     }
 }
