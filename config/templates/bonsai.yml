@@ -175,20 +175,22 @@ sections:
           "iconBtnColor": "text-white"
         },
         {
-          "icon": "heroicon-o-puzzle-piece",
-          "iconColor": "text-gray-500",
+          "icon": "heroicon-o-star",
+          "iconColor": "text-yellow-500",
           "planType": "Sensei",
           "price": "$249<span class=\"text-xs text-gray-400\">/yr</span>",
           "features": [
-            "All Basic features",
-            "Custom components",
-            "Advanced templates",
-            "Priority support",
-            "Early access"
+            "All Pro features",
+            "Custom development",
+            "Private Slack channel",
+            "1-on-1 mentoring",
+            "Early beta access",
+            "Custom integrations",
+            "Architecture review"
           ],
           "ctaLink": "#buy-sensei",
           "ctaText": "Buy Now",
-          "ctaColor": "bg-gradient-to-r from-emerald-600 to-green-500 text-white",
+          "ctaColor": "bg-gradient-to-r from-yellow-500 to-amber-500 text-white",
           "iconBtn": "heroicon-o-shopping-cart",
           "iconBtnColor": "text-white"
         }
