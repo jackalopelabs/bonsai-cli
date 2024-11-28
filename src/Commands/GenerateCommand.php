@@ -79,19 +79,14 @@ class GenerateCommand extends Command
         
         // If components is a simple array, convert to associative
         if (isset($components[0])) {
-            // Allow both hero and header
+            // Allow hero, header, and card components
             $components = array_filter($components, function($component) {
-                return in_array($component, ['hero', 'header']);
+                return in_array($component, ['hero', 'header', 'card']);
             });
             $components = array_combine($components, array_fill(0, count($components), []));
         }
 
         foreach ($components as $component => $config) {
-            // Allow both hero and header
-            if (!in_array($component, ['hero', 'header'])) {
-                continue;
-            }
-
             try {
                 $componentName = is_array($config) ? $component : $config;
                 $this->info("Installing component: {$componentName}");
