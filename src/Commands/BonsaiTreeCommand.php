@@ -34,10 +34,6 @@ class BonsaiTreeCommand extends Command
         $action = $this->argument('action');
         $config = $this->option('config');
 
-        if ($this->getVerbosity() > Command::VERBOSITY_NORMAL) {
-            $this->generator->enableDebug();
-        }
-
         switch ($action) {
             case 'generate':
                 return $this->generateTree();
