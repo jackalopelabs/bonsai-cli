@@ -127,7 +127,7 @@ class GenerateCommand extends Command
         }
 
         // Determine if this is an icon component
-        $isIcon = strpos($templatePath, '/icons/') !== false;
+        $isIcon = strpos($templatePath, '/icons/') !== false || strpos($componentName, 'icon-') === 0;
         
         // Set the target directory based on component type
         $targetDir = $isIcon 
@@ -137,12 +137,24 @@ class GenerateCommand extends Command
         // Ensure directory exists
         if (!$this->files->exists($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
+            $this->info("Created directory: {$targetDir}");
         }
 
+        // Get just the filename for icons, removing the 'icon-' prefix
+        $filename = $isIcon 
+            ? str_replace('icon-', '', basename($templatePath))
+            : basename($templatePath);
+
         // Copy component to appropriate directory
-        $targetPath = "{$targetDir}/" . basename($templatePath);
+        $targetPath = "{$targetDir}/{$filename}";
         $this->files->copy($templatePath, $targetPath);
         $this->line("Component " . ($isIcon ? "icon " : "") . "installed at: {$targetPath}");
+
+        // Debug info
+        $this->info("Component details:");
+        $this->info("- Is icon: " . ($isIcon ? 'yes' : 'no'));
+        $this->info("- Source: {$templatePath}");
+        $this->info("- Target: {$targetPath}");
     }
 
     protected function createBasicComponent($name)
