@@ -11,6 +11,7 @@ use Jackalopelabs\BonsaiCli\Commands\PageCommand;
 use Jackalopelabs\BonsaiCli\Commands\SectionCommand;
 use Jackalopelabs\BonsaiCli\Commands\GenerateCommand;
 use Jackalopelabs\BonsaiCli\Commands\BonsaiTreeCommand;
+use Jackalopelabs\BonsaiCli\Commands\BonsaiArtCommand;
 
 class BonsaiServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,7 @@ class BonsaiServiceProvider extends ServiceProvider
             GenerateCommand::class,
             CleanupCommand::class,
             BonsaiTreeCommand::class,
+            BonsaiArtCommand::class,
         ]);
 
         // Register config
