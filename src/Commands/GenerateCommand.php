@@ -102,10 +102,12 @@ class GenerateCommand extends Command
 
     protected function copyComponentTemplate($componentName)
     {
-        // Update possible paths to include the package templates directory
+        // Update possible paths to include icons
         $possiblePaths = [
             base_path("templates/components/{$componentName}.blade.php"),
+            base_path("templates/components/icons/{$componentName}.blade.php"),
             __DIR__ . "/../../templates/components/{$componentName}.blade.php",
+            __DIR__ . "/../../templates/components/icons/{$componentName}.blade.php",
             base_path("resources/views/bonsai/components/{$componentName}.blade.php")
         ];
 
@@ -124,16 +126,23 @@ class GenerateCommand extends Command
             return;
         }
 
-        // Ensure the bonsai components directory exists
-        $targetDir = resource_path("views/bonsai/components");
+        // Determine if this is an icon component
+        $isIcon = strpos($templatePath, '/icons/') !== false;
+        
+        // Set the target directory based on component type
+        $targetDir = $isIcon 
+            ? resource_path("views/bonsai/components/icons")
+            : resource_path("views/bonsai/components");
+
+        // Ensure directory exists
         if (!$this->files->exists($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
         }
 
-        // Copy component to bonsai components directory
-        $targetPath = "{$targetDir}/{$componentName}.blade.php";
+        // Copy component to appropriate directory
+        $targetPath = "{$targetDir}/" . basename($templatePath);
         $this->files->copy($templatePath, $targetPath);
-        $this->line("Component template installed at: {$targetPath}");
+        $this->line("Component " . ($isIcon ? "icon " : "") . "installed at: {$targetPath}");
     }
 
     protected function createBasicComponent($name)

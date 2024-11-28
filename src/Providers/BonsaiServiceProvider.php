@@ -41,6 +41,9 @@ class BonsaiServiceProvider extends ServiceProvider
             Blade::component('bonsai.components.header', 'header');
             Blade::component('bonsai.components.hero', 'hero');
             Blade::component('bonsai.components.card', 'card');
+            
+            // Register icon components
+            Blade::component('bonsai.components.icons.flowchart', 'icon-flowchart');
         } catch (\Exception $e) {
             // Log error or handle gracefully
             \Log::error("Failed to register components: " . $e->getMessage());
