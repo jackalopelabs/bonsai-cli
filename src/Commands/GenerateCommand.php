@@ -91,43 +91,49 @@ class GenerateCommand extends Command
                 $componentName = is_array($config) ? $component : $config;
                 $this->info("Installing component: {$componentName}");
 
-                // Update possible paths to include the package templates directory
-                $possiblePaths = [
-                    base_path("templates/components/{$componentName}.blade.php"),
-                    __DIR__ . "/../../templates/components/{$componentName}.blade.php",
-                    base_path("resources/views/bonsai/components/{$componentName}.blade.php")
-                ];
-
-                $templatePath = null;
-                foreach ($possiblePaths as $path) {
-                    if (file_exists($path)) {
-                        $templatePath = $path;
-                        $this->info("Found template at: {$path}");
-                        break;
-                    }
-                }
-
-                if (!$templatePath) {
-                    $this->warn("No template found for component: {$componentName}");
-                    $this->createBasicComponent($componentName);
-                    continue;
-                }
-
-                // Ensure the bonsai components directory exists
-                $targetDir = resource_path("views/bonsai/components");
-                if (!$this->files->exists($targetDir)) {
-                    $this->files->makeDirectory($targetDir, 0755, true);
-                }
-
-                // Copy component to bonsai components directory
-                $targetPath = "{$targetDir}/{$componentName}.blade.php";
-                $this->files->copy($templatePath, $targetPath);
-                $this->line("Component installed at: {$targetPath}");
+                // Copy the blade template only
+                $this->copyComponentTemplate($componentName);
 
             } catch (\Exception $e) {
                 $this->warn("Warning: Could not generate component '{$componentName}': " . $e->getMessage());
             }
         }
+    }
+
+    protected function copyComponentTemplate($componentName)
+    {
+        // Update possible paths to include the package templates directory
+        $possiblePaths = [
+            base_path("templates/components/{$componentName}.blade.php"),
+            __DIR__ . "/../../templates/components/{$componentName}.blade.php",
+            base_path("resources/views/bonsai/components/{$componentName}.blade.php")
+        ];
+
+        $templatePath = null;
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $templatePath = $path;
+                $this->info("Found template at: {$path}");
+                break;
+            }
+        }
+
+        if (!$templatePath) {
+            $this->warn("No template found for component: {$componentName}");
+            $this->createBasicComponent($componentName);
+            return;
+        }
+
+        // Ensure the bonsai components directory exists
+        $targetDir = resource_path("views/bonsai/components");
+        if (!$this->files->exists($targetDir)) {
+            $this->files->makeDirectory($targetDir, 0755, true);
+        }
+
+        // Copy component to bonsai components directory
+        $targetPath = "{$targetDir}/{$componentName}.blade.php";
+        $this->files->copy($templatePath, $targetPath);
+        $this->line("Component template installed at: {$targetPath}");
     }
 
     protected function createBasicComponent($name)

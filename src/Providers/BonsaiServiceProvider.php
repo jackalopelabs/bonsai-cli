@@ -36,16 +36,14 @@ class BonsaiServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        if (!class_exists('\App\View\Components\Card')) {
-            return;
-        }
-
-        // Register components only if the component class exists
         try {
-            Blade::component('card', \App\View\Components\Card::class);
+            // Register anonymous components
+            Blade::component('bonsai.components.header', 'header');
+            Blade::component('bonsai.components.hero', 'hero');
+            Blade::component('bonsai.components.card', 'card');
         } catch (\Exception $e) {
             // Log error or handle gracefully
-            \Log::error("Failed to register card component: " . $e->getMessage());
+            \Log::error("Failed to register components: " . $e->getMessage());
         }
     }
 }
