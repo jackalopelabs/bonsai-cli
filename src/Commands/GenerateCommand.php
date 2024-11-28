@@ -77,6 +77,12 @@ class GenerateCommand extends Command
     {
         $this->info('Generating components...');
         
+        // Check for blade-heroicons
+        if (!class_exists(\BladeUI\Heroicons\BladeHeroiconsServiceProvider::class)) {
+            $this->warn('⚠️  blade-heroicons package not found. Icons will use fallback SVGs.');
+            $this->warn('To install blade-heroicons, run: composer require blade-ui-kit/blade-heroicons');
+        }
+        
         // If components is a simple array, convert to associative
         if (isset($components[0])) {
             $components = array_filter($components, function($component) {
