@@ -45,6 +45,7 @@ class BonsaiServiceProvider extends ServiceProvider
             Blade::component('bonsai.components.accordion', 'accordion');
             Blade::component('bonsai.components.cta', 'cta');
             Blade::component('bonsai.components.list-item', 'list-item');
+            Blade::component('bonsai.components.pricing-box', 'pricing');
             
             // Register icon components
             Blade::component('bonsai.components.icons.flowchart', 'icon-flowchart');
