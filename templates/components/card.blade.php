@@ -29,11 +29,8 @@
                 @if ($image)
                     <!-- Option A: Using Blade Component -->
                     <x-dynamic-component :component="$image" class="w-full" />
-
-                    <!-- Option B: Including SVG Directly -->
-                    {{-- {!! file_get_contents(resource_path($image)) !!} --}}
                 @else
-                    <x-icon-flowchart class="w-full" />
+                    @include('bonsai.components.icons.flowchart', ['attributes' => 'class="w-full"'])
                 @endif
             </div>
 
