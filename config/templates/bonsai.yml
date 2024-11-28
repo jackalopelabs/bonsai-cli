@@ -67,12 +67,77 @@ sections:
         }
       ]
 
+  features_widget:
+    component: widget
+    data:
+      items:
+        - id: "widget-1"
+          title: "Component Generation"
+          icon: "heroicon-o-command-line"
+          content: ""
+          cta:
+            title: "Component Generation"
+            link: "#components"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Generate and manage reusable components with ease:"
+          listItems:
+            - number: 1
+              itemName: "Quick Setup"
+              text: "Initialize your project with bonsai:init"
+            - number: 2
+              itemName: "Component Library"
+              text: "Access pre-built components ready for customization"
+            - number: 3
+              itemName: "Custom Components"
+              text: "Create your own components with simple commands"
+
+        - id: "widget-2"
+          title: "Section Builder"
+          icon: "heroicon-o-puzzle-piece"
+          content: ""
+          cta:
+            title: "Section Builder"
+            link: "#sections"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Build dynamic page sections with powerful features:"
+          listItems:
+            - number: 1
+              itemName: "Dynamic Data"
+              text: "Configure sections using YAML files"
+            - number: 2
+              itemName: "Reusable Sections"
+              text: "Create once, use anywhere in your site"
+            - number: 3
+              itemName: "Flexible Layout"
+              text: "Combine sections into custom page layouts"
+
+        - id: "widget-3"
+          title: "Template System"
+          icon: "heroicon-o-template"
+          content: ""
+          cta:
+            title: "Template System"
+            link: "#templates"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Generate complete WordPress sites from templates:"
+          listItems:
+            - number: 1
+              itemName: "Pre-built Templates"
+              text: "Start with our collection of ready-to-use templates"
+            - number: 2
+              itemName: "Custom Templates"
+              text: "Create your own templates for reuse"
+            - number: 3
+              itemName: "WordPress Integration"
+              text: "Seamlessly works with WordPress and Sage"
+
 layouts:
   bonsai:
     sections:
       - site_header
       - home_hero
       - services_card
+      - features_widget
 
 pages:
   home:

@@ -80,7 +80,7 @@ class GenerateCommand extends Command
         // If components is a simple array, convert to associative
         if (isset($components[0])) {
             $components = array_filter($components, function($component) {
-                return in_array($component, ['hero', 'header', 'card']);
+                return in_array($component, ['hero', 'header', 'card', 'widget', 'accordion', 'cta', 'list-item']);
             });
             $components = array_combine($components, array_fill(0, count($components), []));
         }
@@ -93,10 +93,17 @@ class GenerateCommand extends Command
                 // Copy the component template
                 $this->copyComponentTemplate($componentName);
 
-                // If this is the card component, also copy its required icons
-                if ($componentName === 'card') {
-                    $this->info("Installing card component icons...");
-                    $this->copyComponentIcon('flowchart');
+                // Handle special components that need additional files
+                switch ($componentName) {
+                    case 'card':
+                        $this->copyComponentIcon('flowchart');
+                        break;
+                    case 'widget':
+                        // Copy widget subcomponents
+                        $this->copyComponentTemplate('accordion');
+                        $this->copyComponentTemplate('cta');
+                        $this->copyComponentTemplate('list-item');
+                        break;
                 }
 
             } catch (\Exception $e) {
@@ -107,7 +114,7 @@ class GenerateCommand extends Command
 
     protected function copyComponentTemplate($componentName)
     {
-        // Update possible paths to include icons
+        // Update possible paths to include all component types
         $possiblePaths = [
             base_path("templates/components/{$componentName}.blade.php"),
             base_path("templates/components/icons/{$componentName}.blade.php"),
@@ -131,13 +138,16 @@ class GenerateCommand extends Command
             return;
         }
 
-        // Determine if this is an icon component
-        $isIcon = strpos($templatePath, '/icons/') !== false || strpos($componentName, 'icon-') === 0;
+        // Determine component type and target directory
+        $isIcon = strpos($templatePath, '/icons/') !== false;
+        $isSubComponent = in_array($componentName, ['accordion', 'cta', 'list-item']);
         
         // Set the target directory based on component type
-        $targetDir = $isIcon 
-            ? resource_path("views/bonsai/components/icons")
-            : resource_path("views/bonsai/components");
+        $targetDir = match(true) {
+            $isIcon => resource_path("views/bonsai/components/icons"),
+            $isSubComponent => resource_path("views/bonsai/components/widget"),
+            default => resource_path("views/bonsai/components")
+        };
 
         // Ensure directory exists
         if (!$this->files->exists($targetDir)) {
@@ -145,19 +155,14 @@ class GenerateCommand extends Command
             $this->info("Created directory: {$targetDir}");
         }
 
-        // Get just the filename for icons, removing the 'icon-' prefix
-        $filename = $isIcon 
-            ? str_replace('icon-', '', basename($templatePath))
-            : basename($templatePath);
-
         // Copy component to appropriate directory
-        $targetPath = "{$targetDir}/{$filename}";
+        $targetPath = "{$targetDir}/" . basename($templatePath);
         $this->files->copy($templatePath, $targetPath);
         $this->line("Component " . ($isIcon ? "icon " : "") . "installed at: {$targetPath}");
 
         // Debug info
         $this->info("Component details:");
-        $this->info("- Is icon: " . ($isIcon ? 'yes' : 'no'));
+        $this->info("- Type: " . ($isIcon ? 'icon' : ($isSubComponent ? 'subcomponent' : 'component')));
         $this->info("- Source: {$templatePath}");
         $this->info("- Target: {$targetPath}");
     }
@@ -351,8 +356,7 @@ BLADE;
 @extends('bonsai.layouts.{$layout}')
 
 @section('content')
-    @include('bonsai.sections.home_hero')
-    @include('bonsai.sections.services_card')
+    {$sectionIncludes}
 @endsection
 BLADE;
     }
