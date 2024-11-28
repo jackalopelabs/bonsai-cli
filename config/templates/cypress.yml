@@ -78,7 +78,6 @@ sections:
           "description": "Membership and subscription functionality built-in."
         }
       ]
-      image: "icon-flowchart"
 
 # Define layouts that combine sections
 layouts:
