@@ -97,7 +97,8 @@ class GenerateCommand extends Command
                     'widget', 
                     'accordion',
                     'cta',
-                    'list-item'
+                    'list-item',
+                    'pricing-box'
                 ]);
             });
             $components = array_combine($components, array_fill(0, count($components), []));
@@ -121,6 +122,9 @@ class GenerateCommand extends Command
                         $this->copyComponentTemplate('accordion');
                         $this->copyComponentTemplate('cta');
                         $this->copyComponentTemplate('list-item');
+                        break;
+                    case 'pricing-box':
+                        $this->info("Installing pricing component");
                         break;
                 }
 
