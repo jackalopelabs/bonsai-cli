@@ -42,8 +42,12 @@ class CleanupCommand extends Command
             
             if (File::exists($fullPath)) {
                 try {
-                    File::deleteDirectory($fullPath);
-                    $this->line("- Removed directory: {$path}");
+                    if (is_dir($fullPath)) {
+                        File::deleteDirectory($fullPath);
+                    } else {
+                        File::delete($fullPath);
+                    }
+                    $this->line("- Removed: {$path}");
                 } catch (\Exception $e) {
                     $this->error("Failed to remove {$path}: " . $e->getMessage());
                 }
@@ -61,21 +65,18 @@ class CleanupCommand extends Command
             'posts_per_page' => -1,
             'meta_query' => [
                 'relation' => 'OR',
-                // Check for Bonsai generated flag
                 [
                     'key' => '_bonsai_generated',
                     'value' => 'true',
                 ],
-                // Check for components template
                 [
                     'key' => '_wp_page_template',
                     'value' => 'template-components.blade.php',
                     'compare' => '=',
                 ],
-                // Check for Bonsai template pattern
                 [
                     'key' => '_wp_page_template',
-                    'value' => 'bonsai/templates/template-',
+                    'value' => 'views/bonsai/templates/template-',
                     'compare' => 'LIKE',
                 ],
             ],
@@ -113,7 +114,6 @@ class CleanupCommand extends Command
     {
         $this->info('Cleaning up menu references...');
 
-        // Get all menu locations
         $locations = get_nav_menu_locations();
 
         foreach ($locations as $location => $menu_id) {
@@ -122,18 +122,15 @@ class CleanupCommand extends Command
                 
                 if ($menu_items) {
                     foreach ($menu_items as $item) {
-                        // Check if menu item points to a Bonsai page
                         if ($item->type === 'post_type' 
                             && $item->object === 'page' 
                             && ($template = get_post_meta($item->object_id, '_wp_page_template', true))
                         ) {
-                            // Check for any Bonsai-related template pattern
-                            if (strpos($template, 'bonsai-') === 0 
-                                || strpos($template, 'template-') === 0 
-                                || strpos($template, 'templates/template-') === 0
+                            if (strpos($template, 'bonsai/') === 0 
+                                || strpos($template, 'template-') === 0
                             ) {
                                 wp_delete_post($item->ID, true);
-                                $this->line("- Removed menu item: {$item->title} (template: {$template})");
+                                $this->line("- Removed menu item: {$item->title}");
                             }
                         }
                     }
@@ -141,7 +138,6 @@ class CleanupCommand extends Command
             }
         }
 
-        // Clear menu and post caches
         wp_cache_delete('last_changed', 'posts');
         wp_cache_delete('last_changed', 'nav_menu_items');
     }
@@ -150,13 +146,9 @@ class CleanupCommand extends Command
     {
         $this->info('Resetting template registry...');
         
-        // Clear the page templates option
         delete_option('page_templates');
-        
-        // Clear related caches
         wp_cache_delete('page_templates');
         
-        // Reset theme mods related to templates
         $theme = get_option('stylesheet');
         $mods = get_option("theme_mods_{$theme}");
         if (is_array($mods) && isset($mods['page_templates'])) {
@@ -165,10 +157,5 @@ class CleanupCommand extends Command
         }
         
         $this->line("- Template registry reset successfully");
-    }
-
-    protected function isDirectoryEmpty($dir)
-    {
-        return count(array_diff(scandir($dir), ['.', '..'])) === 0;
     }
 }
