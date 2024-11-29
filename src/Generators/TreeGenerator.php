@@ -87,7 +87,9 @@ class TreeGenerator
         $shoots = 0;
         $maxShoots = $multiplier;
         $branchCount = 0;
-        $maxBranches = $multiplier * 110;  // From cbonsai
+        $maxBranches = $multiplier * 110;
+        $type = self::BRANCH_TYPE_TRUNK;
+        $lifeStart = $life;
         
         while ($life > 0 && $y > 0) {
             $life--;
@@ -127,12 +129,12 @@ class TreeGenerator
             $char = $this->getTrunkChar($dx, $dy);
             $grid[$y][$x] = $char;
             
-            // Branch logic exactly as in cbonsai
+            // Branch logic
             if ($branchCount < $maxBranches && 
                 (($life < 3) || 
-                ($type == 'trunk' && $life < ($lifeStart - 8) && 
+                ($life < ($lifeStart - 8) && 
                 (rand(0, 15 - $multiplier) == 0 || 
-                ($type == 'trunk' && $life % 5 == 0 && $life > 5))))) {
+                ($life % 5 == 0 && $life > 5))))) {
                 
                 if (rand(0, 2) == 0 && $life > 7) {
                     // Create another trunk
@@ -143,8 +145,8 @@ class TreeGenerator
                     if ($shootLife < 0) $shootLife = 0;
                     
                     $shootType = ($shoots == 0) ? 
-                        (rand(0, 1) ? 'shootLeft' : 'shootRight') :
-                        ($shoots % 2 ? 'shootRight' : 'shootLeft');
+                        (rand(0, 1) ? self::BRANCH_TYPE_SHOOT_LEFT : self::BRANCH_TYPE_SHOOT_RIGHT) :
+                        ($shoots % 2 ? self::BRANCH_TYPE_SHOOT_RIGHT : self::BRANCH_TYPE_SHOOT_LEFT);
                     
                     $this->growBranchAnimated($tree, $x, $y, $shootType, $shootLife, $multiplier);
                     $shoots++;
@@ -155,6 +157,9 @@ class TreeGenerator
             $tree->setGrid($grid);
             $this->notifyGrowth($tree);
         }
+        
+        // Add final leaf clusters
+        $this->addLeafCluster($tree, $x, $y, 3);
     }
 
     protected function getTrunkChar($dx, $dy)
