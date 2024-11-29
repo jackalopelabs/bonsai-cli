@@ -32,7 +32,7 @@ class TreeGenerator
     {
         if ($this->growthCallback) {
             call_user_func($this->growthCallback, $tree);
-            usleep(100000); // Force minimum 0.1s delay between growth steps
+            sleep(1);
         }
     }
 
@@ -160,12 +160,21 @@ class TreeGenerator
             [$x-1, $y-1], [$x+1, $y-1]
         ];
 
+        $grid = $tree->getGrid();
+        $changed = false;
+
         foreach ($positions as [$leafX, $leafY]) {
-            if (isset($tree->getGrid()[$leafY][$leafX]) && $tree->getGrid()[$leafY][$leafX] == ' ') {
-                if (rand(0, 2) == 0) { // Only add leaves sometimes
-                    $tree->getGrid()[$leafY][$leafX] = $leafChars[array_rand($leafChars)];
+            if (isset($grid[$leafY][$leafX]) && $grid[$leafY][$leafX] == ' ') {
+                if (rand(0, 2) == 0) {
+                    $grid[$leafY][$leafX] = $leafChars[array_rand($leafChars)];
+                    $changed = true;
                 }
             }
+        }
+
+        if ($changed) {
+            $tree->setGrid($grid);
+            $this->notifyGrowth($tree);
         }
     }
 
