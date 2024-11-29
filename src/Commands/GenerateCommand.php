@@ -591,9 +591,6 @@ BLADE;
     {
         $this->info('Generating pages...');
         
-        // Get the template name
-        $template = $this->argument('template');
-        
         foreach ($pages as $slug => $config) {
             try {
                 $title = $config['title'] ?? Str::title($slug);
@@ -619,6 +616,8 @@ BLADE;
                     'post_type'    => 'page',
                     'meta_input'   => [
                         '_wp_page_template' => "bonsai/templates/template-{$template}.blade.php",
+                        '_bonsai_generated' => 'true',
+                        '_bonsai_template' => $template,
                     ],
                 ]);
 

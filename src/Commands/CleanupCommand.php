@@ -15,6 +15,7 @@ class CleanupCommand extends Command
         'resources/views/bonsai',
         'config/bonsai',
         'app/View/Components/Bonsai',
+        'resources/views/template-components.blade.php',
     ];
 
     public function handle()
@@ -54,28 +55,25 @@ class CleanupCommand extends Command
     {
         $this->info('Cleaning up WordPress pages...');
 
-        // Query for pages with any Bonsai-related template
+        // Query for Bonsai-generated pages
         $args = [
             'post_type' => 'page',
             'posts_per_page' => -1,
             'meta_query' => [
                 'relation' => 'OR',
                 [
-                    'key' => '_wp_page_template',
-                    'value' => 'bonsai-%',
-                    'compare' => 'LIKE'
+                    'key' => '_bonsai_generated',
+                    'value' => 'true',
                 ],
                 [
                     'key' => '_wp_page_template',
-                    'value' => 'template-%',
-                    'compare' => 'LIKE'
+                    'value' => [
+                        'template-components.blade.php',
+                        'bonsai/templates/template-%',
+                    ],
+                    'compare' => 'LIKE',
                 ],
-                [
-                    'key' => '_wp_page_template',
-                    'value' => 'templates/template-%',
-                    'compare' => 'LIKE'
-                ]
-            ]
+            ],
         ];
 
         $query = new WP_Query($args);
@@ -85,10 +83,18 @@ class CleanupCommand extends Command
                 $query->the_post();
                 $postId = get_the_ID();
                 $template = get_post_meta($postId, '_wp_page_template', true);
+                $title = get_the_title();
                 
                 try {
+                    // If this was set as homepage, reset the option
+                    if (get_option('page_on_front') == $postId) {
+                        update_option('show_on_front', 'posts');
+                        update_option('page_on_front', 0);
+                        $this->line("- Reset homepage setting");
+                    }
+
                     wp_delete_post($postId, true);
-                    $this->line("- Removed page: " . get_the_title() . " (template: {$template})");
+                    $this->line("- Removed page: {$title} (template: {$template})");
                 } catch (\Exception $e) {
                     $this->error("Failed to remove page {$postId}: " . $e->getMessage());
                 }
