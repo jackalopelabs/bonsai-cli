@@ -17,7 +17,7 @@ class BonsaiTreeCommand extends Command
                           {--seed= : Random seed for generation}
                           {--force : Force regeneration of existing tree}
                           {--live : Show live growth animation}
-                          {--speed=0.1 : Animation speed in seconds}';
+                          {--speed=0.5 : Animation speed in seconds}';
 
     protected $description = 'Generate and manage ASCII art bonsai trees';
 
@@ -71,14 +71,15 @@ class BonsaiTreeCommand extends Command
         try {
             if ($options['live']) {
                 // Clear screen and hide cursor
-                system('clear');
+                echo "\033[2J"; // Clear screen
+                echo "\033[H";  // Move cursor to home position
                 echo "\e[?25l"; // Hide cursor
 
                 $this->generator->onGrowth(function($tree) use ($options) {
-                    // Move cursor to top
-                    echo "\e[H";
+                    echo "\033[H"; // Move to home position
                     $this->line($tree->render());
-                    usleep(($options['speed'] * 1000000)); // Convert to microseconds
+                    usleep(500000); // Force minimum delay of 0.5 seconds
+                    usleep(($options['speed'] * 1000000)); // Add user-specified delay
                 });
             }
 

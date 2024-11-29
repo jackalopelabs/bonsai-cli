@@ -32,6 +32,7 @@ class TreeGenerator
     {
         if ($this->growthCallback) {
             call_user_func($this->growthCallback, $tree);
+            usleep(100000); // Force minimum 0.1s delay between growth steps
         }
     }
 
