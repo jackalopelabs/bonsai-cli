@@ -86,17 +86,18 @@ class TreeGenerator
         $grid = $tree->getGrid();
         $shoots = 0;
         $maxShoots = $multiplier;
+        $branchCount = 0;
+        $maxBranches = $multiplier * 110;  // From cbonsai
         
         while ($life > 0 && $y > 0) {
             $life--;
             $age++;
             
-            // Calculate growth direction based on cbonsai's algorithm
+            // Calculate growth direction based on cbonsai's exact algorithm
             if ($age <= 2 || $life < 4) {
                 $dy = 0;
                 $dx = rand(0, 2) - 1;
             }
-            // Young trunk grows wide
             elseif ($age < ($multiplier * 3)) {
                 if ($age % (int)($multiplier * 0.5) == 0) {
                     $dy = -1;
@@ -105,15 +106,15 @@ class TreeGenerator
                 }
                 
                 $dice = rand(0, 9);
-                if ($dice == 0) $dx = -2;
-                elseif ($dice >= 1 && $dice <= 3) $dx = -1;
-                elseif ($dice >= 4 && $dice <= 5) $dx = 0;
-                elseif ($dice >= 6 && $dice <= 8) $dx = 1;
+                if ($dice <= 0) $dx = -2;
+                elseif ($dice <= 3) $dx = -1;
+                elseif ($dice <= 5) $dx = 0;
+                elseif ($dice <= 8) $dx = 1;
                 else $dx = 2;
             }
-            // Middle-aged trunk
             else {
-                $dy = rand(0, 10) > 2 ? -1 : 0;
+                $dice = rand(0, 9);
+                $dy = ($dice > 2) ? -1 : 0;
                 $dx = rand(0, 2) - 1;
             }
             
@@ -126,16 +127,29 @@ class TreeGenerator
             $char = $this->getTrunkChar($dx, $dy);
             $grid[$y][$x] = $char;
             
-            // Branch logic from cbonsai
-            if ($life > 5 && $shoots < $maxShoots && 
-                $age > 4 && rand(0, 15 - $multiplier) == 0) {
-                $shootLife = $life + $multiplier - 2;
-                $shootType = ($shoots == 0) ? 
-                    (rand(0, 1) ? 'shootLeft' : 'shootRight') :
-                    ($shoots % 2 ? 'shootLeft' : 'shootRight');
+            // Branch logic exactly as in cbonsai
+            if ($branchCount < $maxBranches && 
+                (($life < 3) || 
+                ($type == 'trunk' && $life < ($lifeStart - 8) && 
+                (rand(0, 15 - $multiplier) == 0 || 
+                ($type == 'trunk' && $life % 5 == 0 && $life > 5))))) {
+                
+                if (rand(0, 2) == 0 && $life > 7) {
+                    // Create another trunk
+                    $this->growTrunkAnimated($tree, $x, $y, $life, $multiplier);
+                } elseif ($shoots < $maxShoots) {
+                    // Create a shoot
+                    $shootLife = $life + $multiplier - 2;
+                    if ($shootLife < 0) $shootLife = 0;
                     
-                $this->growBranchAnimated($tree, $x, $y, $shootType, $shootLife, $multiplier);
-                $shoots++;
+                    $shootType = ($shoots == 0) ? 
+                        (rand(0, 1) ? 'shootLeft' : 'shootRight') :
+                        ($shoots % 2 ? 'shootRight' : 'shootLeft');
+                    
+                    $this->growBranchAnimated($tree, $x, $y, $shootType, $shootLife, $multiplier);
+                    $shoots++;
+                }
+                $branchCount++;
             }
             
             $tree->setGrid($grid);
@@ -145,14 +159,15 @@ class TreeGenerator
 
     protected function getTrunkChar($dx, $dy)
     {
-        if ($dy == 0) {
-            if ($dx < -1) return '\\\\';
-            if ($dx == -1) return '\\';
-            if ($dx == 0) return '|';
-            if ($dx == 1) return '/';
-            return '//';
+        if ($dy < 0) {
+            return '|';  // Growing upward
+        } elseif ($dx < 0) {
+            return '\\'; // Growing left
+        } elseif ($dx > 0) {
+            return '/';  // Growing right
+        } else {
+            return '|';  // Growing straight
         }
-        return '|';
     }
 
     protected function addCrown(&$tree, $x, $y)
@@ -185,30 +200,30 @@ class TreeGenerator
         while ($life > 0) {
             $life--;
             
-            // Branch growth patterns from cbonsai
+            // Branch growth patterns exactly from cbonsai
             if ($type == 'shootLeft') {
                 $dice = rand(0, 9);
-                if ($dice <= 1) $dx = -2;
-                elseif ($dice <= 5) $dx = -1;
-                elseif ($dice <= 8) $dx = 0;
-                else $dx = 1;
+                if ($dice <= 1) $dx = -2;      // 20% far left
+                elseif ($dice <= 5) $dx = -1;  // 40% left
+                elseif ($dice <= 8) $dx = 0;   // 30% straight
+                else $dx = 1;                  // 10% right
             } else {
                 $dice = rand(0, 9);
-                if ($dice <= 1) $dx = 2;
-                elseif ($dice <= 5) $dx = 1;
-                elseif ($dice <= 8) $dx = 0;
-                else $dx = -1;
+                if ($dice <= 1) $dx = 2;       // 20% far right
+                elseif ($dice <= 5) $dx = 1;   // 40% right
+                elseif ($dice <= 8) $dx = 0;   // 30% straight
+                else $dx = -1;                 // 10% left
             }
             
             $dice = rand(0, 9);
-            if ($dice <= 1) $dy = -1;
-            elseif ($dice <= 7) $dy = 0;
-            else $dy = 1;
+            if ($dice <= 1) $dy = -1;          // 20% up
+            elseif ($dice <= 7) $dy = 0;       // 60% straight
+            else $dy = 1;                      // 20% down
             
             $x += $dx;
             $y += $dy;
             
-            if ($x < 0 || $x >= count($grid[0]) || $y < 0 || $y >= count($grid)) break;
+            if ($x < 0 || $x >= count($grid[0]) || $y < 0) break;
             
             $char = $this->getBranchChar($dx, $dy, $life);
             $grid[$y][$x] = $char;
