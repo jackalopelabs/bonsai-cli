@@ -23,6 +23,13 @@ class TreeGenerator
 
     protected $growthCallback = null;
 
+    protected $branchChars = [
+        'trunk' => ['|', '/', '\\'],
+        'branch' => ['/', '\\', '|', '~'],
+        'dying' => ['~', '_'],
+        'leaves' => ['&', ' &', '& ', '&&', ' && ', '&&&']
+    ];
+
     public function onGrowth(callable $callback)
     {
         $this->growthCallback = $callback;
@@ -71,20 +78,39 @@ class TreeGenerator
         $height = 0;
         $maxHeight = (int)($life * 0.7);
         $grid = $tree->getGrid();
+        $width = 0;  // Track trunk width
         
         while ($height < $maxHeight && $y > 0) {
-            $dx = (rand(0, 10) < 8) ? 0 : (rand(0, 1) ? 1 : -1);
+            // More natural trunk growth
+            if ($height < $maxHeight * 0.3) {
+                // Bottom third: grow wider
+                $dx = (rand(0, 10) < 7) ? (rand(0, 1) ? 1 : -1) : 0;
+                $width = max($width, abs($dx));
+            } else {
+                // Upper parts: maintain width but allow slight variation
+                $dx = (rand(0, 10) < 3) ? (rand(0, 1) ? 1 : -1) : 0;
+            }
+            
             $y--;
             $x += $dx;
             
-            if ($x < 0 || $x >= count($grid[0])) continue;
+            // Add trunk character with proper angle
+            $char = $this->getTrunkChar($dx, $height);
+            $grid[$y][$x] = $char;
             
-            $grid[$y][$x] = '|';
+            // Add supporting trunk characters for thickness
+            for ($w = -$width; $w <= $width; $w++) {
+                if ($w != 0 && isset($grid[$y][$x + $w])) {
+                    $grid[$y][$x + $w] = $this->getTrunkChar($w, $height);
+                }
+            }
+
             $tree->setGrid($grid);
             $this->notifyGrowth($tree);
             
-            if ($height > 2 && $height % 2 == 0) {
-                $branchLife = (int)($life * 0.3);
+            // Branch out more naturally
+            if ($height > 3 && rand(0, 10) < $multiplier) {
+                $branchLife = (int)($life * 0.4);
                 if (rand(0, 1)) {
                     $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_LEFT, $branchLife, $multiplier);
                 }
@@ -96,7 +122,38 @@ class TreeGenerator
             $height++;
         }
         
-        $this->addCrownAnimated($tree, $x, $y);
+        $this->addLeafClusters($tree, $x, $y);
+    }
+
+    protected function getTrunkChar($dx, $height)
+    {
+        if ($dx < 0) return '\\';
+        if ($dx > 0) return '/';
+        return '|';
+    }
+
+    protected function addLeafClusters(&$tree, $x, $y)
+    {
+        $grid = $tree->getGrid();
+        $leafPattern = $this->branchChars['leaves'];
+        
+        // Create natural-looking leaf clusters
+        for ($dy = -2; $dy <= 2; $dy++) {
+            $width = 3 - abs($dy);  // Wider in middle, narrower at top/bottom
+            for ($dx = -$width; $dx <= $width; $dx++) {
+                $newX = $x + $dx;
+                $newY = $y + $dy;
+                
+                if (isset($grid[$newY][$newX]) && $grid[$newY][$newX] == ' ') {
+                    if (rand(0, 10) < 7) {  // 70% chance of leaf
+                        $grid[$newY][$newX] = $leafPattern[array_rand($leafPattern)];
+                    }
+                }
+            }
+        }
+        
+        $tree->setGrid($grid);
+        $this->notifyGrowth($tree);
     }
 
     protected function growBranchAnimated(&$tree, $x, $y, $type, $life, $multiplier)
