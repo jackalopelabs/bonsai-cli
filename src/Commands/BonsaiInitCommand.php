@@ -418,7 +418,8 @@ PHP;
                 'post_status'  => 'publish',
                 'post_type'    => 'page',
                 'meta_input'   => [
-                    '_wp_page_template' => 'template-components.blade.php',
+                    '_wp_page_template' => 'views/bonsai/templates/template-components.blade.php',
+                    '_bonsai_generated' => 'true',  // Add tracking meta
                 ],
             ]);
 
@@ -430,9 +431,14 @@ PHP;
             $this->info("Created Components page with ID: {$pageId}");
         }
 
-        // Create the template file
-        $templatePath = resource_path("views/template-components.blade.php");
+        // Create the template file in the new location
+        $templatePath = resource_path("views/bonsai/templates/template-components.blade.php");
         if (!$this->files->exists($templatePath)) {
+            // Ensure directory exists
+            if (!$this->files->exists(dirname($templatePath))) {
+                $this->files->makeDirectory(dirname($templatePath), 0755, true);
+            }
+            
             $stubContent = $this->getTemplateStubContent($pageTitle);
             $this->files->put($templatePath, $stubContent);
             $this->info("Created Blade template: {$templatePath}");
