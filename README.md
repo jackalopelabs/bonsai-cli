@@ -102,6 +102,77 @@ composer require blade-ui-kit/blade-heroicons
 wp @development acorn vendor:publish --tag=blade-icons
 ```
 
+## ASCII Bonsai Tree Generator (Beta)
+
+Generate beautiful ASCII art bonsai trees inspired by [cbonsai](https://gitlab.com/jallbrit/cbonsai). Each tree is unique, animated during growth, and can be associated with your site configurations.
+
+### Current Status
+- ✅ Basic tree generation with animation
+- ✅ ANSI color support
+- ✅ Tree persistence
+- ✅ Command-line interface
+- ⚠️ Growth patterns need improvement
+- ⚠️ Branch distribution needs work
+- ⚠️ Leaf clustering needs refinement
+
+### Roadmap
+1. Growth Algorithm (Priority)
+   - [ ] Match cbonsai's organic growth patterns
+   - [ ] Improve branch distribution
+   - [ ] Better leaf clustering
+   - [ ] Fix trunk proportions
+
+2. Seasonal Variations
+   - [ ] Spring: Flowering themes (`❀`, `✿`, `♠`)
+   - [ ] Summer: Lush growth (`☘`, `❦`, `❧`)
+   - [ ] Fall: Autumn colors (`✾`, `❁`, `⚘`)
+   - [ ] Winter: Sparse, elegant (`❄`, `❆`, `❅`)
+
+3. Age Categories
+   - [ ] Young: Fresh growth, smaller size
+   - [ ] Mature: Balanced proportions
+   - [ ] Ancient: Complex branching, larger size
+
+4. Styles
+   - [ ] Formal upright (chokkan)
+   - [ ] Informal upright (moyogi)
+   - [ ] Slanting (shakan)
+   - [ ] Cascade (kengai)
+   - [ ] Semi-cascade (han-kengai)
+
+### Usage
+
+```bash
+# Generate a new tree
+wp @development acorn bonsai:tree generate --config=my-tree
+
+# Generate with specific style
+wp @development acorn bonsai:tree generate --config=my-tree --style=formal
+
+# List all stored trees
+wp @development acorn bonsai:tree list
+
+# Age an existing tree
+wp @development acorn bonsai:tree age --config=my-tree
+```
+
+### Configuration
+```bash
+--style    : Tree style (formal, informal, slanting)
+--seed     : Random seed for reproducible trees
+--speed    : Animation speed in seconds
+--age      : Age category (young, mature, ancient)
+--season   : Season variation (spring, summer, fall, winter)
+```
+
+### Contributing to Tree Generator
+The tree generator is currently in beta. Key areas for contribution:
+1. Growth algorithm improvements
+2. Branch and leaf distribution
+3. Animation refinement
+4. Style variations
+5. Seasonal implementations
+
 ## Contributing
 
 ### Development Setup
