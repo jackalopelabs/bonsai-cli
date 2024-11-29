@@ -591,6 +591,9 @@ BLADE;
     {
         $this->info('Generating pages...');
         
+        // Get the template name
+        $template = $this->argument('template');
+        
         foreach ($pages as $slug => $config) {
             try {
                 $title = $config['title'] ?? Str::title($slug);
@@ -608,14 +611,14 @@ BLADE;
                 $this->files->put($templatePath, $templateContent);
                 $this->info("Template file created at: {$templatePath}");
 
-                // Create or update the page in WordPress with updated template path
+                // Create or update the page in WordPress
                 $pageId = wp_insert_post([
                     'post_title'   => $title,
                     'post_name'    => $slug,
                     'post_status'  => 'publish',
                     'post_type'    => 'page',
                     'meta_input'   => [
-                        '_wp_page_template' => "bonsai/templates/template-{$template}.blade.php",
+                        '_wp_page_template' => "views/bonsai/templates/template-{$template}.blade.php",
                         '_bonsai_generated' => 'true',
                         '_bonsai_template' => $template,
                     ],
