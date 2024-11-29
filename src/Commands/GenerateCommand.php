@@ -630,23 +630,7 @@ BLADE;
 
     protected function displaySuccessMessage($template)
     {
-        // Get the config file path
-        $configPath = $this->getConfigPath($template);
-        $config = Yaml::parseFile($configPath);
-        
-        // Get ASCII art from config
-        $asciiArt = $config['ascii_art']['default'] ?? '';
-        
-        // Replace color variables with ANSI color codes
-        $asciiArt = str_replace(
-            ['${green}', '${brown}', '${reset}'],
-            ["\033[32m", "\033[33m", "\033[0m"],
-            $asciiArt
-        );
-
         $this->info("🌳 Successfully generated {$template} template!");
-        $this->line('');
-        $this->line($asciiArt);
         $this->line('');
         $this->info('Run `npm run dev` to compile assets.');
     }
