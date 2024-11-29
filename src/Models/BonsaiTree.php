@@ -32,14 +32,19 @@ class BonsaiTree
         $this->updated_at = time();
     }
 
-    protected function colorize($text, $color)
+    public function getGrid()
     {
-        return $this->colors[$color] . $text . $this->colors['reset'];
+        return $this->grid;
     }
 
     public function setGrid($grid)
     {
         $this->grid = $grid;
+    }
+
+    protected function colorize($text, $color)
+    {
+        return $this->colors[$color] . $text . $this->colors['reset'];
     }
 
     public function render()
