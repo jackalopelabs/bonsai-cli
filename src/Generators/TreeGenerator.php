@@ -59,9 +59,10 @@ class TreeGenerator
 
         $tree = new BonsaiTree($options['age'], $options['style']);
         
+        // Wider grid for better proportions
         $grid = [];
-        $maxWidth = 40;
-        $maxHeight = 15;
+        $maxWidth = 60;  // Increased from 40
+        $maxHeight = 20; // Increased from 15
         
         for ($y = 0; $y < $maxHeight; $y++) {
             for ($x = 0; $x < $maxWidth; $x++) {
@@ -74,7 +75,7 @@ class TreeGenerator
         
         $tree->setGrid($grid);
         
-        // Animate trunk growth
+        // Start with thicker trunk
         $this->growTrunkAnimated($tree, $startX, $startY, $options['life'], $options['multiplier']);
         
         return $tree;
@@ -85,39 +86,58 @@ class TreeGenerator
         $age = 0;
         $grid = $tree->getGrid();
         $shoots = 0;
-        $maxShoots = $multiplier;
+        $maxShoots = $multiplier * 2;  // More shoots
         $branchCount = 0;
-        $maxBranches = $multiplier * 110;
+        $maxBranches = $multiplier * 150;  // More branches
         $type = self::BRANCH_TYPE_TRUNK;
         $lifeStart = $life;
+        $trunkWidth = 3;  // Start with thick trunk
         
         while ($life > 0 && $y > 0) {
             $life--;
             $age++;
             
-            // Calculate growth direction based on cbonsai's exact algorithm
-            if ($age <= 2 || $life < 4) {
-                $dy = 0;
-                $dx = rand(0, 2) - 1;
-            }
-            elseif ($age < ($multiplier * 3)) {
-                if ($age % (int)($multiplier * 0.5) == 0) {
-                    $dy = -1;
-                } else {
-                    $dy = 0;
+            // Base growth (first 20% of height)
+            if ($age < ($lifeStart * 0.2)) {
+                $dy = -1;
+                $dx = (rand(0, 10) < 3) ? (rand(0, 1) ? 1 : -1) : 0;
+                
+                // Draw thick trunk
+                for ($w = -$trunkWidth; $w <= $trunkWidth; $w++) {
+                    $newX = $x + $w;
+                    if (isset($grid[$y][$newX])) {
+                        $grid[$y][$newX] = '|';
+                    }
                 }
                 
-                $dice = rand(0, 9);
-                if ($dice <= 0) $dx = -2;
-                elseif ($dice <= 3) $dx = -1;
-                elseif ($dice <= 5) $dx = 0;
-                elseif ($dice <= 8) $dx = 1;
-                else $dx = 2;
+                // Add early branches
+                if (rand(0, 10) < 4) {
+                    $this->growBranchAnimated($tree, $x - $trunkWidth, $y, self::BRANCH_TYPE_SHOOT_LEFT, $life * 0.5, $multiplier);
+                    $this->growBranchAnimated($tree, $x + $trunkWidth, $y, self::BRANCH_TYPE_SHOOT_RIGHT, $life * 0.5, $multiplier);
+                }
             }
+            // Middle growth (20-70% of height)
+            elseif ($age < ($lifeStart * 0.7)) {
+                $dy = -1;
+                $dx = (rand(0, 10) < 4) ? (rand(0, 1) ? 1 : -1) : 0;
+                $trunkWidth = max(1, $trunkWidth - 0.2);  // Gradually thin out
+                
+                // More frequent branching in middle
+                if (rand(0, 10) < 6) {
+                    $branchSide = rand(0, 1) ? self::BRANCH_TYPE_SHOOT_LEFT : self::BRANCH_TYPE_SHOOT_RIGHT;
+                    $this->growBranchAnimated($tree, $x, $y, $branchSide, $life * 0.6, $multiplier);
+                }
+            }
+            // Top growth (last 30%)
             else {
-                $dice = rand(0, 9);
-                $dy = ($dice > 2) ? -1 : 0;
-                $dx = rand(0, 2) - 1;
+                $dy = -1;
+                $dx = (rand(0, 10) < 5) ? (rand(0, 1) ? 1 : -1) : 0;
+                
+                // Dense branching at top
+                if (rand(0, 10) < 7) {
+                    $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_LEFT, $life * 0.4, $multiplier);
+                    $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_RIGHT, $life * 0.4, $multiplier);
+                }
             }
             
             $x += $dx;
@@ -125,41 +145,13 @@ class TreeGenerator
             
             if ($x < 0 || $x >= count($grid[0]) || $y < 0) continue;
             
-            // Choose character based on growth direction
-            $char = $this->getTrunkChar($dx, $dy);
-            $grid[$y][$x] = $char;
-            
-            // Branch logic
-            if ($branchCount < $maxBranches && 
-                (($life < 3) || 
-                ($life < ($lifeStart - 8) && 
-                (rand(0, 15 - $multiplier) == 0 || 
-                ($life % 5 == 0 && $life > 5))))) {
-                
-                if (rand(0, 2) == 0 && $life > 7) {
-                    // Create another trunk
-                    $this->growTrunkAnimated($tree, $x, $y, $life, $multiplier);
-                } elseif ($shoots < $maxShoots) {
-                    // Create a shoot
-                    $shootLife = $life + $multiplier - 2;
-                    if ($shootLife < 0) $shootLife = 0;
-                    
-                    $shootType = ($shoots == 0) ? 
-                        (rand(0, 1) ? self::BRANCH_TYPE_SHOOT_LEFT : self::BRANCH_TYPE_SHOOT_RIGHT) :
-                        ($shoots % 2 ? self::BRANCH_TYPE_SHOOT_RIGHT : self::BRANCH_TYPE_SHOOT_LEFT);
-                    
-                    $this->growBranchAnimated($tree, $x, $y, $shootType, $shootLife, $multiplier);
-                    $shoots++;
-                }
-                $branchCount++;
-            }
-            
+            $grid[$y][$x] = $this->getTrunkChar($dx, $dy);
             $tree->setGrid($grid);
             $this->notifyGrowth($tree);
         }
         
-        // Add final leaf clusters
-        $this->addLeafCluster($tree, $x, $y, 3);
+        // Add final crown
+        $this->addLeafCluster($tree, $x, $y, 4);
     }
 
     protected function getTrunkChar($dx, $dy)
@@ -201,45 +193,36 @@ class TreeGenerator
     protected function growBranchAnimated(&$tree, $x, $y, $type, $life, $multiplier)
     {
         $grid = $tree->getGrid();
+        $length = 0;
+        $maxLength = (int)($life * 0.7);  // Longer branches
         
-        while ($life > 0) {
-            $life--;
+        while ($length < $maxLength) {
+            // More natural branch patterns
+            $dx = ($type == self::BRANCH_TYPE_SHOOT_LEFT) ? 
+                (rand(0, 10) < 7 ? -1 : 0) : 
+                (rand(0, 10) < 7 ? 1 : 0);
             
-            // Branch growth patterns exactly from cbonsai
-            if ($type == 'shootLeft') {
-                $dice = rand(0, 9);
-                if ($dice <= 1) $dx = -2;      // 20% far left
-                elseif ($dice <= 5) $dx = -1;  // 40% left
-                elseif ($dice <= 8) $dx = 0;   // 30% straight
-                else $dx = 1;                  // 10% right
-            } else {
-                $dice = rand(0, 9);
-                if ($dice <= 1) $dx = 2;       // 20% far right
-                elseif ($dice <= 5) $dx = 1;   // 40% right
-                elseif ($dice <= 8) $dx = 0;   // 30% straight
-                else $dx = -1;                 // 10% left
-            }
-            
-            $dice = rand(0, 9);
-            if ($dice <= 1) $dy = -1;          // 20% up
-            elseif ($dice <= 7) $dy = 0;       // 60% straight
-            else $dy = 1;                      // 20% down
+            $dy = (rand(0, 10) < 6) ? -1 : 0;  // More upward growth
             
             $x += $dx;
             $y += $dy;
             
             if ($x < 0 || $x >= count($grid[0]) || $y < 0) break;
             
-            $char = $this->getBranchChar($dx, $dy, $life);
-            $grid[$y][$x] = $char;
+            $grid[$y][$x] = $this->getBranchChar($dx, $dy, $life);
             
-            if ($life < 3) {
+            // Add leaves more frequently
+            if ($length > ($maxLength * 0.5) && rand(0, 10) < 4) {
                 $this->addLeafCluster($tree, $x, $y, 2);
             }
             
             $tree->setGrid($grid);
             $this->notifyGrowth($tree);
+            $length++;
         }
+        
+        // Always end with leaves
+        $this->addLeafCluster($tree, $x, $y, 3);
     }
 
     protected function getBranchChar($dx, $dy, $life)
