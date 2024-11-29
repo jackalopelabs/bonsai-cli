@@ -78,50 +78,47 @@ class TreeGenerator
         $height = 0;
         $maxHeight = (int)($life * 0.7);
         $grid = $tree->getGrid();
-        $width = 0;  // Track trunk width
         
+        // Start with a strong, mostly vertical trunk
         while ($height < $maxHeight && $y > 0) {
-            // More natural trunk growth
-            if ($height < $maxHeight * 0.3) {
-                // Bottom third: grow wider
-                $dx = (rand(0, 10) < 7) ? (rand(0, 1) ? 1 : -1) : 0;
-                $width = max($width, abs($dx));
+            $y--;
+            
+            // Trunk should mostly grow straight up with slight variations
+            if ($height < $maxHeight * 0.2) {
+                // Base: very stable
+                $dx = 0;
             } else {
-                // Upper parts: maintain width but allow slight variation
-                $dx = (rand(0, 10) < 3) ? (rand(0, 1) ? 1 : -1) : 0;
+                // Upper: slight variation
+                $dx = (rand(0, 10) < 2) ? (rand(0, 1) ? 1 : -1) : 0;
             }
             
-            $y--;
             $x += $dx;
             
-            // Add trunk character with proper angle
-            $char = $this->getTrunkChar($dx, $height);
-            $grid[$y][$x] = $char;
+            if ($x < 0 || $x >= count($grid[0])) continue;
             
-            // Add supporting trunk characters for thickness
-            for ($w = -$width; $w <= $width; $w++) {
-                if ($w != 0 && isset($grid[$y][$x + $w])) {
-                    $grid[$y][$x + $w] = $this->getTrunkChar($w, $height);
+            // Place trunk character
+            $grid[$y][$x] = '|';
+            
+            // Add branches more naturally
+            if ($height > 2) {
+                $branchChance = $height < ($maxHeight * 0.3) ? 2 : 4; // More branches higher up
+                
+                if (rand(0, 10) < $branchChance) {
+                    // Left branch
+                    $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_LEFT, $life * 0.4, $multiplier);
+                }
+                if (rand(0, 10) < $branchChance) {
+                    // Right branch
+                    $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_RIGHT, $life * 0.4, $multiplier);
                 }
             }
-
+            
             $tree->setGrid($grid);
             $this->notifyGrowth($tree);
-            
-            // Branch out more naturally
-            if ($height > 3 && rand(0, 10) < $multiplier) {
-                $branchLife = (int)($life * 0.4);
-                if (rand(0, 1)) {
-                    $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_LEFT, $branchLife, $multiplier);
-                }
-                if (rand(0, 1)) {
-                    $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_RIGHT, $branchLife, $multiplier);
-                }
-            }
-            
             $height++;
         }
         
+        // Add final crown of leaves
         $this->addLeafClusters($tree, $x, $y);
     }
 
@@ -161,77 +158,58 @@ class TreeGenerator
         $length = 0;
         $maxLength = (int)($life * 0.5);
         $grid = $tree->getGrid();
+        $direction = $type === self::BRANCH_TYPE_SHOOT_LEFT ? -1 : 1;
         
-        while ($length < $maxLength && $y > 0) {
-            list($dx, $dy) = $this->calculateBranchDirection($type, $length);
+        while ($length < $maxLength) {
+            // Branch growth pattern
+            $dx = (rand(0, 10) < 7) ? $direction : 0;  // Mostly grow in branch direction
+            $dy = (rand(0, 10) < 3) ? -1 : 0;         // Occasionally grow upward
             
             $x += $dx;
             $y += $dy;
             
             if ($x < 0 || $x >= count($grid[0]) || $y < 0 || $y >= count($grid)) break;
             
-            $grid[$y][$x] = $this->chooseBranchCharacter($type, $dx, $dy);
-            $tree->setGrid($grid);
-            $this->notifyGrowth($tree);
+            // Choose appropriate character based on growth direction
+            $char = $dx === 0 ? '|' : ($dx < 0 ? '\\' : '/');
+            $grid[$y][$x] = $char;
             
-            if ($length > 2 && rand(0, 10) < 3) {
-                $this->addLeavesAnimated($tree, $x, $y);
+            // Add leaves near branch ends
+            if ($length > ($maxLength * 0.7)) {
+                $this->addLeafCluster($tree, $x, $y, 2); // Small clusters
             }
             
+            $tree->setGrid($grid);
+            $this->notifyGrowth($tree);
             $length++;
         }
         
-        $this->addLeavesAnimated($tree, $x, $y);
+        // Add final leaf cluster at branch end
+        $this->addLeafCluster($tree, $x, $y, 3); // Larger end cluster
     }
 
-    protected function calculateBranchDirection($type, $length)
+    protected function addLeafCluster(&$tree, $x, $y, $size)
     {
-        if ($type === self::BRANCH_TYPE_SHOOT_LEFT) {
-            return [
-                rand(0, 2) == 0 ? -1 : 0,
-                rand(0, 2) == 0 ? -1 : 0
-            ];
-        } else {
-            return [
-                rand(0, 2) == 0 ? 1 : 0,
-                rand(0, 2) == 0 ? -1 : 0
-            ];
-        }
-    }
-
-    protected function chooseBranchCharacter($type, $dx, $dy)
-    {
-        if ($dx == 0 && $dy == 0) return '|';
-        if ($dx < 0) return '\\';
-        if ($dx > 0) return '/';
-        return '|';
-    }
-
-    protected function addLeavesAnimated(&$tree, $x, $y)
-    {
-        $leafChars = ['*', '&', '^'];
-        $positions = [
-            [$x-1, $y], [$x+1, $y],
-            [$x, $y-1],
-            [$x-1, $y-1], [$x+1, $y-1]
-        ];
-
         $grid = $tree->getGrid();
-        $changed = false;
-
-        foreach ($positions as [$leafX, $leafY]) {
-            if (isset($grid[$leafY][$leafX]) && $grid[$leafY][$leafX] == ' ') {
-                if (rand(0, 2) == 0) {
-                    $grid[$leafY][$leafX] = $leafChars[array_rand($leafChars)];
-                    $changed = true;
+        
+        for ($dy = -$size; $dy <= $size; $dy++) {
+            for ($dx = -$size; $dx <= $size; $dx++) {
+                // Skip if too far from center (make circular clusters)
+                if ($dx * $dx + $dy * $dy > $size * $size) continue;
+                
+                $newX = $x + $dx;
+                $newY = $y + $dy;
+                
+                if (isset($grid[$newY][$newX]) && $grid[$newY][$newX] == ' ') {
+                    if (rand(0, 10) < 6) {  // 60% chance of leaf
+                        $grid[$newY][$newX] = '&';
+                    }
                 }
             }
         }
-
-        if ($changed) {
-            $tree->setGrid($grid);
-            $this->notifyGrowth($tree);
-        }
+        
+        $tree->setGrid($grid);
+        $this->notifyGrowth($tree);
     }
 
     protected function addCrownAnimated(&$tree, $x, $y)
