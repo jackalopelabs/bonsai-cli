@@ -36,6 +36,12 @@ class BonsaiServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Register the bonsai template directory with WordPress
+        add_filter('theme_template_paths', function($paths) {
+            $paths[] = 'views/bonsai/templates';
+            return $paths;
+        });
+
         try {
             // Register anonymous components
             Blade::component('bonsai.components.header', 'header');

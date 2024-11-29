@@ -17,13 +17,6 @@ class CleanupCommand extends Command
         'app/View/Components/Bonsai',
     ];
 
-    protected $templatePatterns = [
-        'resources/views/template-bonsai-*.blade.php',
-        'resources/views/templates/template-bonsai-*.blade.php',
-        'resources/views/template-components.blade.php',
-        'resources/views/template-cypress.blade.php',
-    ];
-
     public function handle()
     {
         if (!$this->option('force') && !$this->confirm('This will remove all Bonsai-generated content. Are you sure you want to continue?')) {
@@ -32,7 +25,6 @@ class CleanupCommand extends Command
         }
 
         $this->cleanupFiles();
-        $this->cleanupTemplates();
         $this->cleanupWordPressContent();
         $this->cleanupMenus();
         $this->resetTemplateRegistry();
@@ -44,7 +36,6 @@ class CleanupCommand extends Command
     {
         $this->info('Cleaning up generated files...');
         
-        // Remove entire directories
         foreach ($this->generatedPaths as $path) {
             $fullPath = base_path($path);
             
@@ -55,47 +46,6 @@ class CleanupCommand extends Command
                 } catch (\Exception $e) {
                     $this->error("Failed to remove {$path}: " . $e->getMessage());
                 }
-            }
-        }
-
-        // Remove BaseComponent.php if it exists
-        $baseComponentPath = base_path('app/View/Components/Bonsai/BaseComponent.php');
-        if (File::exists($baseComponentPath)) {
-            try {
-                File::delete($baseComponentPath);
-                $this->line("- Removed BaseComponent.php");
-            } catch (\Exception $e) {
-                $this->error("Failed to remove BaseComponent.php: " . $e->getMessage());
-            }
-        }
-    }
-
-    protected function cleanupTemplates()
-    {
-        $this->info('Cleaning up template files...');
-        
-        foreach ($this->templatePatterns as $pattern) {
-            $files = glob(base_path($pattern));
-            foreach ($files as $file) {
-                try {
-                    if (File::exists($file)) {
-                        File::delete($file);
-                        $this->line("- Removed template: " . basename($file));
-                    }
-                } catch (\Exception $e) {
-                    $this->error("Failed to remove template {$file}: " . $e->getMessage());
-                }
-            }
-        }
-
-        // Cleanup empty templates directory if it exists
-        $templatesDir = base_path('resources/views/templates');
-        if (File::exists($templatesDir) && count(File::files($templatesDir)) === 0) {
-            try {
-                File::deleteDirectory($templatesDir);
-                $this->line("- Removed empty templates directory");
-            } catch (\Exception $e) {
-                $this->error("Failed to remove templates directory: " . $e->getMessage());
             }
         }
     }

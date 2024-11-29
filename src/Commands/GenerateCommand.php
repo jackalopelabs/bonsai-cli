@@ -313,54 +313,6 @@ BLADE;
         }
     }
 
-    protected function generatePages($pages)
-    {
-        $this->info('Generating pages...');
-        
-        // Get the template name
-        $template = $this->argument('template');
-        
-        foreach ($pages as $slug => $config) {
-            try {
-                $title = $config['title'] ?? Str::title($slug);
-                $layout = $config['layout'] ?? 'default';
-                
-                // Create template file
-                $templatePath = resource_path("views/template-{$template}.blade.php");
-                $templateContent = $this->generateTemplateContent($template, $layout, $config);
-                $this->files->put($templatePath, $templateContent);
-                $this->info("Template file created at: {$templatePath}");
-
-                // Create or update the page in WordPress
-                $pageId = wp_insert_post([
-                    'post_title'   => $title,
-                    'post_name'    => $slug,
-                    'post_status'  => 'publish',
-                    'post_type'    => 'page',
-                    'meta_input'   => [
-                        '_wp_page_template' => "template-{$template}.blade.php",
-                    ],
-                ]);
-
-                if (is_wp_error($pageId)) {
-                    throw new \Exception("Failed to create page: " . $pageId->get_error_message());
-                }
-
-                $this->info("Page '{$title}' created with ID: {$pageId}");
-
-                // Set as homepage if specified
-                if (isset($config['is_homepage']) && $config['is_homepage']) {
-                    update_option('show_on_front', 'page');
-                    update_option('page_on_front', $pageId);
-                    $this->info("Set '{$title}' as static homepage");
-                }
-
-            } catch (\Exception $e) {
-                $this->warn("Warning: Could not generate page '{$slug}': " . $e->getMessage());
-            }
-        }
-    }
-
     protected function generateTemplateContent($template, $layout, $config)
     {
         // Get layout sections from configuration
@@ -633,5 +585,59 @@ BLADE;
         $this->info("🌳 Successfully generated {$template} template!");
         $this->line('');
         $this->info('Run `npm run dev` to compile assets.');
+    }
+
+    protected function generatePages($pages)
+    {
+        $this->info('Generating pages...');
+        
+        // Get the template name
+        $template = $this->argument('template');
+        
+        foreach ($pages as $slug => $config) {
+            try {
+                $title = $config['title'] ?? Str::title($slug);
+                $layout = $config['layout'] ?? 'default';
+                
+                // Create template file in bonsai directory
+                $templatePath = resource_path("views/bonsai/templates/template-{$template}.blade.php");
+                $templateContent = $this->generateTemplateContent($template, $layout, $config);
+                
+                // Ensure directory exists
+                if (!$this->files->exists(dirname($templatePath))) {
+                    $this->files->makeDirectory(dirname($templatePath), 0755, true);
+                }
+                
+                $this->files->put($templatePath, $templateContent);
+                $this->info("Template file created at: {$templatePath}");
+
+                // Create or update the page in WordPress with updated template path
+                $pageId = wp_insert_post([
+                    'post_title'   => $title,
+                    'post_name'    => $slug,
+                    'post_status'  => 'publish',
+                    'post_type'    => 'page',
+                    'meta_input'   => [
+                        '_wp_page_template' => "bonsai/templates/template-{$template}.blade.php",
+                    ],
+                ]);
+
+                if (is_wp_error($pageId)) {
+                    throw new \Exception("Failed to create page: " . $pageId->get_error_message());
+                }
+
+                $this->info("Page '{$title}' created with ID: {$pageId}");
+
+                // Set as homepage if specified
+                if (isset($config['is_homepage']) && $config['is_homepage']) {
+                    update_option('show_on_front', 'page');
+                    update_option('page_on_front', $pageId);
+                    $this->info("Set '{$title}' as static homepage");
+                }
+
+            } catch (\Exception $e) {
+                $this->warn("Warning: Could not generate page '{$slug}': " . $e->getMessage());
+            }
+        }
     }
 }
