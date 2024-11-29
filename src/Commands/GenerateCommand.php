@@ -630,7 +630,11 @@ BLADE;
 
     protected function displaySuccessMessage($template)
     {
-        $config = config("bonsai.templates.{$template}");
+        // Get the config file path
+        $configPath = $this->getConfigPath($template);
+        $config = Yaml::parseFile($configPath);
+        
+        // Get ASCII art from config
         $asciiArt = $config['ascii_art']['default'] ?? '';
         
         // Replace color variables with ANSI color codes
