@@ -2,6 +2,31 @@ name: Bonsai CLI
 description: WordPress CLI tool for generating and managing reusable components
 version: 0.0.1
 
+# Add ASCII art configuration section
+ascii_art:
+  default: |
+    ${green}                                &
+                                      && & &
+                                    & &&&&&~&
+                                     &  &&&&
+                                         &&&~|\
+                                          &//~
+                                         |/
+                                        /|\
+                                        |/
+                                     |//~
+                                    \_/
+                           &&        //|/ /_/_/_/&& & &
+                             &&       //_/      /&&&/_&&&
+                      &&&    &&          /~|\    &&& /&&&
+                       &&&__&&       \_\_\/~/       &&&
+                     & &\&  &&&&\|& \_\_ \_\_     /~|       &
+                      &&& & &     \___  \_\         /~~
+                                       ${brown}:___________./~~~\.___________:
+                                        \                           /
+                                         \_________________________/
+                                         (_)                     (_)${reset}
+
 components:
   - hero
   - header

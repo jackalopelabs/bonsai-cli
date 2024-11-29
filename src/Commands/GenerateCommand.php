@@ -42,7 +42,7 @@ class GenerateCommand extends Command
             $this->generateDatabase($config['database'] ?? []);
             $this->configureSettings($config['settings'] ?? []);
             
-            $this->info('🌳 Bonsai site generation completed successfully!');
+            $this->displaySuccessMessage($template);
             
         } catch (\Exception $e) {
             $this->error("Error generating site: " . $e->getMessage());
@@ -626,5 +626,24 @@ BLADE;
         }
 
         return true;
+    }
+
+    protected function displaySuccessMessage($template)
+    {
+        $config = config("bonsai.templates.{$template}");
+        $asciiArt = $config['ascii_art']['default'] ?? '';
+        
+        // Replace color variables with ANSI color codes
+        $asciiArt = str_replace(
+            ['${green}', '${brown}', '${reset}'],
+            ["\033[32m", "\033[33m", "\033[0m"],
+            $asciiArt
+        );
+
+        $this->info("🌳 Successfully generated {$template} template!");
+        $this->line('');
+        $this->line($asciiArt);
+        $this->line('');
+        $this->info('Run `npm run dev` to compile assets.');
     }
 }
