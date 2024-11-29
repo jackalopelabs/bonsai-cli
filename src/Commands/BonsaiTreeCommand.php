@@ -16,8 +16,7 @@ class BonsaiTreeCommand extends Command
                           {--style= : Bonsai style (formal, informal, slanting, cascade)}
                           {--seed= : Random seed for generation}
                           {--force : Force regeneration of existing tree}
-                          {--live : Show live growth animation}
-                          {--speed=0.5 : Animation speed in seconds}';
+                          {--speed=0.03 : Animation speed in seconds}';
 
     protected $description = 'Generate and manage ASCII art bonsai trees';
 
@@ -64,50 +63,39 @@ class BonsaiTreeCommand extends Command
             'age' => $this->option('age'),
             'style' => $this->option('style'),
             'seed' => $this->option('seed'),
-            'live' => $this->option('live'),
             'speed' => $this->option('speed'),
         ];
 
         try {
-            if ($options['live']) {
-                // Clear screen and hide cursor
-                echo "\033[2J"; // Clear screen
-                echo "\033[H";  // Move cursor to home position
-                echo "\e[?25l"; // Hide cursor
+            // Always animate
+            echo "\033[2J\033[H"; // Clear screen and move cursor home
+            echo "\e[?25l";       // Hide cursor
 
-                $this->generator->onGrowth(function($tree) use ($options) {
-                    echo "\033[H"; // Move to home position
-                    $this->line($tree->render());
-                    usleep(500000); // Force minimum delay of 0.5 seconds
-                    usleep(($options['speed'] * 1000000)); // Add user-specified delay
-                });
-            }
+            $this->generator->onGrowth(function($tree) use ($options) {
+                echo "\033[H";
+                $this->line($tree->render());
+                usleep($options['speed'] * 1000000); // Convert to microseconds
+            });
 
             $tree = $this->generator->generate($options);
             
-            if (!$options['live']) {
-                if ($this->storage->exists($config) && !$this->option('force')) {
-                    if (!$this->confirm('Tree already exists for this config. Overwrite?')) {
-                        return 1;
-                    }
+            if ($this->storage->exists($config) && !$this->option('force')) {
+                if (!$this->confirm('Tree already exists for this config. Overwrite?')) {
+                    return 1;
                 }
-
-                $this->storage->store($config, $tree);
-                $this->info('Tree generated and stored successfully!');
-                $this->line($tree->render());
             }
 
-            if ($options['live']) {
-                // Show cursor again and pause at the end
-                echo "\e[?25h";
-                sleep(1); // Pause at the end to see final result
-            }
+            $this->storage->store($config, $tree);
+            
+            // Show cursor again
+            echo "\e[?25h";
+            
+            $this->info('Tree generated and stored successfully!');
+            $this->line($tree->render());
             
             return 0;
         } catch (\Exception $e) {
-            if ($options['live']) {
-                echo "\e[?25h"; // Make sure to show cursor even on error
-            }
+            echo "\e[?25h"; // Make sure to show cursor even on error
             $this->error("Failed to generate tree: " . $e->getMessage());
             return 1;
         }

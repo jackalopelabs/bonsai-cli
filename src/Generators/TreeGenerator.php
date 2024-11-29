@@ -32,7 +32,6 @@ class TreeGenerator
     {
         if ($this->growthCallback) {
             call_user_func($this->growthCallback, $tree);
-            sleep(1);
         }
     }
 
