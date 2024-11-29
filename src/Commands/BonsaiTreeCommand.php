@@ -67,35 +67,33 @@ class BonsaiTreeCommand extends Command
         ];
 
         try {
-            // Always animate
-            echo "\033[2J\033[H"; // Clear screen and move cursor home
-            echo "\e[?25l";       // Hide cursor
+            // Clear screen and hide cursor
+            echo "\033[2J\033[H\e[?25l";
 
             $this->generator->onGrowth(function($tree) use ($options) {
                 echo "\033[H";
                 $this->line($tree->render());
-                usleep($options['speed'] * 1000000); // Convert to microseconds
+                usleep($options['speed'] * 1000000);
             });
 
             $tree = $this->generator->generate($options);
             
             if ($this->storage->exists($config) && !$this->option('force')) {
                 if (!$this->confirm('Tree already exists for this config. Overwrite?')) {
+                    echo "\e[?25h"; // Show cursor before returning
                     return 1;
                 }
             }
 
             $this->storage->store($config, $tree);
             
-            // Show cursor again
+            // Show cursor but don't output tree again
             echo "\e[?25h";
-            
             $this->info('Tree generated and stored successfully!');
-            $this->line($tree->render());
             
             return 0;
         } catch (\Exception $e) {
-            echo "\e[?25h"; // Make sure to show cursor even on error
+            echo "\e[?25h";
             $this->error("Failed to generate tree: " . $e->getMessage());
             return 1;
         }
