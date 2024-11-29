@@ -21,6 +21,20 @@ class TreeGenerator
     const BRANCH_TYPE_SHOOT_RIGHT = 'shootRight';
     const BRANCH_TYPE_DYING = 'dying';
 
+    protected $growthCallback = null;
+
+    public function onGrowth(callable $callback)
+    {
+        $this->growthCallback = $callback;
+    }
+
+    protected function notifyGrowth($tree)
+    {
+        if ($this->growthCallback) {
+            call_user_func($this->growthCallback, $tree);
+        }
+    }
+
     public function generate(array $options = [])
     {
         $options = array_merge($this->defaultOptions, $options);
@@ -31,10 +45,9 @@ class TreeGenerator
 
         $tree = new BonsaiTree($options['age'], $options['style']);
         
-        // Smaller grid for more controlled growth
         $grid = [];
-        $maxWidth = 40;  // Reduced from 60
-        $maxHeight = 15; // Reduced from 20
+        $maxWidth = 40;
+        $maxHeight = 15;
         
         for ($y = 0; $y < $maxHeight; $y++) {
             for ($x = 0; $x < $maxWidth; $x++) {
@@ -45,20 +58,21 @@ class TreeGenerator
         $startX = (int)($maxWidth / 2);
         $startY = $maxHeight - 1;
         
-        // Start with a strong trunk
-        $this->growTrunk($grid, $startX, $startY, $options['life'], $options['multiplier']);
-        
         $tree->setGrid($grid);
+        
+        // Animate trunk growth
+        $this->growTrunkAnimated($tree, $startX, $startY, $options['life'], $options['multiplier']);
+        
         return $tree;
     }
 
-    protected function growTrunk(&$grid, $x, $y, $life, $multiplier)
+    protected function growTrunkAnimated(&$tree, $x, $y, $life, $multiplier)
     {
         $height = 0;
-        $maxHeight = (int)($life * 0.7); // Trunk uses 70% of life
+        $maxHeight = (int)($life * 0.7);
+        $grid = $tree->getGrid();
         
         while ($height < $maxHeight && $y > 0) {
-            // Trunk grows mostly straight up with slight variation
             $dx = (rand(0, 10) < 8) ? 0 : (rand(0, 1) ? 1 : -1);
             $y--;
             $x += $dx;
@@ -66,29 +80,30 @@ class TreeGenerator
             if ($x < 0 || $x >= count($grid[0])) continue;
             
             $grid[$y][$x] = '|';
+            $tree->setGrid($grid);
+            $this->notifyGrowth($tree);
             
-            // Add branches every few steps
             if ($height > 2 && $height % 2 == 0) {
-                $branchLife = (int)($life * 0.3); // Branches get 30% of life
+                $branchLife = (int)($life * 0.3);
                 if (rand(0, 1)) {
-                    $this->growBranch($grid, $x, $y, self::BRANCH_TYPE_SHOOT_LEFT, $branchLife, $multiplier);
+                    $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_LEFT, $branchLife, $multiplier);
                 }
                 if (rand(0, 1)) {
-                    $this->growBranch($grid, $x, $y, self::BRANCH_TYPE_SHOOT_RIGHT, $branchLife, $multiplier);
+                    $this->growBranchAnimated($tree, $x, $y, self::BRANCH_TYPE_SHOOT_RIGHT, $branchLife, $multiplier);
                 }
             }
             
             $height++;
         }
         
-        // Add crown at the top
-        $this->addCrown($grid, $x, $y);
+        $this->addCrownAnimated($tree, $x, $y);
     }
 
-    protected function growBranch(&$grid, $x, $y, $type, $life, $multiplier)
+    protected function growBranchAnimated(&$tree, $x, $y, $type, $life, $multiplier)
     {
         $length = 0;
         $maxLength = (int)($life * 0.5);
+        $grid = $tree->getGrid();
         
         while ($length < $maxLength && $y > 0) {
             list($dx, $dy) = $this->calculateBranchDirection($type, $length);
@@ -99,16 +114,17 @@ class TreeGenerator
             if ($x < 0 || $x >= count($grid[0]) || $y < 0 || $y >= count($grid)) break;
             
             $grid[$y][$x] = $this->chooseBranchCharacter($type, $dx, $dy);
+            $tree->setGrid($grid);
+            $this->notifyGrowth($tree);
             
             if ($length > 2 && rand(0, 10) < 3) {
-                $this->addLeaves($grid, $x, $y);
+                $this->addLeavesAnimated($tree, $x, $y);
             }
             
             $length++;
         }
         
-        // Add leaves at branch end
-        $this->addLeaves($grid, $x, $y);
+        $this->addLeavesAnimated($tree, $x, $y);
     }
 
     protected function calculateBranchDirection($type, $length)
@@ -134,7 +150,7 @@ class TreeGenerator
         return '|';
     }
 
-    protected function addLeaves(&$grid, $x, $y)
+    protected function addLeavesAnimated(&$tree, $x, $y)
     {
         $leafChars = ['*', '&', '^'];
         $positions = [
@@ -144,17 +160,18 @@ class TreeGenerator
         ];
 
         foreach ($positions as [$leafX, $leafY]) {
-            if (isset($grid[$leafY][$leafX]) && $grid[$leafY][$leafX] == ' ') {
+            if (isset($tree->getGrid()[$leafY][$leafX]) && $tree->getGrid()[$leafY][$leafX] == ' ') {
                 if (rand(0, 2) == 0) { // Only add leaves sometimes
-                    $grid[$leafY][$leafX] = $leafChars[array_rand($leafChars)];
+                    $tree->getGrid()[$leafY][$leafX] = $leafChars[array_rand($leafChars)];
                 }
             }
         }
     }
 
-    protected function addCrown(&$grid, $x, $y)
+    protected function addCrownAnimated(&$tree, $x, $y)
     {
         $leafChars = ['*', '&', '^'];
+        $grid = $tree->getGrid();
         for ($dy = -1; $dy <= 1; $dy++) {
             for ($dx = -2; $dx <= 2; $dx++) {
                 $newX = $x + $dx;
@@ -166,5 +183,6 @@ class TreeGenerator
                 }
             }
         }
+        $tree->setGrid($grid);
     }
 } 

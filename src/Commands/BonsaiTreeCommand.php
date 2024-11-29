@@ -15,7 +15,9 @@ class BonsaiTreeCommand extends Command
                           {--age= : Age category for the tree}
                           {--style= : Bonsai style (formal, informal, slanting, cascade)}
                           {--seed= : Random seed for generation}
-                          {--force : Force regeneration of existing tree}';
+                          {--force : Force regeneration of existing tree}
+                          {--live : Show live growth animation}
+                          {--speed=0.03 : Animation speed in seconds}';
 
     protected $description = 'Generate and manage ASCII art bonsai trees';
 
@@ -62,23 +64,48 @@ class BonsaiTreeCommand extends Command
             'age' => $this->option('age'),
             'style' => $this->option('style'),
             'seed' => $this->option('seed'),
+            'live' => $this->option('live'),
+            'speed' => $this->option('speed'),
         ];
 
         try {
-            $tree = $this->generator->generate($options);
-            
-            if ($this->storage->exists($config) && !$this->option('force')) {
-                if (!$this->confirm('Tree already exists for this config. Overwrite?')) {
-                    return 1;
-                }
+            if ($options['live']) {
+                // Clear screen and hide cursor
+                system('clear');
+                echo "\e[?25l"; // Hide cursor
+
+                $this->generator->onGrowth(function($tree) {
+                    // Move cursor to top
+                    echo "\e[H";
+                    $this->line($tree->render());
+                    usleep($options['speed'] * 1000000); // Convert to microseconds
+                });
             }
 
-            $this->storage->store($config, $tree);
-            $this->info('Tree generated and stored successfully!');
-            $this->line($tree->render());
+            $tree = $this->generator->generate($options);
+            
+            if (!$options['live']) {
+                if ($this->storage->exists($config) && !$this->option('force')) {
+                    if (!$this->confirm('Tree already exists for this config. Overwrite?')) {
+                        return 1;
+                    }
+                }
+
+                $this->storage->store($config, $tree);
+                $this->info('Tree generated and stored successfully!');
+                $this->line($tree->render());
+            }
+
+            if ($options['live']) {
+                // Show cursor again
+                echo "\e[?25h";
+            }
             
             return 0;
         } catch (\Exception $e) {
+            if ($options['live']) {
+                echo "\e[?25h"; // Make sure to show cursor even on error
+            }
             $this->error("Failed to generate tree: " . $e->getMessage());
             return 1;
         }
