@@ -419,7 +419,8 @@ PHP;
                 'post_type'    => 'page',
                 'meta_input'   => [
                     '_wp_page_template' => 'views/bonsai/templates/template-components.blade.php',
-                    '_bonsai_generated' => 'true',  // Add tracking meta
+                    '_bonsai_generated' => 'true',
+                    '_bonsai_template' => 'components',
                 ],
             ]);
 

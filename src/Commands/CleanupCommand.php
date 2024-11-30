@@ -71,12 +71,12 @@ class CleanupCommand extends Command
                 ],
                 [
                     'key' => '_wp_page_template',
-                    'value' => 'template-components.blade.php',
-                    'compare' => '=',
-                ],
-                [
-                    'key' => '_wp_page_template',
-                    'value' => 'views/bonsai/templates/template-',
+                    'value' => [
+                        'template-components.blade.php',
+                        'views/bonsai/templates/template-components.blade.php',
+                        'bonsai/templates/template-%.blade.php',
+                        'views/bonsai/templates/template-%.blade.php'
+                    ],
                     'compare' => 'LIKE',
                 ],
             ],
