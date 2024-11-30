@@ -28,7 +28,7 @@ components:
   - header
   - card
   - widget
-  - pricing-box
+  - pricing
 
 sections:
   site_header:
@@ -115,7 +115,7 @@ sections:
       ]
 
   pricing:
-    component: pricing-box
+    component: pricing
     data:
       title: "Choose Your License"
       subtitle: "Flexible options for every need"
