@@ -115,70 +115,62 @@ sections:
       ]
 
   pricing:
-    component: pricing-box
+    component: pricing
     data:
       title: "Choose Your License"
       subtitle: "Flexible options for every need"
       description: "All plans include premium support and regular updates. Plus, lock in your price forever."
-      pricingBoxes: [
-        {
-          "icon": "heroicon-o-building-storefront",
-          "iconColor": "text-purple-500",
-          "planType": "Single Site",
-          "price": "$199",
-          "features": [
-            "1 site license",
-            "All premium features",
-            "Visual builder",
-            "Premium support",
-            "Regular updates"
-          ],
-          "ctaLink": "#buy-single",
-          "ctaText": "Purchase",
-          "ctaColor": "bg-white",
-          "iconBtn": "heroicon-o-arrow-right",
-          "iconBtnColor": "text-gray-500"
-        },
-        {
-          "icon": "heroicon-o-building-office-2",
-          "iconColor": "text-indigo-600",
-          "planType": "Agency",
-          "price": "$499",
-          "features": [
-            "5 site licenses",
-            "White labeling",
-            "Priority support",
-            "Client management",
-            "Advanced blocks",
-            "Early access"
-          ],
-          "ctaLink": "#buy-agency",
-          "ctaText": "Purchase",
-          "ctaColor": "bg-gradient-to-r from-emerald-600 to-green-500 text-white",
-          "iconBtn": "heroicon-o-shopping-cart",
-          "iconBtnColor": "text-white"
-        },
-        {
-          "icon": "heroicon-o-globe-americas",
-          "iconColor": "text-blue-600",
-          "planType": "Unlimited",
-          "price": "$999",
-          "features": [
-            "Unlimited sites",
-            "All Agency features",
-            "Custom development",
-            "VIP support",
-            "1-on-1 training",
-            "Custom integrations",
-            "Beta access"
-          ],
-          "ctaLink": "#buy-unlimited",
-          "ctaText": "Purchase",
-          "ctaColor": "bg-gradient-to-r from-yellow-500 to-amber-500 text-white",
-          "iconBtn": "heroicon-o-shopping-cart",
-          "iconBtnColor": "text-white"
-        }
-      ]
+      pricingBoxes:
+        - icon: "heroicon-o-building-storefront"
+          iconColor: "text-purple-500"
+          planType: "Single Site"
+          price: "$199"
+          features:
+            - "1 site license"
+            - "All premium features"
+            - "Visual builder"
+            - "Premium support"
+            - "Regular updates"
+          ctaLink: "#buy-single"
+          ctaText: "Purchase"
+          ctaColor: "bg-white"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-gray-500"
+        
+        - icon: "heroicon-o-building-office-2"
+          iconColor: "text-indigo-600"
+          planType: "Agency"
+          price: "$499"
+          features:
+            - "5 site licenses"
+            - "White labeling"
+            - "Priority support"
+            - "Client management"
+            - "Advanced blocks"
+            - "Early access"
+          ctaLink: "#buy-agency"
+          ctaText: "Purchase"
+          ctaColor: "bg-gradient-to-r from-emerald-600 to-green-500 text-white"
+          iconBtn: "heroicon-o-shopping-cart"
+          iconBtnColor: "text-white"
+        
+        - icon: "heroicon-o-globe-americas"
+          iconColor: "text-blue-600"
+          planType: "Unlimited"
+          price: "$999"
+          features:
+            - "Unlimited sites"
+            - "All Agency features"
+            - "Custom development"
+            - "VIP support"
+            - "1-on-1 training"
+            - "Custom integrations"
+            - "Beta access"
+          ctaLink: "#buy-unlimited"
+          ctaText: "Purchase"
+          ctaColor: "bg-gradient-to-r from-yellow-500 to-amber-500 text-white"
+          iconBtn: "heroicon-o-shopping-cart"
+          iconBtnColor: "text-white"
 
 layouts:
   cypress:
