@@ -29,6 +29,35 @@ class BonsaiServiceProvider extends ServiceProvider
         // Register Bonsai view namespace
         $this->app['view']->addNamespace('bonsai', resource_path('views/bonsai'));
         
+        // Add template path filter with debug info
+        add_filter('template_include', function($template) {
+            $template_slug = get_page_template_slug();
+            
+            if (!$template_slug) {
+                return $template;
+            }
+
+            // Debug info
+            error_log("Template slug: " . $template_slug);
+
+            // First check in resources/views
+            $resource_path = resource_path("views/bonsai/templates/{$template_slug}");
+            if (file_exists($resource_path)) {
+                error_log("Found template in resources: " . $resource_path);
+                return $resource_path;
+            }
+
+            // Then check in theme directory
+            $theme_path = get_theme_file_path("views/bonsai/templates/{$template_slug}");
+            if (file_exists($theme_path)) {
+                error_log("Found template in theme: " . $theme_path);
+                return $theme_path;
+            }
+
+            error_log("No template found, using default: " . $template);
+            return $template;
+        });
+
         // Register templates with WordPress
         add_action('theme_page_templates', function($page_templates) {
             // Get all template files in the bonsai templates directory
@@ -47,42 +76,7 @@ class BonsaiServiceProvider extends ServiceProvider
                 }
             }
 
-            // Add our static template definitions
-            $static_templates = [
-                'template-components.blade.php' => 'Components Library',
-            ];
-
-            return array_merge($page_templates, $static_templates, $bonsai_templates);
-        });
-
-        // Add template path filter with debug info
-        add_filter('template_include', function($template) {
-            $template_slug = get_page_template_slug();
-            
-            if (!$template_slug) {
-                return $template;
-            }
-
-            // Debug info
-            error_log("Template slug: " . $template_slug);
-
-            // Check multiple possible locations
-            $possible_paths = [
-                get_theme_file_path('views/bonsai/templates/' . $template_slug),
-                get_theme_file_path('resources/views/bonsai/templates/' . $template_slug),
-                get_theme_file_path($template_slug),
-            ];
-
-            foreach ($possible_paths as $path) {
-                error_log("Checking path: " . $path);
-                if (file_exists($path)) {
-                    error_log("Found template at: " . $path);
-                    return $path;
-                }
-            }
-
-            error_log("No template found, using default: " . $template);
-            return $template;
+            return array_merge($page_templates, $bonsai_templates);
         });
 
         // Add view composer for layout variables
