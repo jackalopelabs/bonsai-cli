@@ -26,6 +26,9 @@ class BonsaiServiceProvider extends ServiceProvider
         // Register Blade components
         $this->registerBladeComponents();
         
+        // Register Bonsai view namespace
+        $this->app['view']->addNamespace('bonsai', resource_path('views/bonsai'));
+        
         // Register templates with WordPress
         add_action('theme_page_templates', function($page_templates) {
             // Get all template files in the bonsai templates directory
@@ -80,6 +83,13 @@ class BonsaiServiceProvider extends ServiceProvider
 
             error_log("No template found, using default: " . $template);
             return $template;
+        });
+
+        // Add view composer for layout variables
+        view()->composer('bonsai.layouts.bonsai', function ($view) {
+            $view->with([
+                'containerInnerClasses' => 'px-6',
+            ]);
         });
     }
 

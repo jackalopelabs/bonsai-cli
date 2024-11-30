@@ -328,14 +328,14 @@ BLADE;
         
         // Generate section includes
         $sectionIncludes = collect($contentSections)
-            ->map(fn($section) => "@include('bonsai.sections.{$section}')")
+            ->map(fn($section) => "@include('bonsai::sections.{$section}')")
             ->implode("\n    ");
 
         return <<<BLADE
 {{--
     Template Name: {$template} Template
 --}}
-@extends('bonsai.layouts.{$layout}')
+@extends('bonsai::layouts.{$layout}')
 
 @section('content')
     {$sectionIncludes}
