@@ -29,10 +29,6 @@ components:
   - card
   - widget
   - pricing-box
-  - faq
-  - testimonial
-  - feature-grid
-  - footer
 
 sections:
   site_header:
@@ -68,10 +64,10 @@ sections:
         buttonLinkIcon: "heroicon-s-sparkles"
         secondaryIcon: "heroicon-s-play"
   
-  features_grid:
-    component: feature-grid
+  services_card:
+    component: card
     data:
-      sectionTitle: "Premium Features"
+      title: "Premium Features"
       subtitle: "Everything you need to build professional WordPress sites"
       features: [
         {
@@ -96,8 +92,8 @@ sections:
         }
       ]
 
-  testimonials:
-    component: testimonial
+  features_widget:
+    component: widget
     data:
       title: "Loved by Developers"
       subtitle: "See what others are saying about Cypress"
@@ -119,7 +115,7 @@ sections:
       ]
 
   pricing:
-    component: pricing
+    component: pricing-box
     data:
       title: "Choose Your License"
       subtitle: "Flexible options for every need"
@@ -187,11 +183,11 @@ sections:
 layouts:
   cypress:
     sections:
-      - site_header
       - home_hero
-      - features_grid
-      - testimonials
+      - features_widget
+      - services_card
       - pricing
+      - site_header
 
 pages:
   home:
