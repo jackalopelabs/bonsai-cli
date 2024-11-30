@@ -6,9 +6,12 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Yaml\Yaml;
+use Jackalopelabs\BonsaiCli\Traits\HandlesTemplatePaths;
 
 class GenerateCommand extends Command
 {
+    use HandlesTemplatePaths;
+
     protected $signature = 'bonsai:generate {template} {--config=}';
     protected $description = 'Generate a complete Bonsai site from a template configuration';
 
@@ -591,7 +594,6 @@ BLADE;
     {
         $this->info('Generating pages...');
         
-        // Get the template name
         $template = $this->argument('template');
         
         foreach ($pages as $slug => $config) {
@@ -599,8 +601,8 @@ BLADE;
                 $title = $config['title'] ?? Str::title($slug);
                 $layout = $config['layout'] ?? 'default';
                 
-                // Create template file in bonsai directory
-                $templatePath = resource_path("views/bonsai/templates/template-{$template}.blade.php");
+                // Create template file
+                $templatePath = $this->getTemplateFilePath($template);
                 $templateContent = $this->generateTemplateContent($template, $layout, $config);
                 
                 // Ensure directory exists
@@ -611,14 +613,14 @@ BLADE;
                 $this->files->put($templatePath, $templateContent);
                 $this->info("Template file created at: {$templatePath}");
 
-                // Create or update the page in WordPress
+                // Create or update the page in WordPress with correct template path
                 $pageId = wp_insert_post([
                     'post_title'   => $title,
                     'post_name'    => $slug,
                     'post_status'  => 'publish',
                     'post_type'    => 'page',
                     'meta_input'   => [
-                        '_wp_page_template' => "views/bonsai/templates/template-{$template}.blade.php",
+                        '_wp_page_template' => $this->getWordPressTemplatePath($template),
                         '_bonsai_generated' => 'true',
                         '_bonsai_template' => $template,
                     ],

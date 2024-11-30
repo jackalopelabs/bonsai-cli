@@ -5,9 +5,12 @@ namespace Jackalopelabs\BonsaiCli\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\DB;
+use Jackalopelabs\BonsaiCli\Traits\HandlesTemplatePaths;
 
 class BonsaiInitCommand extends Command
 {
+    use HandlesTemplatePaths;
+
     protected $signature = 'bonsai:init';
     protected $description = 'Initialize project by creating a Components page and setting up default templates';
 
@@ -418,7 +421,7 @@ PHP;
                 'post_status'  => 'publish',
                 'post_type'    => 'page',
                 'meta_input'   => [
-                    '_wp_page_template' => 'views/bonsai/templates/template-components.blade.php',
+                    '_wp_page_template' => $this->getWordPressTemplatePath('components'),
                     '_bonsai_generated' => 'true',
                     '_bonsai_template' => 'components',
                 ],
@@ -432,8 +435,8 @@ PHP;
             $this->info("Created Components page with ID: {$pageId}");
         }
 
-        // Create the template file in the new location
-        $templatePath = resource_path("views/bonsai/templates/template-components.blade.php");
+        // Create the template file
+        $templatePath = $this->getTemplateFilePath('components');
         if (!$this->files->exists($templatePath)) {
             // Ensure directory exists
             if (!$this->files->exists(dirname($templatePath))) {
