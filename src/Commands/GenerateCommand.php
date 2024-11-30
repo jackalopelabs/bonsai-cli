@@ -326,16 +326,16 @@ BLADE;
             return $section !== 'site_header';
         });
         
-        // Generate section includes
+        // Generate section includes with correct namespace syntax
         $sectionIncludes = collect($contentSections)
-            ->map(fn($section) => "@include('bonsai::sections.{$section}')")
+            ->map(fn($section) => "@include('bonsai.sections.{$section}')")
             ->implode("\n    ");
 
         return <<<BLADE
 {{--
     Template Name: {$template} Template
 --}}
-@extends('bonsai::layouts.{$layout}')
+@extends('bonsai.layouts.{$layout}')
 
 @section('content')
     {$sectionIncludes}
@@ -601,8 +601,8 @@ BLADE;
                 $title = $config['title'] ?? Str::title($slug);
                 $layout = $config['layout'] ?? 'default';
                 
-                // Create template file
-                $templatePath = $this->getTemplateFilePath($template);
+                // Create template file in project's resources directory
+                $templatePath = resource_path("views/bonsai/templates/template-{$template}.blade.php");
                 $templateContent = $this->generateTemplateContent($template, $layout, $config);
                 
                 // Ensure directory exists
