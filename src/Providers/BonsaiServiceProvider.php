@@ -35,7 +35,7 @@ class BonsaiServiceProvider extends ServiceProvider
             ]);
         });
 
-        // Add template path filter
+        // Add template path filter with debug info
         add_filter('template_include', function($template) {
             $template_slug = get_page_template_slug();
             
@@ -43,14 +43,25 @@ class BonsaiServiceProvider extends ServiceProvider
                 return $template;
             }
 
-            // Check if it's a Bonsai template
-            if (strpos($template_slug, 'template-') === 0) {
-                $view_path = 'views/bonsai/templates/' . $template_slug;
-                if (file_exists(get_theme_file_path($view_path))) {
-                    return get_theme_file_path($view_path);
+            // Debug info
+            error_log("Template slug: " . $template_slug);
+
+            // Check multiple possible locations
+            $possible_paths = [
+                get_theme_file_path('views/bonsai/templates/' . $template_slug),
+                get_theme_file_path('resources/views/bonsai/templates/' . $template_slug),
+                get_theme_file_path($template_slug),
+            ];
+
+            foreach ($possible_paths as $path) {
+                error_log("Checking path: " . $path);
+                if (file_exists($path)) {
+                    error_log("Found template at: " . $path);
+                    return $path;
                 }
             }
 
+            error_log("No template found, using default: " . $template);
             return $template;
         });
     }
