@@ -16,6 +16,16 @@ class BonsaiInitCommand extends Command
 
     protected $files;
 
+    protected $directories = [
+        'resources/views/bonsai',
+        'resources/views/bonsai/components',
+        'resources/views/bonsai/sections',
+        'resources/views/bonsai/layouts',
+        'resources/views/templates',
+        'config/bonsai',
+        'scripts',
+    ];
+
     protected $components = [
         'hero' => 'Hero section for prominent page headers'
     ];
@@ -30,29 +40,32 @@ class BonsaiInitCommand extends Command
     {
         $this->info('Starting Bonsai initialization...');
     
-        // Ask about configuration preference upfront
-        $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
-    
         try {
-            // Step 1: Create required directories
+            // Create directories
             $this->createDirectories();
     
-            // Step 2: Setup component namespace and base class
+            // Install bonsai.sh script
+            $this->installBonsaiScript();
+    
+            // Ask about configuration preference upfront
+            $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
+    
+            // Step 1: Setup component namespace and base class
             $this->setupComponentNamespace();
     
-            // Step 3: Install all components
+            // Step 2: Install all components
             $this->installComponents($useDefault);
     
-            // Step 4: Create sections for components
+            // Step 3: Create sections for components
             $this->createSections($useDefault);
     
-            // Step 5: Create layout
+            // Step 4: Create layout
             $this->createLayout();
     
-            // Step 6: Create the Components page
+            // Step 5: Create the Components page
             $this->createComponentsPage();
     
-            // Step 7: Setup local config directory
+            // Step 6: Setup local config directory
             $this->setupLocalConfig();
     
             $this->info('🌳 Bonsai initialization completed successfully!');
@@ -71,16 +84,7 @@ class BonsaiInitCommand extends Command
 
     protected function createDirectories()
     {
-        $directories = [
-            resource_path('views/bonsai'),
-            resource_path('views/bonsai/components'),
-            resource_path('views/bonsai/sections'),
-            resource_path('views/bonsai/layouts'),
-            resource_path('views/templates'),
-            base_path('config/bonsai')
-        ];
-
-        foreach ($directories as $directory) {
+        foreach ($this->directories as $directory) {
             if (!$this->files->isDirectory($directory)) {
                 $this->files->makeDirectory($directory, 0755, true);
                 $this->info("Created directory: {$directory}");
@@ -537,6 +541,37 @@ class BaseComponent extends Component
 }
 PHP;
             $this->files->put($baseComponentPath, $content);
+        }
+    }
+
+    protected function installBonsaiScript()
+    {
+        $this->info('Installing bonsai.sh script...');
+
+        // Source path in the package
+        $sourcePath = __DIR__ . '/../../scripts/bonsai.sh';
+        
+        // Target path in the project
+        $targetPath = base_path('scripts/bonsai.sh');
+
+        try {
+            // Copy the script
+            if (!$this->files->exists($sourcePath)) {
+                throw new \Exception("Source script not found: {$sourcePath}");
+            }
+
+            $this->files->copy($sourcePath, $targetPath);
+
+            // Make it executable
+            chmod($targetPath, 0755);
+
+            $this->info("✓ Installed bonsai.sh script");
+            $this->info("  Location: scripts/bonsai.sh");
+            $this->info("  Permissions: 755 (executable)");
+
+        } catch (\Exception $e) {
+            $this->error("Failed to install bonsai.sh script: " . $e->getMessage());
+            throw $e;
         }
     }
 }
