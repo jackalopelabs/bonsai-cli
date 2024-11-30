@@ -125,7 +125,7 @@ sections:
           "icon": "heroicon-o-building-storefront",
           "iconColor": "text-purple-500",
           "planType": "Single Site",
-          "price": "$199<span class=\"text-xs text-gray-400\">/yr</span>",
+          "price": "$199",
           "features": [
             "1 site license",
             "All premium features",
@@ -135,15 +135,15 @@ sections:
           ],
           "ctaLink": "#buy-single",
           "ctaText": "Purchase",
-          "ctaColor": "bg-gradient-to-r from-purple-600 to-indigo-600 text-white",
-          "iconBtn": "heroicon-o-shopping-cart",
-          "iconBtnColor": "text-white"
+          "ctaColor": "bg-white",
+          "iconBtn": "heroicon-o-arrow-right",
+          "iconBtnColor": "text-gray-500"
         },
         {
           "icon": "heroicon-o-building-office-2",
           "iconColor": "text-indigo-600",
           "planType": "Agency",
-          "price": "$499<span class=\"text-xs text-gray-400\">/yr</span>",
+          "price": "$499",
           "features": [
             "5 site licenses",
             "White labeling",
@@ -154,7 +154,7 @@ sections:
           ],
           "ctaLink": "#buy-agency",
           "ctaText": "Purchase",
-          "ctaColor": "bg-gradient-to-r from-indigo-600 to-blue-600 text-white",
+          "ctaColor": "bg-gradient-to-r from-emerald-600 to-green-500 text-white",
           "iconBtn": "heroicon-o-shopping-cart",
           "iconBtnColor": "text-white"
         },
@@ -162,7 +162,7 @@ sections:
           "icon": "heroicon-o-globe-americas",
           "iconColor": "text-blue-600",
           "planType": "Unlimited",
-          "price": "$999<span class=\"text-xs text-gray-400\">/yr</span>",
+          "price": "$999",
           "features": [
             "Unlimited sites",
             "All Agency features",
@@ -174,7 +174,7 @@ sections:
           ],
           "ctaLink": "#buy-unlimited",
           "ctaText": "Purchase",
-          "ctaColor": "bg-gradient-to-r from-blue-600 to-cyan-600 text-white",
+          "ctaColor": "bg-gradient-to-r from-yellow-500 to-amber-500 text-white",
           "iconBtn": "heroicon-o-shopping-cart",
           "iconBtnColor": "text-white"
         }
