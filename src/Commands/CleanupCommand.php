@@ -16,6 +16,7 @@ class CleanupCommand extends Command
         'config/bonsai',
         'app/View/Components/Bonsai',
         'resources/views/template-components.blade.php',
+        'scripts/bonsai.sh',
     ];
 
     public function handle()
