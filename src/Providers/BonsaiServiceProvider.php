@@ -28,11 +28,28 @@ class BonsaiServiceProvider extends ServiceProvider
         
         // Register templates with WordPress
         add_action('theme_page_templates', function($page_templates) {
-            return array_merge($page_templates, [
+            // Get all template files in the bonsai templates directory
+            $bonsai_templates = [];
+            $template_dir = resource_path('views/bonsai/templates');
+            
+            if (is_dir($template_dir)) {
+                $files = glob($template_dir . '/template-*.blade.php');
+                foreach ($files as $file) {
+                    $basename = basename($file);
+                    // Get template name from file header
+                    $contents = file_get_contents($file);
+                    if (preg_match('/Template Name:\s*(.+)$/m', $contents, $matches)) {
+                        $bonsai_templates[$basename] = trim($matches[1]);
+                    }
+                }
+            }
+
+            // Add our static template definitions
+            $static_templates = [
                 'template-components.blade.php' => 'Components Library',
-                'template-bonsai.blade.php' => 'Bonsai Template',
-                'template-cypress.blade.php' => 'Cypress Template',
-            ]);
+            ];
+
+            return array_merge($page_templates, $static_templates, $bonsai_templates);
         });
 
         // Add template path filter with debug info
