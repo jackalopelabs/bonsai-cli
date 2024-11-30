@@ -10,7 +10,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Jackalopelabs\\BonsaiCli\\": "src/"
+            "App\\": "app/",
+            "Jackalopelabs\\BonsaiCli\\": "vendor/jackalopelabs/bonsai-cli/src/"
         }
     },
     "extra": {
