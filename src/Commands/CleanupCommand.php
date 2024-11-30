@@ -65,18 +65,27 @@ class CleanupCommand extends Command
             'posts_per_page' => -1,
             'meta_query' => [
                 'relation' => 'OR',
+                // Check for Bonsai generated flag
                 [
                     'key' => '_bonsai_generated',
                     'value' => 'true',
                 ],
+                // Check for components template
                 [
                     'key' => '_wp_page_template',
-                    'value' => [
-                        'template-components.blade.php',
-                        'views/bonsai/templates/template-components.blade.php',
-                        'bonsai/templates/template-%.blade.php',
-                        'views/bonsai/templates/template-%.blade.php'
-                    ],
+                    'value' => 'template-components.blade.php',
+                    'compare' => '=',
+                ],
+                // Check for bonsai template pattern
+                [
+                    'key' => '_wp_page_template',
+                    'value' => 'bonsai/templates/template-',
+                    'compare' => 'LIKE',
+                ],
+                // Check for views/bonsai template pattern
+                [
+                    'key' => '_wp_page_template',
+                    'value' => 'views/bonsai/templates/template-',
                     'compare' => 'LIKE',
                 ],
             ],
