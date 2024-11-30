@@ -326,6 +326,9 @@ BLADE;
             return $section !== 'site_header';
         });
         
+        // Capitalize the first letter of template name
+        $templateName = ucfirst($template);
+        
         // Generate section includes with correct namespace syntax
         $sectionIncludes = collect($contentSections)
             ->map(fn($section) => "@include('bonsai.sections.{$section}')")
@@ -333,7 +336,7 @@ BLADE;
 
         return <<<BLADE
 {{--
-    Template Name: {$template} Template
+    Template Name: {$templateName} Template
 --}}
 @extends('bonsai.layouts.{$layout}')
 
