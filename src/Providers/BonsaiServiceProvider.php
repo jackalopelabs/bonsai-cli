@@ -4,44 +4,59 @@ namespace Jackalopelabs\BonsaiCli\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
-use Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand;
-use Jackalopelabs\BonsaiCli\Commands\ComponentCommand;
-use Jackalopelabs\BonsaiCli\Commands\CleanupCommand;
-use Jackalopelabs\BonsaiCli\Commands\LayoutCommand;
-use Jackalopelabs\BonsaiCli\Commands\PageCommand;
-use Jackalopelabs\BonsaiCli\Commands\SectionCommand;
-use Jackalopelabs\BonsaiCli\Commands\GenerateCommand;
 
 class BonsaiServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register()
     {   
         // Register commands
         $this->commands([
-            BonsaiInitCommand::class,
-            ComponentCommand::class,
-            LayoutCommand::class,
-            PageCommand::class,
-            SectionCommand::class,
-            GenerateCommand::class,
-            CleanupCommand::class,
+            \Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand::class,
+            \Jackalopelabs\BonsaiCli\Commands\ComponentCommand::class,
+            \Jackalopelabs\BonsaiCli\Commands\LayoutCommand::class,
+            \Jackalopelabs\BonsaiCli\Commands\PageCommand::class,
+            \Jackalopelabs\BonsaiCli\Commands\SectionCommand::class,
+            \Jackalopelabs\BonsaiCli\Commands\GenerateCommand::class,
+            \Jackalopelabs\BonsaiCli\Commands\CleanupCommand::class,
         ]);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot()
     {
-        // Register the bonsai template directory with WordPress
-        add_filter('theme_template_paths', function($paths) {
-            $paths[] = 'views/bonsai/templates';
-            return $paths;
+        // Register Blade components
+        $this->registerBladeComponents();
+        
+        // Register templates with WordPress
+        add_action('theme_page_templates', function($page_templates) {
+            return array_merge($page_templates, [
+                'template-components.blade.php' => 'Components Library',
+                'template-bonsai.blade.php' => 'Bonsai Template',
+                'template-cypress.blade.php' => 'Cypress Template',
+            ]);
         });
 
+        // Add template path filter
+        add_filter('template_include', function($template) {
+            $template_slug = get_page_template_slug();
+            
+            if (!$template_slug) {
+                return $template;
+            }
+
+            // Check if it's a Bonsai template
+            if (strpos($template_slug, 'template-') === 0) {
+                $view_path = 'views/bonsai/templates/' . $template_slug;
+                if (file_exists(get_theme_file_path($view_path))) {
+                    return get_theme_file_path($view_path);
+                }
+            }
+
+            return $template;
+        });
+    }
+
+    protected function registerBladeComponents()
+    {
         try {
             // Register anonymous components
             Blade::component('bonsai.components.header', 'header');
@@ -55,9 +70,7 @@ class BonsaiServiceProvider extends ServiceProvider
             
             // Register icon components
             Blade::component('bonsai.components.icons.flowchart', 'icon-flowchart');
-
         } catch (\Exception $e) {
-            // Log error or handle gracefully
             \Log::error("Failed to register components: " . $e->getMessage());
         }
     }
