@@ -1,5 +1,5 @@
-name: Roots Ecosystem
-description: Modern WordPress development tools and frameworks
+name: Best Health Coverage
+description: Comprehensive health insurance and benefits solutions
 version: 0.0.1
 
 ascii_art:
@@ -34,59 +34,60 @@ sections:
   site_header:
     component: header
     data:
-      siteName: "Roots"
-      iconComponent: "heroicon-o-cube-transparent"
+      siteName: "Best Health Coverage"
+      iconComponent: "heroicon-o-heart"
       navLinks: [
-        {"url": "#products", "label": "Products"},
-        {"url": "#docs", "label": "Documentation"},
-        {"url": "#community", "label": "Community"}
+        {"url": "#plans", "label": "Plans"},
+        {"url": "#benefits", "label": "Benefits"},
+        {"url": "#providers", "label": "Find Providers"},
+        {"url": "#contact", "label": "Contact Us"}
       ]
-      primaryLink: "https://roots.io"
-      containerClasses: "max-w-5xl mx-auto"
-      containerInnerClasses: "px-6"
+      primaryLink: "https://besthealthcoverage.com/enroll"
+      containerClasses: "max-w-7xl mx-auto"
+      containerInnerClasses: "px-4 sm:px-6 lg:px-8"
   
   home_hero:
     component: hero
     data:
-      title: "Roots Ecosystem"
-      subtitle: "Modern WordPress Development"
-      description: "Professional tools for modern WordPress development. Build better themes with Sage, manage dependencies with Bedrock, and deploy with Trellis."
-      imagePaths: ["https://roots.io/img/roots-dashboard.png"]
-      buttonText: "Get Started"
-      buttonLink: "#products"
-      secondaryText: "Join Community"
-      secondaryLink: "https://discourse.roots.io"
+      title: "Your Health, Your Choice"
+      subtitle: "Affordable Care Act Compliant Coverage"
+      description: "Comprehensive health insurance plans that protect you and your family. Including medical, dental, vision, and critical illness coverage."
+      imagePaths: ["https://besthealthcoverage.com/images/family-health.jpg"]
+      buttonText: "Get Coverage"
+      buttonLink: "#plans"
+      secondaryText: "Find a Provider"
+      secondaryLink: "#providers"
       buttonLinkIcon: true
       secondaryIcon: true
       iconMappings:
         dropdownIcon: "heroicon-s-chevron-down"
-        buttonLinkIcon: "heroicon-s-arrow-right"
-        secondaryIcon: "heroicon-s-users"
+        buttonLinkIcon: "heroicon-s-shield-check"
+        secondaryIcon: "heroicon-s-map-pin"
   
   services_card:
     component: card
     data:
-      sectionId: "products"
-      sectionTitle: "Our Products"
+      sectionId: "coverage"
+      sectionTitle: "Complete Coverage"
       navLinks: [
-        {"url": "#docs", "label": "Documentation"},
-        {"url": "#community", "label": "Community"}
+        {"url": "#benefits", "label": "Benefits"},
+        {"url": "#enroll", "label": "Enroll Now"}
       ]
       featureItems: [
         {
-          "icon": "heroicon-o-template",
-          "title": "Sage",
-          "description": "WordPress starter theme with modern development tools, easier configuration, and an improved developer experience."
+          "icon": "heroicon-o-heart",
+          "title": "Medical Coverage",
+          "description": "Comprehensive medical coverage including preventive care, specialists, and hospital stays."
         },
         {
-          "icon": "heroicon-o-cube",
-          "title": "Bedrock",
-          "description": "WordPress boilerplate with modern development tools, easier configuration, and an improved folder structure."
+          "icon": "heroicon-o-tooth",
+          "title": "Dental Care",
+          "description": "Preventive, basic, and major dental services with access to nationwide providers."
         },
         {
-          "icon": "heroicon-o-server",
-          "title": "Trellis",
-          "description": "WordPress development and production servers done right with Ansible."
+          "icon": "heroicon-o-eye",
+          "title": "Vision Benefits",
+          "description": "Eye exams, glasses, contacts, and discounts on vision correction procedures."
         }
       ]
 
@@ -95,131 +96,125 @@ sections:
     data:
       items:
         - id: "widget-1"
-          title: "Sage"
-          icon: "heroicon-o-template"
+          title: "Medical Coverage"
+          icon: "heroicon-o-heart"
           content: ""
           cta:
-            title: "Learn More About Sage"
-            link: "https://roots.io/sage"
-            imagePath: "https://roots.io/img/sage.png"
-          description: "Modern WordPress starter theme:"
+            title: "Medical Plans"
+            link: "#medical-plans"
+            imagePath: "/images/medical-coverage.jpg"
+          description: "Comprehensive medical coverage including:"
           listItems:
             - number: 1
-              itemName: "Laravel Blade"
-              text: "Use Laravel's Blade templating engine in your themes"
+              itemName: "Preventive Care"
+              text: "100% covered annual check-ups and screenings"
             - number: 2
-              itemName: "Tailwind CSS"
-              text: "Modern utility-first CSS framework included"
+              itemName: "Prescription Drugs"
+              text: "Affordable prescriptions with nationwide pharmacy network"
             - number: 3
-              itemName: "Modern Workflow"
-              text: "Webpack, Browsersync, and modern JS features"
+              itemName: "Hospital Care"
+              text: "Inpatient and outpatient services coverage"
 
         - id: "widget-2"
-          title: "Bedrock"
-          icon: "heroicon-o-cube"
+          title: "Dental Benefits"
+          icon: "heroicon-o-tooth"
           content: ""
           cta:
-            title: "Learn More About Bedrock"
-            link: "https://roots.io/bedrock"
-            imagePath: "https://roots.io/img/bedrock.png"
-          description: "WordPress boilerplate with security in mind:"
+            title: "Dental Plans"
+            link: "#dental-plans"
+            imagePath: "/images/dental-coverage.jpg"
+          description: "Complete dental care coverage:"
           listItems:
             - number: 1
-              itemName: "Composer"
-              text: "Manage WordPress and plugin dependencies"
+              itemName: "Preventive Services"
+              text: "Free cleanings and check-ups twice per year"
             - number: 2
-              itemName: "Environment Files"
-              text: "Separate configs for development and production"
+              itemName: "Basic Services"
+              text: "Fillings, extractions, and basic procedures"
             - number: 3
-              itemName: "Better Structure"
-              text: "Enhanced security through modern folder structure"
+              itemName: "Major Services"
+              text: "Root canals, crowns, and orthodontics"
 
         - id: "widget-3"
-          title: "Trellis"
-          icon: "heroicon-o-server"
+          title: "Vision Care"
+          icon: "heroicon-o-eye"
           content: ""
           cta:
-            title: "Learn More About Trellis"
-            link: "https://roots.io/trellis"
-            imagePath: "https://roots.io/img/trellis.png"
-          description: "One-command WordPress deployment:"
+            title: "Vision Plans"
+            link: "#vision-plans"
+            imagePath: "/images/vision-coverage.jpg"
+          description: "Comprehensive vision benefits:"
           listItems:
             - number: 1
-              itemName: "Development"
-              text: "Local development with Vagrant and VirtualBox"
+              itemName: "Annual Exams"
+              text: "Covered eye exams with low copay"
             - number: 2
-              itemName: "Production"
-              text: "Zero-downtime deploys with Ansible"
+              itemName: "Eyewear Coverage"
+              text: "Allowance for glasses or contacts"
             - number: 3
-              itemName: "Security"
-              text: "SSL, hardened security, and performance tuning"
+              itemName: "LASIK Benefits"
+              text: "Discounts on laser vision correction"
 
   pricing:
     component: pricing
     data:
-      title: "Choose Your Plan"
-      subtitle: "Professional tools for modern WordPress development"
-      description: "Join thousands of developers building better WordPress sites with Roots. All plans include access to premium documentation and community support."
-      pricingBoxes: [
-        {
-          "icon": "heroicon-o-code-bracket",
-          "iconColor": "text-gray-400",
-          "planType": "Individual",
-          "price": "$99",
-          "features": [
-            "All Roots products",
-            "Premium documentation",
-            "Community support",
-            "1 site license"
-          ],
-          "ctaLink": "https://roots.io/pricing",
-          "ctaText": "Get Started",
-          "ctaColor": "bg-white",
-          "iconBtn": "heroicon-o-arrow-right",
-          "iconBtnColor": "text-gray-500"
-        },
-        {
-          "icon": "heroicon-o-building-office",
-          "iconColor": "text-gray-500",
-          "planType": "Agency",
-          "price": "$299",
-          "features": [
-            "All Individual features",
-            "Unlimited site licenses",
-            "Priority support",
-            "Early access features",
-            "Agency training"
-          ],
-          "ctaLink": "https://roots.io/pricing",
-          "ctaText": "Buy Now",
-          "ctaColor": "bg-gradient-to-r from-emerald-600 to-green-500 text-white",
-          "iconBtn": "heroicon-o-shopping-cart",
-          "iconBtnColor": "text-white"
-        },
-        {
-          "icon": "heroicon-o-building-library",
-          "iconColor": "text-yellow-500",
-          "planType": "Enterprise",
-          "price": "Custom",
-          "features": [
-            "All Agency features",
-            "Custom development",
-            "Dedicated support",
-            "Training workshops",
-            "Custom integrations",
-            "Architecture review",
-            "SLA guarantee"
-          ],
-          "ctaLink": "https://roots.io/enterprise",
-          "ctaText": "Contact Us",
-          "ctaColor": "bg-gradient-to-r from-yellow-500 to-amber-500 text-white",
-          "iconBtn": "heroicon-o-envelope",
-          "iconBtnColor": "text-white"
-        }
-      ]
+      title: "Health Insurance Plans"
+      subtitle: "ACA-Compliant Coverage Options"
+      description: "Choose the plan that best fits your needs and budget. All plans include essential health benefits required by the Affordable Care Act."
+      pricingBoxes:
+        - icon: "heroicon-o-shield-check"
+          iconColor: "text-blue-500"
+          planType: "Bronze"
+          price: "$299"
+          features:
+            - "Lower monthly premium"
+            - "Higher deductible"
+            - "ACA compliant"
+            - "Preventive care covered"
+            - "Prescription coverage"
+          ctaLink: "#enroll-bronze"
+          ctaText: "Choose Plan"
+          ctaColor: "bg-white"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-gray-500"
+        
+        - icon: "heroicon-o-shield-check"
+          iconColor: "text-silver-500"
+          planType: "Silver"
+          price: "$399"
+          features:
+            - "Moderate monthly premium"
+            - "Moderate deductible"
+            - "Lower copays"
+            - "Dental coverage included"
+            - "Vision coverage included"
+            - "Specialist visits"
+          ctaLink: "#enroll-silver"
+          ctaText: "Choose Plan"
+          ctaColor: "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-white"
+        
+        - icon: "heroicon-o-shield-check"
+          iconColor: "text-gold-500"
+          planType: "Gold"
+          price: "$499"
+          features:
+            - "Higher monthly premium"
+            - "Lowest deductible"
+            - "Lowest copays"
+            - "Enhanced dental & vision"
+            - "Critical illness coverage"
+            - "Worldwide coverage"
+            - "Alternative medicine"
+          ctaLink: "#enroll-gold"
+          ctaText: "Choose Plan"
+          ctaColor: "bg-gradient-to-r from-yellow-500 to-amber-500 text-white"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-white"
 
 layouts:
-  roots:
+  health:
     sections:
       - site_header
       - home_hero
@@ -229,8 +224,8 @@ layouts:
 
 pages:
   home:
-    title: "Roots - Modern WordPress Development Tools"
-    layout: roots
+    title: "Best Health Coverage - Comprehensive Health Insurance Plans"
+    layout: health
     is_homepage: true
 
 wordpress:
@@ -238,6 +233,9 @@ wordpress:
     primary_navigation:
       location: "primary_navigation"
       name: "Primary Navigation"
+    footer_navigation:
+      location: "footer_navigation"
+      name: "Footer Navigation"
   
   theme_support:
     - title-tag
@@ -249,9 +247,13 @@ wordpress:
       width: 1920
       height: 1080
       crop: true
+    benefit_image:
+      width: 800
+      height: 600
+      crop: true
 
 assets:
   styles:
-    - resources/styles/roots.scss
+    - resources/styles/health.scss
   scripts:
-    - resources/scripts/roots.js
+    - resources/scripts/health.js
