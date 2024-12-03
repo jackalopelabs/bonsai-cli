@@ -5,9 +5,11 @@ version: 0.0.1
 # Add theme settings at the top level
 theme:
   body:
-    class: 'bg-slate-50'
+    class: 'bg-gray-100'
   navbar:
-    class: 'bg-slate-900'
+    class: 'bg-indigo-500'
+  header:
+    class: 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4'
 
 # ASCII art configuration section
 ascii_art:
@@ -53,6 +55,7 @@ sections:
       containerClasses: "max-w-5xl mx-auto"
       containerInnerClasses: "px-6"
       navbarClass: "@theme.navbar.class"
+      headerClass: "@theme.header.class"
   
   home_hero:
     component: hero

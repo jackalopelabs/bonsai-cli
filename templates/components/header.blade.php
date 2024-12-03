@@ -5,6 +5,7 @@
     'iconComponent' => 'heroicon-o-cube',
     'navLinks' => [],
     'primaryLink' => '#pricing',
+    'headerClass' => 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4'
 ])
 
 <script>
@@ -20,7 +21,7 @@ document.addEventListener('alpine:init', () => {
 });
 </script>
 
-<header class="{{ $containerClasses }} bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4" x-data="scrollHandler">
+<header class="{{ $containerClasses }} {{ $headerClass }}" x-data="scrollHandler">
     <div class="{{ $containerInnerClasses }} flex justify-between items-center w-full">
         <div class="flex">
             <a class="py-3 font-bold text-lg block" href="{{ home_url('/') }}">
