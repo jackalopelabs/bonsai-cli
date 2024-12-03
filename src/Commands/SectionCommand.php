@@ -180,6 +180,16 @@ class SectionCommand extends Command
     {
         $dataVarName = Str::camel($name) . 'Data';
         
+        // Add default values for pricing section
+        if ($componentName === 'pricing' && !isset($data['subtitle'])) {
+            $data = array_merge([
+                'title' => 'Choose Your Plan',
+                'subtitle' => 'Limited-time pricing available now',
+                'description' => 'Select the plan that best suits your needs.',
+                'pricingBoxes' => []
+            ], $data);
+        }
+
         $template = <<<BLADE
 @props([
     'class' => ''
