@@ -55,11 +55,15 @@ class GenerateCommand extends Command
 
     protected function getConfigPath($template)
     {
+        // Get the project root directory
+        $rootPath = $this->getLaravel()->basePath();
+        $this->info("Project root path: {$rootPath}");
+
         // Check locations in order of priority
         $paths = [
-            base_path("config/bonsai/{$template}.yml"),
-            base_path("config/templates/{$template}.yml"),
-            __DIR__ . "/../../config/templates/{$template}.yml"
+            "{$rootPath}/config/bonsai/{$template}.yml",        // 1. Local project config
+            "{$rootPath}/config/templates/{$template}.yml",      // 2. Local templates
+            __DIR__ . "/../../config/templates/{$template}.yml"  // 3. Package default config
         ];
 
         $this->info("Checking possible config paths:");
