@@ -57,13 +57,19 @@ class GenerateCommand extends Command
     {
         // Check locations in order of priority
         $paths = [
-            base_path("config/bonsai/{$template}.yml"),          // 1. Local project config
-            __DIR__ . "/../../config/templates/{$template}.yml"  // 2. Default package config
+            base_path("config/bonsai/{$template}.yml"),
+            base_path("config/templates/{$template}.yml"),
+            __DIR__ . "/../../config/templates/{$template}.yml"
         ];
 
+        $this->info("Checking possible config paths:");
         foreach ($paths as $path) {
+            $this->info("Checking: {$path}");
             if (file_exists($path)) {
+                $this->info("Found configuration at: {$path}");
                 return $path;
+            } else {
+                $this->info("Not found at: {$path}");
             }
         }
 
@@ -72,11 +78,34 @@ class GenerateCommand extends Command
 
     protected function loadConfig($path)
     {
+        $this->info("Attempting to load config from: {$path}");
+        
+        // Check if file exists
         if (!file_exists($path)) {
+            $this->error("File does not exist at path: {$path}");
             throw new \Exception("Configuration file not found: {$path}");
         }
 
-        return Yaml::parseFile($path);
+        // Check if file is readable
+        if (!is_readable($path)) {
+            $this->error("File exists but is not readable: {$path}");
+            throw new \Exception("Configuration file is not readable: {$path}");
+        }
+
+        try {
+            // Try to read file contents
+            $contents = file_get_contents($path);
+            $this->info("Successfully read file contents");
+            
+            // Try to parse YAML
+            $config = Yaml::parse($contents);
+            $this->info("Successfully parsed YAML configuration");
+            
+            return $config;
+        } catch (\Exception $e) {
+            $this->error("Error parsing configuration: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     protected function generateComponents($components, $hasHeroicons = false)
