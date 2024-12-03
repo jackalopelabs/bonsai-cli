@@ -4,10 +4,11 @@ namespace Jackalopelabs\BonsaiCli\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Symfony\Component\Yaml\Yaml;
 
 class LayoutCommand extends Command
 {
-    protected $signature = 'bonsai:layout {name} {--sections=}';
+    protected $signature = 'bonsai:layout {name} {--sections=} {--template=}';
     protected $description = 'Create a new layout with specified sections';
 
     protected $files;
@@ -22,6 +23,7 @@ class LayoutCommand extends Command
     {
         $name = strtolower($this->argument('name'));
         $layoutPath = resource_path("views/bonsai/layouts/{$name}.blade.php");
+        $template = $this->option('template') ?? 'bonsai';
 
         // Ensure the layouts directory exists
         $this->files->ensureDirectoryExists(resource_path('views/bonsai/layouts'));
@@ -31,120 +33,140 @@ class LayoutCommand extends Command
             return;
         }
 
+        // Get theme settings from template configuration
+        $themeSettings = $this->getThemeSettings($template);
+
         // Get sections to include in the layout
         $sections = $this->getSections();
 
-        // If this is the cypress layout, use the specific template
-        if ($name === 'cypress') {
-            $stubContent = $this->getCypressLayoutContent();
-        } else {
-            $stubContent = $this->getLayoutStubContent($name, $sections);
-        }
+        // Generate layout content with theme settings
+        $stubContent = $this->getLayoutContent($name, $sections, $themeSettings);
 
         $this->files->put($layoutPath, $stubContent);
         $this->info("Layout {$name} created at {$layoutPath}");
     }
 
-    protected function getCypressLayoutContent()
+    protected function getThemeSettings($template)
     {
-        return <<<'BLADE'
-<!doctype html>
-<html @php(language_attributes())>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        @php(do_action('get_header'))
-        @php(wp_head())
-        @include('utils.styles')
-    </head>
+        // Try to load template configuration
+        $configPaths = [
+            base_path("config/bonsai/{$template}.yml"),
+            base_path("config/templates/{$template}.yml"),
+            __DIR__ . "/../../config/templates/{$template}.yml"
+        ];
 
-    <body @php(body_class())>
-        @php(wp_body_open())
-        @php($containerInnerClasses = 'container mx-auto px-4 py-8')
+        foreach ($configPaths as $path) {
+            if (file_exists($path)) {
+                $config = Yaml::parseFile($path);
+                return $config['theme'] ?? [
+                    'body' => ['class' => 'bg-gray-100'],
+                    'navbar' => ['class' => 'bg-white']
+                ];
+            }
+        }
 
-        <div id="app">
-            <a class="sr-only focus:not-sr-only" href="#main">
-                {{ __('Skip to content', 'radicle') }}
-            </a>
-
-            @includeIf('bonsai.sections.header')
-
-            <main id="main" class="max-w-5xl mx-auto">
-                <div class="{{ $containerInnerClasses }}">
-                    @yield('content')
-                </div>
-            </main>
-
-            @includeIf('sections.footer')
-        </div>
-
-        @php(do_action('get_footer'))
-        @php(wp_footer())
-        @include('utils.scripts')
-    </body>
-</html>
-BLADE;
+        // Return defaults if no config found
+        return [
+            'body' => ['class' => 'bg-gray-100'],
+            'navbar' => ['class' => 'bg-white']
+        ];
     }
 
-    protected function getLayoutStubContent($name, $sections)
+    protected function getLayoutContent($name, $sections, $themeSettings)
     {
         // If this is the cypress layout, use the specific template
         if ($name === 'cypress') {
-            return <<<'BLADE'
-<!doctype html>
-<html @php(language_attributes())>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        @php(do_action('get_header'))
-        @php(wp_head())
-        @include('utils.styles')
-    </head>
-
-    <body @php(body_class())>
-        @php(wp_body_open())
-        @php($containerInnerClasses = 'container mx-auto px-4 py-8')
-
-        <div id="app">
-            <a class="sr-only focus:not-sr-only" href="#main">
-                {{ __('Skip to content', 'radicle') }}
-            </a>
-
-            @includeIf('bonsai.sections.header')
-
-            <main id="main" class="max-w-5xl mx-auto">
-                <div class="{{ $containerInnerClasses }}">
-                    @yield('content')
-                </div>
-            </main>
-
-            @includeIf('sections.footer')
-        </div>
-
-        @php(do_action('get_footer'))
-        @php(wp_footer())
-        @include('utils.scripts')
-    </body>
-</html>
-BLADE;
+            return $this->getCypressLayoutContent($themeSettings);
         }
 
-        // For other layouts, use the default template
+        // For other layouts, use the default template with theme settings
+        return $this->getDefaultLayoutContent($name, $sections, $themeSettings);
+    }
+
+    protected function getDefaultLayoutContent($name, $sections, $themeSettings)
+    {
         $sectionIncludes = collect($sections)
             ->map(fn($section) => "@include('bonsai.sections.{$section}')")
             ->implode("\n        ");
 
         return <<<BLADE
 {{-- Layout: {$name} --}}
-@extends('bonsai.layouts.app')
+<!doctype html>
+<html @php(language_attributes())>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        @php(do_action('get_header'))
+        @php(wp_head())
+        @include('utils.styles')
+    </head>
 
-@section('content')
-    <div class="layout-{$name}">
-        {{-- Include sections in specified order --}}
-        {$sectionIncludes}
-        {{-- Add other sections as needed --}}
-    </div>
-@endsection
+    <body @php(body_class('{$themeSettings['body']['class']}'))>
+        @php(wp_body_open())
+        @php(\$containerInnerClasses = 'container mx-auto px-4 py-8')
+
+        <div id="app">
+            <a class="sr-only focus:not-sr-only" href="#main">
+                {{ __('Skip to content', 'radicle') }}
+            </a>
+
+            @include('bonsai.sections.header')
+
+            <main id="main" class="max-w-5xl mx-auto">
+                <div class="{{ \$containerInnerClasses }}">
+                    @yield('content')
+                </div>
+            </main>
+
+            @includeIf('sections.footer')
+        </div>
+
+        @php(do_action('get_footer'))
+        @php(wp_footer())
+        @include('utils.scripts')
+    </body>
+</html>
+BLADE;
+    }
+
+    protected function getCypressLayoutContent($themeSettings)
+    {
+        return <<<BLADE
+<!doctype html>
+<html @php(language_attributes())>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        @php(do_action('get_header'))
+        @php(wp_head())
+        @include('utils.styles')
+    </head>
+
+    <body @php(body_class('{$themeSettings['body']['class']}'))>
+        @php(wp_body_open())
+        @php(\$containerInnerClasses = 'container mx-auto px-4 py-8')
+
+        <div id="app">
+            <a class="sr-only focus:not-sr-only" href="#main">
+                {{ __('Skip to content', 'radicle') }}
+            </a>
+
+            @includeIf('bonsai.sections.header')
+
+            <main id="main" class="max-w-5xl mx-auto">
+                <div class="{{ \$containerInnerClasses }}">
+                    @yield('content')
+                </div>
+            </main>
+
+            @includeIf('sections.footer')
+        </div>
+
+        @php(do_action('get_footer'))
+        @php(wp_footer())
+        @include('utils.scripts')
+    </body>
+</html>
 BLADE;
     }
 

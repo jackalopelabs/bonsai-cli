@@ -2,7 +2,14 @@ name: Bonsai CLI
 description: WordPress CLI tool for generating and managing reusable components
 version: 0.0.1
 
-# Add ASCII art configuration section
+# Add theme settings at the top level
+theme:
+  body:
+    class: 'bg-slate-50'
+  navbar:
+    class: 'bg-slate-900'
+
+# ASCII art configuration section
 ascii_art:
   default: |
     ${green}                    &
@@ -45,6 +52,7 @@ sections:
       primaryLink: "https://github.com/jackalopelabs/bonsai-cli"
       containerClasses: "max-w-5xl mx-auto"
       containerInnerClasses: "px-6"
+      navbarClass: "@theme.navbar.class"
   
   home_hero:
     component: hero

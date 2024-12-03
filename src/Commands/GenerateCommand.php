@@ -259,6 +259,16 @@ BLADE;
     {
         $this->info('Generating layouts...');
         
+        // Get theme settings from config
+        $template = $this->argument('template');
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
+        
+        $themeSettings = $config['theme'] ?? [
+            'body' => ['class' => 'bg-gray-100'],
+            'navbar' => ['class' => 'bg-white']
+        ];
+
         foreach ($layouts as $layout => $config) {
             try {
                 // Create the layout file
@@ -269,7 +279,7 @@ BLADE;
                     $this->files->makeDirectory(dirname($layoutPath), 0755, true);
                 }
                 
-                // Generate the layout content
+                // Generate the layout content with theme settings
                 $layoutContent = <<<BLADE
 <!doctype html>
 <html @php(language_attributes())>
@@ -281,7 +291,7 @@ BLADE;
         @include('utils.styles')
     </head>
 
-    <body @php(body_class('bg-gray-100'))>
+    <body @php(body_class('{$themeSettings['body']['class']}'))>
         @php(wp_body_open())
 
         <div id="app">
