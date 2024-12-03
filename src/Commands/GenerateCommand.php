@@ -29,10 +29,29 @@ class GenerateCommand extends Command
         $configPath = $this->option('config') ?? $this->getConfigPath($template);
 
         try {
+            $this->info("\n🌳 Starting Bonsai generation process...");
+            $this->info("Template: {$template}");
+            $this->info("Config Path: {$configPath}");
+
             $config = $this->loadConfig($configPath);
             
-            $this->info("Starting Bonsai site generation for template: {$template}");
-            $this->info("Using config: {$configPath}");
+            // Debug configuration
+            $this->info("\nConfiguration loaded:");
+            $this->info("- Name: " . ($config['name'] ?? 'Not set'));
+            $this->info("- Components: " . json_encode($config['components'] ?? []));
+            $this->info("- Sections count: " . count($config['sections'] ?? []));
+            $this->info("- Layouts: " . json_encode($config['layouts'] ?? []));
+            $this->info("- Pages: " . json_encode($config['pages'] ?? []));
+            
+            // Verify the home page configuration
+            if (isset($config['pages']['home'])) {
+                $this->info("\nHome page configuration:");
+                $this->info("- Title: " . ($config['pages']['home']['title'] ?? 'Not set'));
+                $this->info("- Layout: " . ($config['pages']['home']['layout'] ?? 'Not set'));
+                $this->info("- Is Homepage: " . ($config['pages']['home']['is_homepage'] ? 'Yes' : 'No'));
+            } else {
+                $this->warn("\nNo home page configuration found");
+            }
             
             // Check Heroicons setup before generating components
             $hasHeroicons = $this->checkHeroiconsSetup();
@@ -49,21 +68,32 @@ class GenerateCommand extends Command
             
         } catch (\Exception $e) {
             $this->error("Error generating site: " . $e->getMessage());
+            $this->error("Stack trace: " . $e->getTraceAsString());
             return 1;
         }
     }
 
     protected function getConfigPath($template)
     {
+        // Get the project root directory
+        $rootPath = $this->getLaravel()->basePath();
+        $this->info("Project root path: {$rootPath}");
+
         // Check locations in order of priority
         $paths = [
-            base_path("config/bonsai/{$template}.yml"),          // 1. Local project config
-            __DIR__ . "/../../config/templates/{$template}.yml"  // 2. Default package config
+            "{$rootPath}/config/bonsai/{$template}.yml",        // 1. Local project config
+            "{$rootPath}/config/templates/{$template}.yml",      // 2. Local templates
+            __DIR__ . "/../../config/templates/{$template}.yml"  // 3. Package default config
         ];
 
+        $this->info("Checking possible config paths:");
         foreach ($paths as $path) {
+            $this->info("Checking: {$path}");
             if (file_exists($path)) {
+                $this->info("Found configuration at: {$path}");
                 return $path;
+            } else {
+                $this->info("Not found at: {$path}");
             }
         }
 
@@ -72,11 +102,34 @@ class GenerateCommand extends Command
 
     protected function loadConfig($path)
     {
+        $this->info("Attempting to load config from: {$path}");
+        
+        // Check if file exists
         if (!file_exists($path)) {
+            $this->error("File does not exist at path: {$path}");
             throw new \Exception("Configuration file not found: {$path}");
         }
 
-        return Yaml::parseFile($path);
+        // Check if file is readable
+        if (!is_readable($path)) {
+            $this->error("File exists but is not readable: {$path}");
+            throw new \Exception("Configuration file is not readable: {$path}");
+        }
+
+        try {
+            // Try to read file contents
+            $contents = file_get_contents($path);
+            $this->info("Successfully read file contents");
+            
+            // Try to parse YAML
+            $config = Yaml::parse($contents);
+            $this->info("Successfully parsed YAML configuration");
+            
+            return $config;
+        } catch (\Exception $e) {
+            $this->error("Error parsing configuration: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     protected function generateComponents($components, $hasHeroicons = false)
@@ -615,35 +668,23 @@ BLADE;
     {
         $this->info('Generating pages...');
         
-        $template = $this->argument('template');
-        
         foreach ($pages as $slug => $config) {
             try {
                 $title = $config['title'] ?? Str::title($slug);
                 $layout = $config['layout'] ?? 'default';
                 
-                // Create template file in project's resources directory
-                $templatePath = resource_path("views/bonsai/templates/template-{$template}.blade.php");
-                $templateContent = $this->generateTemplateContent($template, $layout, $config);
+                $this->info("Creating page '{$title}' with layout '{$layout}'");
                 
-                // Ensure directory exists
-                if (!$this->files->exists(dirname($templatePath))) {
-                    $this->files->makeDirectory(dirname($templatePath), 0755, true);
-                }
-                
-                $this->files->put($templatePath, $templateContent);
-                $this->info("Template file created at: {$templatePath}");
-
-                // Create or update the page in WordPress with correct template path
+                // Create or update the page in WordPress
                 $pageId = wp_insert_post([
                     'post_title'   => $title,
                     'post_name'    => $slug,
                     'post_status'  => 'publish',
                     'post_type'    => 'page',
                     'meta_input'   => [
-                        '_wp_page_template' => $this->getWordPressTemplatePath($template),
+                        '_wp_page_template' => "views/bonsai/templates/template-{$layout}.blade.php",
                         '_bonsai_generated' => 'true',
-                        '_bonsai_template' => $template,
+                        '_bonsai_template'  => $layout,
                     ],
                 ]);
 
@@ -651,17 +692,18 @@ BLADE;
                     throw new \Exception("Failed to create page: " . $pageId->get_error_message());
                 }
 
-                $this->info("Page '{$title}' created with ID: {$pageId}");
+                $this->info("Page created with ID: {$pageId}");
 
                 // Set as homepage if specified
-                if (isset($config['is_homepage']) && $config['is_homepage']) {
+                if (!empty($config['is_homepage'])) {
+                    $this->info("Setting as homepage...");
                     update_option('show_on_front', 'page');
                     update_option('page_on_front', $pageId);
-                    $this->info("Set '{$title}' as static homepage");
+                    $this->info("Homepage set successfully");
                 }
 
             } catch (\Exception $e) {
-                $this->warn("Warning: Could not generate page '{$slug}': " . $e->getMessage());
+                $this->error("Failed to generate page '{$slug}': " . $e->getMessage());
             }
         }
     }
