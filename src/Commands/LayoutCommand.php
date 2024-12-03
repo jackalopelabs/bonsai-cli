@@ -60,7 +60,7 @@ class LayoutCommand extends Command
                 $config = Yaml::parseFile($path);
                 return $config['theme'] ?? [
                     'body' => ['class' => 'bg-gray-100'],
-                    'navbar' => ['class' => 'bg-white']
+                    'header' => ['class' => 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4']
                 ];
             }
         }
@@ -68,7 +68,7 @@ class LayoutCommand extends Command
         // Return defaults if no config found
         return [
             'body' => ['class' => 'bg-gray-100'],
-            'navbar' => ['class' => 'bg-white']
+            'header' => ['class' => 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4']
         ];
     }
 

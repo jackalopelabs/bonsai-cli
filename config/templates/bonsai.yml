@@ -6,10 +6,8 @@ version: 0.0.1
 theme:
   body:
     class: 'bg-gray-100'
-  navbar:
-    class: 'bg-indigo-500'
   header:
-    class: 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4'
+    class: 'bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4'
 
 # ASCII art configuration section
 ascii_art:

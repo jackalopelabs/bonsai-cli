@@ -266,7 +266,7 @@ BLADE;
         
         $themeSettings = $config['theme'] ?? [
             'body' => ['class' => 'bg-gray-100'],
-            'navbar' => ['class' => 'bg-white']
+            'header' => ['class' => 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4']
         ];
 
         foreach ($layouts as $layout => $config) {
