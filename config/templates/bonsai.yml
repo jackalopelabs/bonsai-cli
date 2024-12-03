@@ -52,8 +52,7 @@ sections:
       primaryLink: "https://github.com/jackalopelabs/bonsai-cli"
       containerClasses: "max-w-5xl mx-auto"
       containerInnerClasses: "px-6"
-      navbarClass: "@theme.navbar.class"
-      headerClass: "@theme.header.class"
+      headerClass: "bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4"
   
   home_hero:
     component: hero

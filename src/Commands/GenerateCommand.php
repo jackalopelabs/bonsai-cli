@@ -213,14 +213,23 @@ BLADE;
     {
         $this->info('Generating sections...');
         
-        // Set the template name in environment for SectionCommand
+        // Get theme settings
         $template = $this->argument('template');
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
+        $themeSettings = $config['theme'] ?? [];
+        
         putenv("BONSAI_TEMPLATE={$template}");
         
         foreach ($sections as $section => $config) {
             try {
                 $this->info("Creating section: {$section}");
                 $componentType = $config['component'] ?? $section;
+                
+                // If this is the header component, inject theme settings
+                if ($componentType === 'header' && isset($themeSettings['header']['class'])) {
+                    $config['data']['headerClass'] = $themeSettings['header']['class'];
+                }
                 
                 // Pass data directly to section command
                 if (isset($config['data'])) {
@@ -251,7 +260,6 @@ BLADE;
             }
         }
         
-        // Clear template from environment
         putenv("BONSAI_TEMPLATE");
     }
 
