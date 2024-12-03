@@ -675,6 +675,19 @@ BLADE;
                 
                 $this->info("Creating page '{$title}' with layout '{$layout}'");
                 
+                // Generate template file first
+                $templateContent = $this->generateTemplateContent($slug, $layout, $config);
+                $templatePath = resource_path("views/bonsai/templates/template-{$layout}.blade.php");
+                
+                // Ensure templates directory exists
+                if (!$this->files->exists(dirname($templatePath))) {
+                    $this->files->makeDirectory(dirname($templatePath), 0755, true);
+                }
+                
+                // Write template file
+                $this->files->put($templatePath, $templateContent);
+                $this->info("Created template file: {$templatePath}");
+                
                 // Create or update the page in WordPress
                 $pageId = wp_insert_post([
                     'post_title'   => $title,
@@ -682,7 +695,7 @@ BLADE;
                     'post_status'  => 'publish',
                     'post_type'    => 'page',
                     'meta_input'   => [
-                        '_wp_page_template' => "views/bonsai/templates/template-{$layout}.blade.php",
+                        '_wp_page_template' => "template-{$layout}.blade.php",
                         '_bonsai_generated' => 'true',
                         '_bonsai_template'  => $layout,
                     ],
