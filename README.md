@@ -492,6 +492,40 @@ pricing:
         iconBtnColor: string
 ```
 
+### Icon Usage
+
+Bonsai uses Blade UI Kit's Heroicons implementation. Icons must be specified in one of these formats:
+
+```yaml
+# Correct icon formats:
+iconComponent: "heroicon-o-medical-bag"    # Outline style
+iconComponent: "heroicon-m-medical-bag"    # Mini style
+iconComponent: "heroicon-s-medical-bag"    # Solid style
+
+# For icon mappings:
+iconMappings:
+  dropdownIcon: "heroicon-o-chevron-down"      # Outline
+  buttonLinkIcon: "heroicon-o-arrow-right"     # Outline
+  secondaryIcon: "heroicon-o-information-circle" # Outline
+```
+
+Common icon names:
+- `arrow-right`
+- `chevron-down`
+- `information-circle`
+- `shopping-cart`
+- `user`
+- `cog`
+- `home`
+- `mail`
+
+Best practices:
+1. Use outline (`-o-`) icons for most cases
+2. Avoid mixing styles within the same component
+3. Test icons in development before deploying
+4. Check [Heroicons.com](https://heroicons.com) for available icons
+5. Use exact icon names from Heroicons (e.g., `information-circle` not `info-circle`)
+
 ### Common Pitfalls
 
 1. Image paths must be strings, not arrays
@@ -499,6 +533,7 @@ pricing:
 3. All required fields must be present
 4. Maintain proper YAML indentation
 5. Use consistent data types
+6. **Use correct Heroicon format and names**
 
 ### Best Practices
 

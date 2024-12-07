@@ -1,3 +1,12 @@
+ascii_art:
+  default: "${green}                    &\n                      && & &\n        \
+    \            & &&&&&~&\n                     &  &&&&\n                      &&&~|\\\
+    \n                       &//~\n                      |/\n                    \
+    \ /|\\\n           &&       |//~\n             &&    \\_/     && & &\n      &&&\
+    \    &&     //_/  /&&&/_&&&\n       &&&__&&   \\_\\_\\/~/   &&&\n     & &\\& \
+    \ &&&&\\|&  /~|     &\n      &&& & &    /~~\n               ${brown}:___________./~~~\\\
+    .___:\n                \\                     /\n                 \\_________________/\n\
+    \                 (_)           (_)${reset}\n"
 assets:
   scripts:
   - resources/scripts/hydrofera.js
@@ -33,11 +42,11 @@ sections:
       description: Hydrofera Blue offers advanced wound care products that promote
         healing and protect against infection.
       iconMappings:
-        buttonLinkIcon: heroicon-s-info-circle
+        buttonLinkIcon: heroicon-s-information-circle
         dropdownIcon: heroicon-s-chevron-down
         secondaryIcon: heroicon-s-mail
       imagePaths:
-      - https://example.com/images/hydrofera-hero.jpg
+      - https://placehold.co/600x400/png
       secondaryIcon: true
       secondaryLink: '#contact'
       secondaryText: Contact Us
@@ -111,10 +120,10 @@ theme:
 version: 1.0.0
 wordpress:
   image_sizes:
-    product_image:
+    hero_image:
       crop: true
-      height: 720
-      width: 1080
+      height: 1080
+      width: 1920
   menus:
     primary_navigation:
       location: primary_navigation
