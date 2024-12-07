@@ -1,134 +1,246 @@
 ascii_art:
-  default: "${green}                    &\n                      && & &\n        \
-    \            & &&&&&~&\n                     &  &&&&\n                      &&&~|\\\
-    \n                       &//~\n                      |/\n                    \
-    \ /|\\\n           &&       |//~\n             &&    \\_/     && & &\n      &&&\
-    \    &&     //_/  /&&&/_&&&\n       &&&__&&   \\_\\_\\/~/   &&&\n     & &\\& \
-    \ &&&&\\|&  /~|     &\n      &&& & &    /~~\n               ${brown}:___________./~~~\\\
-    .___:\n                \\                     /\n                 \\_________________/\n\
-    \                 (_)           (_)${reset}\n"
-assets:
-  scripts:
-  - resources/scripts/hydrofera.js
-  styles:
-  - resources/styles/hydrofera.scss
+  default: |
+    ${green}                    &
+                          && & &
+                      & &&&&&&~&&&
+                       &&  &&&&  &&
+                        &&&~|\&&&
+                         &//~\\&
+                        |/    \|
+                       /|\    /|\
+             &&       |//~    ~\\|
+               &&    \_/        \_/  && & &
+        &&&    &&     //_/____\\_\  /&&&/_&&&
+         &&&__&&   \_\_\/~~~~\/\_/   &&&
+       & &\&  &&&&\|&  /~||~\  &|     &
+        &&& & &    /~~
+                 ${brown}:____________./~~~\.____:
+                  \                         /
+                   \_____________________/
+                   (_)               (_)${reset}
+
 components:
-- hero
-- header
-- card
-- widget
-- pricing-box
-description: Showcasing Hydrofera's innovative wound care solutions.
-layouts:
-  hydrofera:
-    sections:
-    - site_header
-    - home_hero
-    - solutions_card
-    - pricing
-name: Hydrofera Blue
-pages:
-  home:
-    is_homepage: true
-    layout: hydrofera
-    title: Hydrofera Blue
+  - hero
+  - header
+  - card
+  - widget
+  - pricing-box
+
 sections:
-  home_hero:
-    component: hero
-    data:
-      buttonLink: '#products'
-      buttonLinkIcon: true
-      buttonText: Learn More
-      description: Hydrofera Blue offers advanced wound care products that promote
-        healing and protect against infection.
-      iconMappings:
-        buttonLinkIcon: heroicon-s-information-circle
-        dropdownIcon: heroicon-s-chevron-down
-        secondaryIcon: heroicon-s-envelope
-      imagePaths:
-      - https://placehold.co/600x400/png
-      secondaryIcon: true
-      secondaryLink: '#contact'
-      secondaryText: Contact Us
-      subtitle: Innovative Wound Care Solutions
-      title: Hydrofera Blue
-  pricing:
-    component: pricing
-    data:
-      pricingBoxes:
-      - ctaColor: bg-blue-500 text-white
-        ctaLink: '#buy-standard'
-        ctaText: Buy Now
-        features:
-        - General wound care
-        - Antibacterial protection
-        icon: heroicon-o-medical-bag
-        iconBtn: heroicon-o-shopping-cart
-        iconBtnColor: text-white
-        iconColor: text-blue-500
-        planType: Standard
-        price: $50
-      - ctaColor: bg-pink-500 text-white
-        ctaLink: '#buy-advanced'
-        ctaText: Buy Now
-        features:
-        - Enhanced healing
-        - Advanced infection control
-        - For chronic wounds
-        icon: heroicon-o-heart
-        iconBtn: heroicon-o-shopping-cart
-        iconBtnColor: text-white
-        iconColor: text-pink-500
-        planType: Advanced
-        price: $120
-      subtitle: Find the perfect solution for your wound care needs.
-      title: Our Product Range
   site_header:
     component: header
     data:
-      containerClasses: max-w-6xl mx-auto
-      containerInnerClasses: px-6 py-3
-      headerClass: bg-blue-600 text-white shadow-lg rounded-lg mx-auto p-2 my-3
-      iconComponent: heroicon-o-medical-bag
-      navLinks:
-      - label: Products
-        url: '#products'
-      - label: Solutions
-        url: '#solutions'
-      - label: Contact Us
-        url: '#contact'
-      primaryLink: '#get-started'
-      siteName: Hydrofera Blue
-  solutions_card:
+      siteName: "Hydrofera Blue"
+      iconComponent: "heroicon-o-beaker"
+      navLinks: [
+        {"url": "#products", "label": "Products"},
+        {"url": "#clinical", "label": "Clinical Evidence"},
+        {"url": "#resources", "label": "Resources"},
+        {"url": "#contact", "label": "Contact"}
+      ]
+      primaryLink: "https://hydrofera.com/products"
+      containerClasses: "max-w-7xl mx-auto"
+      containerInnerClasses: "px-4 sm:px-6 lg:px-8"
+      headerClass: "bg-white/80 backdrop-blur-md border-b border-blue-100"
+  
+  home_hero:
+    component: hero
+    data:
+      title: "Advanced Wound Care"
+      subtitle: "Powered by Hydrofera Blue Technology"
+      description: "Clinically proven antimicrobial dressings that promote healing and prevent infection in chronic and acute wounds."
+      imagePaths: "https://placehold.co/1200x600/png"
+      buttonText: "View Products"
+      buttonLink: "#products"
+      secondaryText: "Clinical Studies"
+      secondaryLink: "#evidence"
+      buttonLinkIcon: true
+      secondaryIcon: true
+      iconMappings:
+        dropdownIcon: "heroicon-o-chevron-down"
+        buttonLinkIcon: "heroicon-o-arrow-right"
+        secondaryIcon: "heroicon-o-academic-cap"
+  
+  features_card:
     component: card
     data:
-      featureItems:
-      - description: Provides reliable protection against bacteria.
-        icon: heroicon-o-shield-check
-        title: Protection
-      - description: Accelerates healing with advanced technology.
-        icon: heroicon-o-trending-up
-        title: Healing
-      - description: Minimizes dressing changes and promotes efficiency.
-        icon: heroicon-o-clock
-        title: Efficiency
-      sectionId: solutions
-      sectionTitle: Why Choose Hydrofera Blue?
-theme:
-  body:
-    class: bg-blue-50 text-gray-900
-version: 1.0.0
+      title: "Why Hydrofera Blue"
+      subtitle: "Advanced Wound Care Technology"
+      features: [
+        {
+          "icon": "heroicon-o-beaker",
+          "title": "Proprietary Technology",
+          "description": "Unique PVA foam with methylene blue and gentian violet"
+        },
+        {
+          "icon": "heroicon-o-shield-check",
+          "title": "Broad-Spectrum Protection",
+          "description": "Effective against bacteria, including antibiotic-resistant strains"
+        },
+        {
+          "icon": "heroicon-o-heart",
+          "title": "Patient-Friendly",
+          "description": "Non-cytotoxic, non-staining, and easy to apply"
+        }
+      ]
+      featureItems: [
+        {
+          "icon": "heroicon-o-check-circle",
+          "title": "Clinically Proven",
+          "description": "Extensive research backing efficacy"
+        },
+        {
+          "icon": "heroicon-o-clock",
+          "title": "Long-Lasting",
+          "description": "Extended wear time up to 7 days"
+        },
+        {
+          "icon": "heroicon-o-currency-dollar",
+          "title": "Cost-Effective",
+          "description": "Reduces overall treatment costs"
+        },
+        {
+          "icon": "heroicon-o-sparkles",
+          "title": "Non-Adherent",
+          "description": "Minimizes trauma during dressing changes"
+        },
+        {
+          "icon": "heroicon-o-chart-bar",
+          "title": "Proven Results",
+          "description": "Demonstrated healing outcomes"
+        },
+        {
+          "icon": "heroicon-o-globe-americas",
+          "title": "Worldwide Trust",
+          "description": "Used in healthcare facilities globally"
+        }
+      ]
+
+  clinical_widget:
+    component: widget
+    data:
+      items:
+        - id: "evidence-1"
+          title: "Clinical Evidence"
+          icon: "heroicon-o-academic-cap"
+          content: ""
+          cta:
+            title: "Research Studies"
+            link: "#studies"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Proven effectiveness in wound care:"
+          listItems:
+            - number: 1
+              itemName: "Clinical Trials"
+              text: "Multiple randomized controlled studies"
+            - number: 2
+              itemName: "Case Studies"
+              text: "Documented success across wound types"
+            - number: 3
+              itemName: "Publications"
+              text: "Peer-reviewed journal articles"
+
+  pricing:
+    component: pricing
+    data:
+      title: "Product Range"
+      subtitle: "Advanced Wound Care Solutions"
+      description: "Choose the right Hydrofera Blue product for your wound care needs"
+      pricingBoxes:
+        - icon: "heroicon-o-bandage"
+          iconColor: "text-blue-600"
+          planType: "Classic"
+          price: "Contact for Pricing"
+          features: [
+            "Standard wound care",
+            "Broad-spectrum antimicrobial",
+            "Up to 7-day wear time",
+            "Non-adherent surface",
+            "Various sizes available"
+          ]
+          ctaLink: "#contact-sales"
+          ctaText: "Request Info"
+          ctaColor: "bg-blue-600"
+          iconBtn: "heroicon-o-envelope"
+          iconBtnColor: "text-white"
+        
+        - icon: "heroicon-o-sparkles"
+          iconColor: "text-indigo-600"
+          planType: "Ready"
+          price: "Contact for Pricing"
+          features: [
+            "No-rinse wound cleanser",
+            "Ready to use format",
+            "Preservative-free",
+            "Gentle application",
+            "Compatible with all dressings",
+            "Available in multiple sizes"
+          ]
+          ctaLink: "#contact-sales"
+          ctaText: "Request Info"
+          ctaColor: "bg-gradient-to-r from-blue-600 to-indigo-600"
+          iconBtn: "heroicon-o-envelope"
+          iconBtnColor: "text-white"
+        
+        - icon: "heroicon-o-star"
+          iconColor: "text-purple-600"
+          planType: "XTRA"
+          price: "Contact for Pricing"
+          features: [
+            "Maximum absorption",
+            "Enhanced bacterial binding",
+            "Ideal for heavy exudate",
+            "Extended wear time",
+            "Larger sizes available",
+            "Cost-effective solution",
+            "Reduced dressing changes"
+          ]
+          ctaLink: "#contact-sales"
+          ctaText: "Request Info"
+          ctaColor: "bg-gradient-to-r from-indigo-600 to-purple-600"
+          iconBtn: "heroicon-o-envelope"
+          iconBtnColor: "text-white"
+
+layouts:
+  hydrofera:
+    sections:
+      - site_header
+      - home_hero
+      - features_card
+      - clinical_widget
+      - pricing
+
+pages:
+  home:
+    title: "Hydrofera Blue - Advanced Wound Care Solutions"
+    layout: hydrofera
+    is_homepage: true
+    meta:
+      description: "Discover Hydrofera Blue's advanced antimicrobial wound care solutions. Clinically proven technology for better healing outcomes."
+
 wordpress:
-  image_sizes:
-    hero_image:
-      crop: true
-      height: 1080
-      width: 1920
   menus:
     primary_navigation:
-      location: primary_navigation
-      name: Primary Navigation
+      location: "primary_navigation"
+      name: "Primary Navigation"
+  
   theme_support:
-  - title-tag
-  - post-thumbnails
-  - menus
+    - title-tag
+    - post-thumbnails
+    - menus
+    
+  image_sizes:
+    hero_image:
+      width: 1920
+      height: 1080
+      crop: true
+    product_image:
+      width: 800
+      height: 600
+      crop: true
+
+assets:
+  styles:
+    - resources/styles/hydrofera.scss
+  scripts:
+    - resources/scripts/hydrofera.js
