@@ -52,7 +52,7 @@ sections:
       title: "Your Health, Your Choice"
       subtitle: "Affordable Care Act Compliant Coverage"
       description: "Comprehensive health insurance plans that protect you and your family. Including medical, dental, vision, and critical illness coverage."
-      imagePaths: ["https://besthealthcoverage.com/images/family-health.jpg"]
+      imagePaths: ["https://placehold.co/600x400/png"]
       buttonText: "Get Coverage"
       buttonLink: "#plans"
       secondaryText: "Find a Provider"
@@ -102,7 +102,7 @@ sections:
           cta:
             title: "Medical Plans"
             link: "#medical-plans"
-            imagePath: "/images/medical-coverage.jpg"
+            imagePath: ["https://placehold.co/600x400/png"]
           description: "Comprehensive medical coverage including:"
           listItems:
             - number: 1
@@ -122,7 +122,7 @@ sections:
           cta:
             title: "Dental Plans"
             link: "#dental-plans"
-            imagePath: "/images/dental-coverage.jpg"
+            imagePath: ["https://placehold.co/600x400/png"]
           description: "Complete dental care coverage:"
           listItems:
             - number: 1
@@ -142,7 +142,7 @@ sections:
           cta:
             title: "Vision Plans"
             link: "#vision-plans"
-            imagePath: "/images/vision-coverage.jpg"
+            imagePath: ["https://placehold.co/600x400/png"]
           description: "Comprehensive vision benefits:"
           listItems:
             - number: 1

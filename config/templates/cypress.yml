@@ -52,7 +52,7 @@ sections:
       title: "The Future of WordPress Development"
       subtitle: "No-Code Meets Developer Freedom"
       description: "Experience the perfect blend of visual editing and developer control with Cypress - the premium WordPress theme powered by Bonsai CLI"
-      imagePaths: ["https://cypress.bonsai-cli.com/hero-preview.png"]
+      imagePaths: ["https://placehold.co/600x400/png"]
       buttonText: "Start Building"
       buttonLink: "#pricing"
       secondaryText: "Watch Demo"
@@ -99,14 +99,14 @@ sections:
       subtitle: "See what others are saying about Cypress"
       testimonials: [
         {
-          "avatar": "https://cypress.bonsai-cli.com/avatars/1.jpg",
+          "avatar": ["https://placehold.co/100x100/png"],
           "name": "Sarah Johnson",
           "role": "Lead Developer",
           "company": "TechCorp",
           "quote": "Cypress has revolutionized how we build WordPress sites. The no-code interface is perfect for clients, while maintaining the developer experience we love."
         },
         {
-          "avatar": "https://cypress.bonsai-cli.com/avatars/2.jpg",
+          "avatar": ["https://placehold.co/100x100/png"],
           "name": "Michael Chen",
           "role": "Agency Owner",
           "company": "PixelPerfect",
