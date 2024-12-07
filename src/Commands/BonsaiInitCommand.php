@@ -65,12 +65,12 @@ class BonsaiInitCommand extends Command
             // Step 5: Create the Components page
             $this->createComponentsPage();
     
-            // Step 6: Setup local config directory
-            $this->setupLocalConfig();
+            // Step 6: Setup local config directory with templates subdirectory
+            $this->createConfigDirectory();
     
             $this->info('🌳 Bonsai initialization completed successfully!');
             $this->info("\nNext steps:");
-            $this->line(" 1. Create your site configuration in config/bonsai/");
+            $this->line(" 1. Create your site configuration in config/bonsai/templates/");
             $this->line(" 2. Run 'wp acorn bonsai:generate [template]' to generate your site");
             $this->line(" 3. Available templates: cypress, jackalope (or create your own)");
     
@@ -580,20 +580,20 @@ PHP;
         $configPath = $this->laravel->basePath('config/bonsai');
         $templatesPath = $configPath . '/templates';  // Add templates subdirectory
 
-        if (!File::exists($configPath)) {
-            File::makeDirectory($configPath, 0755, true);
+        if (!$this->files->exists($configPath)) {
+            $this->files->makeDirectory($configPath, 0755, true);
         }
 
-        if (!File::exists($templatesPath)) {
-            File::makeDirectory($templatesPath, 0755, true);
+        if (!$this->files->exists($templatesPath)) {
+            $this->files->makeDirectory($templatesPath, 0755, true);
         }
 
         // Copy example config to templates directory instead
         $exampleConfig = __DIR__ . '/../../config/templates/bonsai.yml';
         $targetConfig = $templatesPath . '/example.yml';
 
-        if (!File::exists($targetConfig)) {
-            File::copy($exampleConfig, $targetConfig);
+        if (!$this->files->exists($targetConfig)) {
+            $this->files->copy($exampleConfig, $targetConfig);
         }
     }
 }
