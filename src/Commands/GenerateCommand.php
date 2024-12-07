@@ -720,4 +720,31 @@ BLADE;
             }
         }
     }
+
+    protected function findConfigFile($template)
+    {
+        $projectRoot = $this->laravel->basePath();
+        $possiblePaths = [
+            // First check in project's bonsai templates directory (new location)
+            "{$projectRoot}/config/bonsai/templates/{$template}.yml",
+            
+            // Then check legacy locations
+            "{$projectRoot}/config/bonsai/{$template}.yml",
+            "{$projectRoot}/config/templates/{$template}.yml",
+            
+            // Finally check package templates
+            __DIR__ . "/../../config/templates/{$template}.yml"
+        ];
+
+        foreach ($possiblePaths as $path) {
+            $this->info("Checking: {$path}");
+            if (file_exists($path)) {
+                $this->info("Found configuration at: {$path}");
+                return $path;
+            }
+            $this->info("Not found at: {$path}");
+        }
+
+        throw new \Exception("Configuration file not found for template: {$template}");
+    }
 }
