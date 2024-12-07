@@ -81,9 +81,10 @@ class GenerateCommand extends Command
 
         // Check locations in order of priority
         $paths = [
-            "{$rootPath}/config/bonsai/{$template}.yml",        // 1. Local project config
-            "{$rootPath}/config/templates/{$template}.yml",      // 2. Local templates
-            __DIR__ . "/../../config/templates/{$template}.yml"  // 3. Package default config
+            "{$rootPath}/config/bonsai/templates/{$template}.yml",  // 1. New templates location
+            "{$rootPath}/config/bonsai/{$template}.yml",           // 2. Legacy project config
+            "{$rootPath}/config/templates/{$template}.yml",         // 3. Legacy templates
+            __DIR__ . "/../../config/templates/{$template}.yml"     // 4. Package default config
         ];
 
         $this->info("Checking possible config paths:");

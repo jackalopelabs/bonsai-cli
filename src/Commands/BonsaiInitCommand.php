@@ -588,12 +588,17 @@ PHP;
             $this->files->makeDirectory($templatesPath, 0755, true);
         }
 
-        // Copy example config to templates directory instead
+        // Copy example config to templates directory
         $exampleConfig = __DIR__ . '/../../config/templates/bonsai.yml';
         $targetConfig = $templatesPath . '/example.yml';
 
         if (!$this->files->exists($targetConfig)) {
+            if (!$this->files->exists($exampleConfig)) {
+                $this->error("Source config not found at: {$exampleConfig}");
+                return;
+            }
             $this->files->copy($exampleConfig, $targetConfig);
+            $this->info("Created example config at: {$targetConfig}");
         }
     }
 }
