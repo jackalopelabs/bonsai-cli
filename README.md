@@ -54,13 +54,15 @@ wp acorn bonsai:component [name]
 ```
 
 Available components:
-- hero
-- faq
+- accordion
+- card
 - cta
-- card-featured
-- slideshow
+- featured-grid
+- header
+- hero
+- list-item
+- pricing-box
 - widget
-- table
 
 ### Create Sections
 
