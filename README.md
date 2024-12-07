@@ -551,3 +551,27 @@ Best practices:
 3. Check data type consistency
 4. Validate component names
 5. Ensure proper section references in layouts
+
+### Template Lookup Order
+
+When running `bonsai:generate [template]`, Bonsai looks for template files in this order:
+
+1. `/config/bonsai/templates/{template}.yml` - Local project templates
+2. `/config/bonsai/{template}.yml` - Legacy local config
+3. `/config/templates/{template}.yml` - Legacy templates
+4. Package default templates
+
+This means you can:
+- Override any package template by creating a local version
+- Keep your custom templates separate from package defaults
+- Maintain your own template library in `/config/bonsai/templates/`
+- Fall back to package templates when no local version exists
+
+Example:
+```bash
+# Use a local template
+wp acorn bonsai:generate custom
+
+# Use a package template
+wp acorn bonsai:generate cypress
+```

@@ -1,0 +1,192 @@
+name: Example Site
+description: A complete example site configuration
+version: 1.0.0
+
+components:
+  - hero
+  - header
+  - card
+  - widget
+  - pricing-box
+
+sections:
+  site_header:
+    component: header
+    data:
+      siteName: "Example Site"
+      iconComponent: "heroicon-o-sparkles"
+      navLinks: [
+        {"url": "#features", "label": "Features"},
+        {"url": "#about", "label": "About"},
+        {"url": "#pricing", "label": "Pricing"},
+        {"url": "#contact", "label": "Contact"}
+      ]
+      primaryLink: "#get-started"
+      containerClasses: "max-w-7xl mx-auto"
+      containerInnerClasses: "px-4 sm:px-6 lg:px-8"
+      headerClass: "bg-white/80 backdrop-blur-md border-b border-gray-100"
+  
+  home_hero:
+    component: hero
+    data:
+      title: "Example Site"
+      subtitle: "Built with Bonsai CLI"
+      description: "A complete starter template with all components configured and styled."
+      imagePaths: ["https://placehold.co/1200x600/png"]
+      buttonText: "Get Started"
+      buttonLink: "#features"
+      secondaryText: "Learn More"
+      secondaryLink: "#about"
+      buttonLinkIcon: true
+      secondaryIcon: true
+      iconMappings:
+        dropdownIcon: "heroicon-o-chevron-down"
+        buttonLinkIcon: "heroicon-o-arrow-right"
+        secondaryIcon: "heroicon-o-information-circle"
+  
+  features_card:
+    component: card
+    data:
+      title: "Features"
+      subtitle: "Everything you need to get started"
+      features: [
+        {
+          "icon": "heroicon-o-sparkles",
+          "title": "Easy Setup",
+          "description": "Get started in minutes with our CLI tool"
+        },
+        {
+          "icon": "heroicon-o-puzzle-piece",
+          "title": "Components",
+          "description": "Pre-built components ready to use"
+        },
+        {
+          "icon": "heroicon-o-template",
+          "title": "Templates",
+          "description": "Customizable site templates"
+        }
+      ]
+      featureItems: [
+        {
+          "icon": "heroicon-o-check-circle",
+          "title": "Quick Start",
+          "description": "Initialize your project instantly"
+        },
+        {
+          "icon": "heroicon-o-code-bracket",
+          "title": "Developer Friendly",
+          "description": "Built for WordPress developers"
+        },
+        {
+          "icon": "heroicon-o-command-line",
+          "title": "CLI Power",
+          "description": "Powerful command line tools"
+        }
+      ]
+
+  features_widget:
+    component: widget
+    data:
+      items:
+        - id: "widget-1"
+          title: "Getting Started"
+          icon: "heroicon-o-rocket-launch"
+          content: ""
+          cta:
+            title: "Quick Start Guide"
+            link: "#guide"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Start building your site:"
+          listItems:
+            - number: 1
+              itemName: "Installation"
+              text: "Install via composer in your project"
+            - number: 2
+              itemName: "Initialize"
+              text: "Run bonsai:init to setup"
+            - number: 3
+              itemName: "Generate"
+              text: "Create your site with templates"
+
+  pricing:
+    component: pricing
+    data:
+      title: "Simple Pricing"
+      subtitle: "Choose Your Plan"
+      description: "Start with our free tier or upgrade for more features"
+      pricingBoxes:
+        - icon: "heroicon-o-rocket-launch"
+          iconColor: "text-blue-500"
+          planType: "Starter"
+          price: "Free"
+          features: [
+            "Basic components",
+            "Documentation access",
+            "Community support"
+          ]
+          ctaLink: "#start-free"
+          ctaText: "Get Started"
+          ctaColor: "bg-blue-500"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-white"
+        
+        - icon: "heroicon-o-star"
+          iconColor: "text-purple-500"
+          planType: "Pro"
+          price: "$99"
+          features: [
+            "All components",
+            "Premium templates",
+            "Priority support",
+            "Early access",
+            "Custom development"
+          ]
+          ctaLink: "#buy-pro"
+          ctaText: "Upgrade"
+          ctaColor: "bg-gradient-to-r from-blue-500 to-purple-500"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-white"
+
+layouts:
+  example:
+    sections:
+      - site_header
+      - home_hero
+      - features_card
+      - features_widget
+      - pricing
+
+pages:
+  home:
+    title: "Example Site - Built with Bonsai"
+    layout: example
+    is_homepage: true
+    meta:
+      description: "A complete example site built with Bonsai CLI"
+
+wordpress:
+  menus:
+    primary_navigation:
+      location: "primary_navigation"
+      name: "Primary Navigation"
+  
+  theme_support:
+    - title-tag
+    - post-thumbnails
+    - menus
+    
+  image_sizes:
+    hero_image:
+      width: 1920
+      height: 1080
+      crop: true
+    feature_image:
+      width: 800
+      height: 600
+      crop: true
+
+assets:
+  styles:
+    - resources/styles/example.scss
+  scripts:
+    - resources/scripts/example.js 
