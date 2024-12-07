@@ -102,3 +102,4 @@ pages:
   home:
     title: "Home"
     layout: homepage
+    is_homepage: true
