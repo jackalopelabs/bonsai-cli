@@ -1,105 +1,270 @@
-name: "CoWork & Create"
-description: "A modern co-working space with dedicated podcast and live-streaming rooms."
+name: Mountain Media Hub
+description: Premium coworking and media production space in Park City, Utah
+version: 0.0.1
+
+ascii_art:
+  default: |
+    ${green}                    &
+                          && & &
+                      & &&&&&&~&&&
+                       &&  &&&&  &&
+                        &&&~|\&&&
+                         &//~\\&
+                        |/    \|
+                       /|\    /|\
+             &&       |//~    ~\\|       
+               &&    \_/        \_/  && & &
+        &&&    &&     //_/____\\_\  /&&&/_&&&
+         &&&__&&   \_\_\/~~~~\/\_/   &&&
+       & &\&  &&&&\|&  /~||~\  &|     &
+        &&& & &    /~~      ~~\
+                 ${brown}:____________./~~~\.____:
+                  \                         /
+                   \_____________________/
+                   (_)               (_)${reset}
 
 components:
   - hero
-  - cta
-  - faq
+  - header
+  - card
   - widget
-  - slideshow
+  - pricing-box
 
 sections:
+  site_header:
+    component: header
+    data:
+      siteName: "Mountain Media Hub"
+      iconComponent: "heroicon-o-microphone"
+      navLinks: [
+        {"url": "#spaces", "label": "Spaces"},
+        {"url": "#memberships", "label": "Memberships"},
+        {"url": "#amenities", "label": "Amenities"},
+        {"url": "#book", "label": "Book Now"}
+      ]
+      primaryLink: "https://book.mountainmediahub.com"
+      containerClasses: "max-w-7xl mx-auto"
+      containerInnerClasses: "px-4 sm:px-6 lg:px-8"
+      headerClass: "bg-slate-900/80 backdrop-blur-lg border border-slate-800 rounded-2xl shadow-xl shadow-indigo-500/10"
+  
   home_hero:
     component: hero
     data:
-      title: "Welcome to CoWork & Create"
-      subtitle: "Your Space to Work, Record, and Innovate"
-      description: "State-of-the-art co-working spaces, private podcast booths, and live-streaming studios."
-      imagePath: "images/hero-cowork.jpg"
-      styles:
-        background: "bg-cover bg-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700"
-        text: "text-white text-5xl font-bold"
-      primaryButton:
-        text: "Book a Tour"
-        link: "/tour"
-      secondaryButton:
-        text: "Learn More"
-        link: "/about"
+      title: "Create & Collaborate"
+      subtitle: "Park City's Premier Media Workspace"
+      description: "Professional podcast studios, livestream rooms, and collaborative workspace with breathtaking mountain views. Located in the heart of Park City."
+      imagePaths: ["https://placehold.co/1200x600/png"]
+      buttonText: "Book a Tour"
+      buttonLink: "#tour"
+      secondaryText: "View Spaces"
+      secondaryLink: "#spaces"
+      buttonLinkIcon: true
+      secondaryIcon: true
+      iconMappings:
+        dropdownIcon: "heroicon-s-chevron-down"
+        buttonLinkIcon: "heroicon-s-calendar"
+        secondaryIcon: "heroicon-s-photo"
+      containerClass: "bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900"
+      textClass: "text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 to-sky-200"
+  
+  services_card:
+    component: card
+    data:
+      title: "Professional Spaces"
+      subtitle: "Everything you need to create amazing content"
+      features: [
+        {
+          "icon": "heroicon-o-microphone",
+          "title": "Podcast Studios",
+          "description": "Professional-grade audio equipment and sound treatment",
+          "class": "bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-purple-500/20 shadow-lg shadow-purple-500/10"
+        },
+        {
+          "icon": "heroicon-o-video-camera",
+          "title": "Livestream Rooms",
+          "description": "4K cameras and high-speed fiber internet",
+          "class": "bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 shadow-lg shadow-blue-500/10"
+        },
+        {
+          "icon": "heroicon-o-computer-desktop",
+          "title": "Edit Suites",
+          "description": "Powerful workstations with industry-standard software",
+          "class": "bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 shadow-lg shadow-emerald-500/10"
+        }
+      ]
 
-  features:
+  features_widget:
     component: widget
     data:
-      widgets:
-        - title: "Private Podcast Booths"
-          description: "Soundproofed spaces equipped with professional audio equipment."
-          icon: "microphone"
-          styles:
-            container: "border rounded-lg shadow-lg"
-            text: "text-lg font-medium"
-        - title: "Live Streaming Studios"
-          description: "Stream with professional-grade cameras and lighting."
-          icon: "video-camera"
-          styles:
-            container: "border rounded-lg shadow-lg"
-            text: "text-lg font-medium"
-        - title: "Modern Workspaces"
-          description: "Collaborative and private spaces designed for productivity."
-          icon: "briefcase"
-          styles:
-            container: "border rounded-lg shadow-lg"
-            text: "text-lg font-medium"
+      items:
+        - id: "widget-1"
+          title: "Podcast Studios"
+          icon: "heroicon-o-microphone"
+          content: ""
+          cta:
+            title: "View Studio Details"
+            link: "#studios"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Professional podcast production spaces:"
+          class: "bg-gradient-to-br from-slate-900 to-purple-900/50 border border-purple-500/20"
+          listItems:
+            - number: 1
+              itemName: "Pro Equipment"
+              text: "Shure SM7B mics, RødeCaster Pro, acoustic treatment"
+            - number: 2
+              itemName: "Room for 4"
+              text: "Comfortable space for host and multiple guests"
+            - number: 3
+              itemName: "24/7 Access"
+              text: "Record whenever inspiration strikes"
 
-  faq:
-    component: faq
-    data:
-      questions:
-        - question: "Do I need to bring my own equipment?"
-          answer: "Our studios are fully equipped, but you are welcome to bring your own gear."
-        - question: "Can I book a room for multiple days?"
-          answer: "Yes! We offer flexible booking options for daily and long-term rentals."
-        - question: "Are there any membership plans?"
-          answer: "We have affordable plans for individuals and teams."
-      styles:
-        container: "bg-gray-100 p-6 rounded-lg shadow-md"
-        text: "text-gray-800"
+        - id: "widget-2"
+          title: "Livestream Rooms"
+          icon: "heroicon-o-video-camera"
+          content: ""
+          cta:
+            title: "View Stream Setup"
+            link: "#streaming"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Professional streaming facilities:"
+          class: "bg-gradient-to-br from-slate-900 to-blue-900/50 border border-blue-500/20"
+          listItems:
+            - number: 1
+              itemName: "4K Cameras"
+              text: "Sony A7III cameras with premium lenses"
+            - number: 2
+              itemName: "Stream Deck"
+              text: "Easy scene switching and effects control"
+            - number: 3
+              itemName: "Green Screen"
+              text: "Professional backdrop and lighting kit"
 
-  cta_booking:
-    component: cta
-    data:
-      title: "Ready to Create?"
-      subtitle: "Book your space today and turn your ideas into reality."
-      buttonPrimary:
-        text: "Reserve Now"
-        link: "/book"
-      styles:
-        background: "bg-blue-600"
-        text: "text-white text-center font-bold"
+        - id: "widget-3"
+          title: "Edit Suites"
+          icon: "heroicon-o-computer-desktop"
+          content: ""
+          cta:
+            title: "View Workstations"
+            link: "#editing"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Professional editing stations:"
+          class: "bg-gradient-to-br from-slate-900 to-emerald-900/50 border border-emerald-500/20"
+          listItems:
+            - number: 1
+              itemName: "Pro Hardware"
+              text: "Mac Pro workstations with dual displays"
+            - number: 2
+              itemName: "Software Suite"
+              text: "Full Adobe CC, Final Cut Pro, DaVinci Resolve"
+            - number: 3
+              itemName: "Storage"
+              text: "High-speed NAS with project backup"
 
-  testimonials:
-    component: slideshow
+  pricing:
+    component: pricing
     data:
-      slides:
-        - content: "The podcast booths are amazing—professional quality and great atmosphere!"
-          author: "Alex D."
-          image: "images/testimonial-alex.jpg"
-        - content: "I love the community here. It's inspiring to work alongside other creators."
-          author: "Jamie L."
-          image: "images/testimonial-jamie.jpg"
-      styles:
-        container: "bg-gray-50 p-8 rounded-md shadow-lg"
-        text: "text-gray-800 text-lg"
+      title: "Membership Options"
+      subtitle: "Choose Your Creative Space"
+      description: "Flexible memberships for creators of all types. All plans include high-speed internet, coffee bar, and mountain views."
+      containerClass: "bg-gradient-to-br from-slate-900 via-indigo-900/50 to-slate-900"
+      pricingBoxes:
+        - icon: "heroicon-o-user"
+          iconColor: "text-sky-400"
+          planType: "Creator"
+          price: "$299"
+          features:
+            - "24/7 coworking access"
+            - "2 hrs/month studio time"
+            - "Basic equipment access"
+            - "Community events"
+            - "Coffee bar access"
+          ctaLink: "#join-creator"
+          ctaText: "Start Creating"
+          ctaColor: "bg-gradient-to-r from-sky-400 to-blue-500"
+          class: "border border-sky-500/20 bg-gradient-to-br from-slate-900 to-sky-900/20"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-white"
+        
+        - icon: "heroicon-o-user-group"
+          iconColor: "text-purple-400"
+          planType: "Producer"
+          price: "$599"
+          features:
+            - "All Creator features"
+            - "10 hrs/month studio time"
+            - "Pro equipment access"
+            - "Edit suite access"
+            - "Storage locker"
+            - "Guest passes"
+          ctaLink: "#join-producer"
+          ctaText: "Start Producing"
+          ctaColor: "bg-gradient-to-r from-purple-400 to-indigo-500"
+          class: "border border-purple-500/20 bg-gradient-to-br from-slate-900 to-purple-900/20"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-white"
+        
+        - icon: "heroicon-o-building-office-2"
+          iconColor: "text-emerald-400"
+          planType: "Studio"
+          price: "$1499"
+          features:
+            - "All Producer features"
+            - "Dedicated studio space"
+            - "Unlimited hours"
+            - "Equipment storage"
+            - "Private office"
+            - "Client amenities"
+            - "Priority support"
+          ctaLink: "#join-studio"
+          ctaText: "Get Started"
+          ctaColor: "bg-gradient-to-r from-emerald-400 to-teal-500"
+          class: "border border-emerald-500/20 bg-gradient-to-br from-slate-900 to-emerald-900/20"
+          iconBtn: "heroicon-o-arrow-right"
+          iconBtnColor: "text-white"
 
 layouts:
-  homepage:
+  mountain_media:
     sections:
+      - site_header
       - home_hero
-      - features
-      - testimonials
-      - faq
-      - cta_booking
+      - services_card
+      - features_widget
+      - pricing
 
 pages:
   home:
-    title: "Home"
-    layout: homepage
+    title: "Mountain Media Hub - Park City's Premier Creative Workspace"
+    layout: mountain_media
     is_homepage: true
+    meta:
+      description: "Professional podcast studios, livestream rooms, and creative workspace in Park City, Utah. Book your space today."
+
+wordpress:
+  menus:
+    primary_navigation:
+      location: "primary_navigation"
+      name: "Primary Navigation"
+    footer_navigation:
+      location: "footer_navigation"
+      name: "Footer Navigation"
+  
+  theme_support:
+    - title-tag
+    - post-thumbnails
+    - menus
+    
+  image_sizes:
+    hero_image:
+      width: 1920
+      height: 1080
+      crop: true
+    space_image:
+      width: 800
+      height: 600
+      crop: true
+
+assets:
+  styles:
+    - resources/styles/mountain-media.scss
+  scripts:
+    - resources/scripts/mountain-media.js
