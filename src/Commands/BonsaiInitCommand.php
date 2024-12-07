@@ -179,46 +179,6 @@ MD;
         }
     }
 
-    protected function getExampleConfig()
-    {
-        return <<<YAML
-name: My Bonsai Site
-description: Custom site configuration
-version: 1.0.0
-
-components:
-  - hero
-  - faq
-  - slideshow
-
-sections:
-  home_hero:
-    component: hero
-    data:
-      title: "Welcome to My Site"
-      subtitle: "Built with Bonsai"
-      description: "A modern WordPress site"
-      imagePath: "images/hero.jpg"
-      l1: "Feature One"
-      l2: "Feature Two"
-      l3: "Feature Three"
-      l4: "Feature Four"
-      primaryText: "Get Started"
-      primaryLink: "#contact"
-      secondaryText: "Learn More"
-
-layouts:
-  main:
-    sections:
-      - home_hero
-
-pages:
-  home:
-    title: "Home"
-    layout: main
-YAML;
-    }
-
     protected function installComponents($useDefault = false)
     {
         $this->info('Installing components...');
@@ -578,7 +538,7 @@ PHP;
     protected function createConfigDirectory()
     {
         $configPath = $this->laravel->basePath('config/bonsai');
-        $templatesPath = $configPath . '/templates';  // Add templates subdirectory
+        $templatesPath = $configPath . '/templates';
 
         if (!$this->files->exists($configPath)) {
             $this->files->makeDirectory($configPath, 0755, true);
@@ -588,8 +548,8 @@ PHP;
             $this->files->makeDirectory($templatesPath, 0755, true);
         }
 
-        // Copy example config to templates directory
-        $exampleConfig = __DIR__ . '/../../config/templates/bonsai.yml';
+        // Copy example config from package templates
+        $exampleConfig = __DIR__ . '/../../config/templates/example.yml';
         $targetConfig = $templatesPath . '/example.yml';
 
         if (!$this->files->exists($targetConfig)) {

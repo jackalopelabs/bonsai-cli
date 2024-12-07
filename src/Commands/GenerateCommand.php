@@ -267,54 +267,53 @@ BLADE;
     {
         $this->info('Generating sections...');
         
-        // Get theme settings
-        $template = $this->argument('template');
-        $configPath = $this->option('config') ?? $this->getConfigPath($template);
-        $config = $this->loadConfig($configPath);
-        $themeSettings = $config['theme'] ?? [];
-        
-        putenv("BONSAI_TEMPLATE={$template}");
-        
         foreach ($sections as $section => $config) {
             try {
                 $this->info("Creating section: {$section}");
                 $componentType = $config['component'] ?? $section;
                 
-                // If this is the header component, inject theme settings
-                if ($componentType === 'header' && isset($themeSettings['header']['class'])) {
-                    $config['data']['headerClass'] = $themeSettings['header']['class'];
+                // Create the section file
+                $sectionPath = resource_path("views/bonsai/sections/{$section}.blade.php");
+                
+                // Ensure the sections directory exists
+                if (!$this->files->exists(dirname($sectionPath))) {
+                    $this->files->makeDirectory(dirname($sectionPath), 0755, true);
                 }
                 
-                // Pass data directly to section command
-                if (isset($config['data'])) {
-                    foreach ($config['data'] as $key => $value) {
-                        if (is_array($value)) {
-                            putenv("BONSAI_DATA_{$key}=" . json_encode($value));
-                        } else {
-                            putenv("BONSAI_DATA_{$key}={$value}");
-                        }
-                    }
-                }
-
-                $this->call('bonsai:section', [
-                    'name' => $section,
-                    '--component' => $componentType,
-                    '--default' => true
-                ]);
+                // Generate the section content with the config data directly
+                $sectionContent = $this->generateSectionContent($section, $componentType, $config['data'] ?? []);
                 
-                // Clear environment variables
-                if (isset($config['data'])) {
-                    foreach ($config['data'] as $key => $value) {
-                        putenv("BONSAI_DATA_{$key}");
-                    }
-                }
+                $this->files->put($sectionPath, $sectionContent);
+                $this->info("✓ Section created successfully: {$sectionPath}");
                 
             } catch (\Exception $e) {
                 $this->error("Failed to generate section '{$section}': " . $e->getMessage());
             }
         }
+    }
+
+    protected function generateSectionContent($section, $componentType, $data)
+    {
+        // Convert the data array to a PHP array string
+        $dataString = var_export($data, true);
         
-        putenv("BONSAI_TEMPLATE");
+        return <<<BLADE
+@props([
+    'class' => ''
+])
+
+@php
+\${$section}Data = {$dataString};
+@endphp
+
+<div class="{{ \$class }}">
+    <x-{$componentType}
+        @foreach(\${$section}Data as \$key => \$value)
+        :{{\$key}}="\${$section}Data['{{\$key}}']"
+        @endforeach
+    />
+</div>
+BLADE;
     }
 
     protected function generateLayouts($layouts)
