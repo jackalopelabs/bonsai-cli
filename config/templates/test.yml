@@ -49,7 +49,7 @@ sections:
       title: "Advanced Wound Care"
       subtitle: "Powered by Hydrofera Blue Technology"
       description: "Clinically proven antimicrobial dressings that promote healing and prevent infection in chronic and acute wounds."
-      imagePaths: "https://placehold.co/1200x600/png"
+      imagePaths: ["https://placehold.co/1200x600/png"]
       buttonText: "View Products"
       buttonLink: "#products"
       secondaryText: "Clinical Studies"

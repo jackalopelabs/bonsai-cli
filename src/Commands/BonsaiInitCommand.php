@@ -574,4 +574,26 @@ PHP;
             throw $e;
         }
     }
+
+    protected function createConfigDirectory()
+    {
+        $configPath = $this->laravel->basePath('config/bonsai');
+        $templatesPath = $configPath . '/templates';  // Add templates subdirectory
+
+        if (!File::exists($configPath)) {
+            File::makeDirectory($configPath, 0755, true);
+        }
+
+        if (!File::exists($templatesPath)) {
+            File::makeDirectory($templatesPath, 0755, true);
+        }
+
+        // Copy example config to templates directory instead
+        $exampleConfig = __DIR__ . '/../../config/templates/bonsai.yml';
+        $targetConfig = $templatesPath . '/example.yml';
+
+        if (!File::exists($targetConfig)) {
+            File::copy($exampleConfig, $targetConfig);
+        }
+    }
 }
