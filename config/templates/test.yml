@@ -92,6 +92,38 @@ sections:
           "class": "bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 shadow-lg shadow-emerald-500/10"
         }
       ]
+      featureItems: [
+        {
+          "icon": "heroicon-o-wifi",
+          "title": "High-Speed Internet",
+          "description": "1Gb fiber connection with dedicated bandwidth"
+        },
+        {
+          "icon": "heroicon-o-key",
+          "title": "24/7 Access",
+          "description": "Secure keycard entry for members"
+        },
+        {
+          "icon": "heroicon-o-coffee",
+          "title": "Coffee Bar",
+          "description": "Complimentary craft coffee and snacks"
+        },
+        {
+          "icon": "heroicon-o-video-camera",
+          "title": "Meeting Rooms",
+          "description": "Private spaces for client meetings"
+        },
+        {
+          "icon": "heroicon-o-user-group",
+          "title": "Community Events",
+          "description": "Regular networking and learning sessions"
+        },
+        {
+          "icon": "heroicon-o-map",
+          "title": "Prime Location",
+          "description": "Located in downtown Park City"
+        }
+      ]
 
   features_widget:
     component: widget
