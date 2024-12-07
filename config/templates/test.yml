@@ -44,7 +44,7 @@ sections:
       iconMappings:
         buttonLinkIcon: heroicon-s-information-circle
         dropdownIcon: heroicon-s-chevron-down
-        secondaryIcon: heroicon-s-mail
+        secondaryIcon: heroicon-s-envelope
       imagePaths:
       - https://placehold.co/600x400/png
       secondaryIcon: true
