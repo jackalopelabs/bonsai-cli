@@ -361,3 +361,156 @@ command:          The Bonsai command to execute (e.g., acorn bonsai:init)
 - Run the script from your project root directory
 - Make sure the script is executable (`chmod +x scripts/bonsai.sh`)
 - Asset rebuilding only occurs in development and only for Bonsai commands
+
+## Configuration Guide
+
+### Understanding YAML Templates
+
+Bonsai uses YAML configuration files to define components, layouts, and pages. Here's a comprehensive guide on creating and modifying these templates.
+
+### Core Structure
+
+Every Bonsai template requires these top-level keys:
+
+```yaml
+name: "Your Project Name"
+description: "Project description"
+version: "0.0.1"
+components: []
+sections: {}
+layouts: {}
+pages: {}
+wordpress: {}
+assets: {}
+```
+
+### Available Components
+
+Bonsai includes these standard components:
+- hero
+- header
+- card
+- widget
+- pricing-box
+
+### Component Data Structures
+
+#### Header Component
+```yaml
+site_header:
+  component: header
+  data:
+    siteName: string
+    iconComponent: string # heroicon format
+    navLinks: 
+      - url: string
+        label: string
+    primaryLink: string
+    containerClasses: string
+    containerInnerClasses: string
+```
+
+#### Hero Component
+```yaml
+home_hero:
+  component: hero
+  data:
+    title: string
+    subtitle: string
+    description: string
+    imagePaths: string # Single path, not array
+    buttonText: string
+    buttonLink: string
+    secondaryText: string
+    secondaryLink: string
+    buttonLinkIcon: boolean
+    secondaryIcon: boolean
+    iconMappings:
+      dropdownIcon: string
+      buttonLinkIcon: string
+      secondaryIcon: string
+```
+
+#### Card Component
+```yaml
+services_card:
+  component: card
+  data:
+    title: string
+    subtitle: string
+    features:
+      - icon: string
+        title: string
+        description: string
+    featureItems:
+      - icon: string
+        title: string
+        description: string
+```
+
+#### Widget Component
+```yaml
+features_widget:
+  component: widget
+  data:
+    items:
+      - id: string
+        title: string
+        icon: string
+        content: string
+        cta:
+          title: string
+          link: string
+          imagePath: string # Single path, not array
+        description: string
+        listItems:
+          - number: integer
+            itemName: string
+            text: string
+```
+
+#### Pricing Component
+```yaml
+pricing:
+  component: pricing
+  data:
+    title: string
+    subtitle: string
+    description: string
+    pricingBoxes:
+      - icon: string
+        iconColor: string
+        planType: string
+        price: string
+        features: string[]
+        ctaLink: string
+        ctaText: string
+        ctaColor: string
+        iconBtn: string
+        iconBtnColor: string
+```
+
+### Common Pitfalls
+
+1. Image paths must be strings, not arrays
+2. Component names must match exactly
+3. All required fields must be present
+4. Maintain proper YAML indentation
+5. Use consistent data types
+
+### Best Practices
+
+1. Study working examples (bonsai.yml, cypress.yml)
+2. Keep consistent formatting
+3. Use descriptive names
+4. Include all required sections
+5. Test component compatibility
+6. Maintain proper nesting levels
+
+### Testing Your Configuration
+
+1. Compare against working templates
+2. Verify all required fields
+3. Check data type consistency
+4. Validate component names
+5. Ensure proper section references in layouts
