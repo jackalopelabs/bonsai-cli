@@ -102,7 +102,7 @@ sections:
           cta:
             title: "Medical Plans"
             link: "#medical-plans"
-            imagePath: ["https://placehold.co/600x400/png"]
+            imagePath: "https://placehold.co/600x400/png"
           description: "Comprehensive medical coverage including:"
           listItems:
             - number: 1
@@ -122,7 +122,7 @@ sections:
           cta:
             title: "Dental Plans"
             link: "#dental-plans"
-            imagePath: ["https://placehold.co/600x400/png"]
+            imagePath: "https://placehold.co/600x400/png"
           description: "Complete dental care coverage:"
           listItems:
             - number: 1
@@ -142,7 +142,7 @@ sections:
           cta:
             title: "Vision Plans"
             link: "#vision-plans"
-            imagePath: ["https://placehold.co/600x400/png"]
+            imagePath: "https://placehold.co/600x400/png"
           description: "Comprehensive vision benefits:"
           listItems:
             - number: 1
