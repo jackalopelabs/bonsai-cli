@@ -5,7 +5,7 @@ components:
   - hero
   - cta
   - faq
-  - card-featured
+  - widget
   - slideshow
 
 sections:
@@ -27,26 +27,26 @@ sections:
         link: "/about"
 
   features:
-    component: card-featured
+    component: widget
     data:
-      cards:
+      widgets:
         - title: "Private Podcast Booths"
           description: "Soundproofed spaces equipped with professional audio equipment."
-          image: "images/features-podcast.jpg"
+          icon: "microphone"
           styles:
-            card: "border rounded-lg shadow-lg"
+            container: "border rounded-lg shadow-lg"
             text: "text-lg font-medium"
         - title: "Live Streaming Studios"
           description: "Stream with professional-grade cameras and lighting."
-          image: "images/features-streaming.jpg"
+          icon: "video-camera"
           styles:
-            card: "border rounded-lg shadow-lg"
+            container: "border rounded-lg shadow-lg"
             text: "text-lg font-medium"
         - title: "Modern Workspaces"
           description: "Collaborative and private spaces designed for productivity."
-          image: "images/features-workspace.jpg"
+          icon: "briefcase"
           styles:
-            card: "border rounded-lg shadow-lg"
+            container: "border rounded-lg shadow-lg"
             text: "text-lg font-medium"
 
   faq:
