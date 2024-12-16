@@ -9,6 +9,9 @@ Install via Composer:
 ```bash
 composer require jackalopelabs/bonsai-cli
 ```
+Note: This package requires the Roots Stack (Sage, Bedrock, or Radicle) to be installed.
+
+Also note: Not published to Packagist yet. Add this Github repository to Composer for now until beta release.
 
 ## Features
 
