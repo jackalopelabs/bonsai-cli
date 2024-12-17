@@ -4,14 +4,17 @@ A WordPress CLI tool for generating and managing reusable components, sections, 
 
 ## Installation
 
+Until beta release, install via Github w/ Composer (after that, it will be published to Packagist):
+
+```composer config repositories.bonsai-cli vcs git@github.com:jackalopelabs/bonsai-cli.git
+```
+
 Install via Composer:
 
 ```bash
 composer require jackalopelabs/bonsai-cli
 ```
 Note: This package requires the Roots Stack (Sage, Bedrock, or Radicle) to be installed.
-
-Also note: Not published to Packagist yet. Add this Github repository to Composer for now until beta release.
 
 ## Features
 
