@@ -30,6 +30,8 @@ Note: This package requires the Roots Stack (Sage, Bedrock, or Radicle) to be in
 
 ### Initialize Project
 
+Note: If you get 
+
 ```bash
 wp acorn bonsai:init
 ```
@@ -40,6 +42,10 @@ This sets up your project with:
 - Default layouts
 - Components page
 - Local configuration directory
+
+If you get ERROR  There are no commands defined in the "bonsai" namespace.
+
+Run: `wp @development acorn optimize:clear`
 
 ### Generate Site Template
 
