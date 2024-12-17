@@ -12,7 +12,7 @@ Until beta release, install via Github w/ Composer (after that, it will be publi
 Install via Composer:
 
 ```bash
-composer require jackalopelabs/bonsai-cli
+composer require jackalopelabs/bonsai-cli:dev-main
 ```
 Note: This package requires the Roots Stack (Sage, Bedrock, or Radicle) to be installed.
 
