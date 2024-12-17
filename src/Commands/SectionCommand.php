@@ -48,23 +48,45 @@ class SectionCommand extends Command
 
     protected function getComponentSchema($componentName)
     {
-        // Get the template name from the environment
         $template = getenv('BONSAI_TEMPLATE') ?: 'bonsai';
-        
-        // Get the template configuration
-        $configPath = base_path("config/templates/{$template}.yml");
-        if (!file_exists($configPath)) {
-            $configPath = __DIR__ . "/../../config/templates/{$template}.yml";
+    
+        // New search order for template config
+        $possiblePaths = [
+            base_path("config/bonsai/templates/{$template}.yml"),    // Local new templates directory
+            base_path("config/bonsai/{$template}.yml"),             // Legacy project config
+            base_path("config/templates/{$template}.yml"),          // Legacy templates
+            __DIR__ . "/../../config/templates/{$template}.yml"     // Package default templates
+        ];
+    
+        $configPath = null;
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $configPath = $path;
+                break;
+            }
         }
-
+    
+        if (!$configPath) {
+            // No config found, fallback to basic schema
+            return [
+                'title' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter title',
+                    'default' => 'Default Title'
+                ],
+                'description' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter description',
+                    'default' => 'Default description'
+                ]
+            ];
+        }
+    
         try {
             $config = Yaml::parseFile($configPath);
-            
-            // Get the section configuration from the template
             $sections = $config['sections'] ?? [];
             foreach ($sections as $sectionName => $sectionConfig) {
-                if ($sectionConfig['component'] === $componentName) {
-                    // Convert section data into schema format
+                if (isset($sectionConfig['component']) && $sectionConfig['component'] === $componentName) {
                     $schema = [];
                     foreach ($sectionConfig['data'] as $key => $value) {
                         $schema[$key] = [
@@ -79,8 +101,8 @@ class SectionCommand extends Command
         } catch (\Exception $e) {
             $this->error("Error loading template configuration: " . $e->getMessage());
         }
-
-        // Fallback to basic schema if no template config found
+    
+        // If we reach here, no matching section was found in config
         return [
             'title' => [
                 'type' => 'string',
@@ -93,7 +115,7 @@ class SectionCommand extends Command
                 'default' => 'Default description'
             ]
         ];
-    }
+    }    
 
 
     protected function promptForData($schema)
