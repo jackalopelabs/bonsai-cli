@@ -6,7 +6,8 @@ A WordPress CLI tool for generating and managing reusable components, sections, 
 
 Until beta release, install via Github w/ Composer (after that, it will be published to Packagist):
 
-```composer config repositories.bonsai-cli vcs git@github.com:jackalopelabs/bonsai-cli.git
+```bash
+composer config repositories.bonsai-cli vcs git@github.com:jackalopelabs/bonsai-cli.git
 ```
 
 Install via Composer:
