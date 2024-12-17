@@ -10,32 +10,42 @@ class BonsaiComponentServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        // Register the Bonsai component namespace
-        $this->app->afterResolving(BladeCompiler::class, function (BladeCompiler $blade) {
-            $blade->componentNamespace('App\\View\\Components\\Bonsai', 'bonsai');
-        });
+        // No need for this since we're handling it in boot()
     }
 
     public function boot()
     {
         try {
-            $componentsPath = resource_path('views/bonsai/components');
+            $componentsPath = \Roots\resource_path('views/bonsai/components');
+            error_log('Registering Bonsai components from: ' . $componentsPath);
             
             if (is_dir($componentsPath)) {
-                // Register base component namespace
-                Blade::componentNamespace('App\\View\\Components\\Bonsai', 'bonsai');
+                // Register anonymous components namespace
+                Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
                 
                 // Auto-discover and register components
                 $files = glob($componentsPath . '/*.blade.php');
                 foreach ($files as $file) {
                     $componentName = basename($file, '.blade.php');
-                    Blade::component("bonsai.components.{$componentName}", "bonsai-{$componentName}");
+                    error_log("Found component: {$componentName}");
                 }
                 
-                \Log::info('Successfully registered Bonsai components');
+                // Also check for nested components (like icons)
+                $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
+                foreach ($nestedDirs as $dir) {
+                    $dirName = basename($dir);
+                    $nestedFiles = glob($dir . '/*.blade.php');
+                    foreach ($nestedFiles as $file) {
+                        $componentName = $dirName . '.' . basename($file, '.blade.php');
+                        error_log("Found nested component: {$componentName}");
+                    }
+                }
+                
+                error_log('Successfully registered Bonsai components');
             }
         } catch (\Exception $e) {
-            \Log::error("Error registering components: " . $e->getMessage());
+            error_log("Error registering components: " . $e->getMessage());
+            error_log($e->getTraceAsString());
         }
     }
 } 
