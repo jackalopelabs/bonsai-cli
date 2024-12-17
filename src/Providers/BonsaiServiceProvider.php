@@ -9,6 +9,9 @@ class BonsaiServiceProvider extends ServiceProvider
 {
     public function register()
     {   
+        // Add debug logging
+        error_log('BonsaiServiceProvider register() method called');
+        
         // Register commands
         $this->commands([
             \Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand::class,
@@ -90,20 +93,33 @@ class BonsaiServiceProvider extends ServiceProvider
     protected function registerBladeComponents()
     {
         try {
-            // Register anonymous components
-            Blade::component('bonsai.components.header', 'header');
-            Blade::component('bonsai.components.hero', 'hero');
-            Blade::component('bonsai.components.card', 'card');
-            Blade::component('bonsai.components.widget', 'widget');
-            Blade::component('bonsai.components.accordion', 'accordion');
-            Blade::component('bonsai.components.cta', 'cta');
-            Blade::component('bonsai.components.list-item', 'list-item');
-            Blade::component('bonsai.components.pricing-box', 'pricing-box');
+            // Register base namespace for all components
+            Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
             
-            // Register icon components
-            Blade::component('bonsai.components.icons.flowchart', 'icon-flowchart');
+            // Auto-discover and register components
+            $componentsPath = resource_path('views/bonsai/components');
+            if (is_dir($componentsPath)) {
+                $files = glob($componentsPath . '/*.blade.php');
+                foreach ($files as $file) {
+                    $componentName = basename($file, '.blade.php');
+                    Blade::component("bonsai.components.{$componentName}", "bonsai::{$componentName}");
+                }
+                
+                // Register nested components (like icons)
+                $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
+                foreach ($nestedDirs as $dir) {
+                    $dirName = basename($dir);
+                    $nestedFiles = glob($dir . '/*.blade.php');
+                    foreach ($nestedFiles as $file) {
+                        $componentName = $dirName . '.' . basename($file, '.blade.php');
+                        Blade::component("bonsai.components.{$componentName}", "bonsai::{$componentName}");
+                    }
+                }
+            }
+            
+            \Log::info('Successfully registered Bonsai components');
         } catch (\Exception $e) {
-            \Log::error("Failed to register components: " . $e->getMessage());
+            \Log::error("Failed to register Bonsai components: " . $e->getMessage());
         }
     }
 }

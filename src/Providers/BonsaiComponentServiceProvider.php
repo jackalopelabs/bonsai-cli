@@ -22,12 +22,15 @@ class BonsaiComponentServiceProvider extends ServiceProvider
             $componentsPath = resource_path('views/bonsai/components');
             
             if (is_dir($componentsPath)) {
-                // Register both namespaced and aliased components
+                // Register base component namespace
                 Blade::componentNamespace('App\\View\\Components\\Bonsai', 'bonsai');
                 
-                // Register components
-                Blade::component('bonsai.components.hero', 'bonsai-hero');
-                Blade::component('bonsai.components.header', 'bonsai-header');
+                // Auto-discover and register components
+                $files = glob($componentsPath . '/*.blade.php');
+                foreach ($files as $file) {
+                    $componentName = basename($file, '.blade.php');
+                    Blade::component("bonsai.components.{$componentName}", "bonsai-{$componentName}");
+                }
                 
                 \Log::info('Successfully registered Bonsai components');
             }

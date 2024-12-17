@@ -263,7 +263,7 @@ BLADE;
         <div class="mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-center items-start space-y-8 md:space-y-0 md:space-x-8">
                 @foreach (\${$dataVarName}['pricingBoxes'] as \$box)
-                    <x-pricing-box 
+                    <x-bonsai::pricing-box 
                         :icon="\$box['icon']"
                         :iconColor="\$box['iconColor']"
                         :planType="\$box['planType']"
@@ -282,10 +282,9 @@ BLADE;
 
 BLADE;
         } else {
-            // Default component rendering
+            // Default component rendering with new namespace
             $template .= <<<BLADE
-    <x-{$componentName}
-
+    <x-bonsai::{$componentName}
 BLADE;
             // Add props
             foreach ($data as $key => $value) {
@@ -457,7 +456,7 @@ BLADE;
 @endphp
 
 <div class="{{ \$class }}">
-    <x-bonsai-header
+    <x-bonsai::header
         :siteName="\$headerData['siteName']"
         :iconComponent="\$headerData['iconComponent']"
         :navLinks="\$headerData['navLinks']"

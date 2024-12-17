@@ -110,15 +110,23 @@ class LayoutCommand extends Command
                 {{ __('Skip to content', 'radicle') }}
             </a>
 
-            @include('bonsai.sections.header')
+            @includeIf('bonsai.sections.header')
 
-            <main id="main" class="max-w-5xl mx-auto">
+            <main id="main" class="main-content">
+                @hasSection('header')
+                    @yield('header')
+                @endif
+
                 <div class="{{ \$containerInnerClasses }}">
                     @yield('content')
                 </div>
+
+                @hasSection('footer')
+                    @yield('footer')
+                @endif
             </main>
 
-            @includeIf('sections.footer')
+            @includeIf('bonsai.sections.footer')
         </div>
 
         @php(do_action('get_footer'))

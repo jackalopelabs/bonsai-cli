@@ -43,7 +43,7 @@
                 <div class="bg-white bg-opacity-50 px-3 py-1 text-sm inline-block">
                     {{ $product }} 
                     @if($dropdownIcon)
-                        <x-dynamic-component :component="$iconMappings['dropdownIcon']" class="w-4 h-4 ml-2 inline-block align-middle" />
+                        <x-bonsai::icons.chevron-down class="w-4 h-4 ml-2 inline-block align-middle" />
                     @endif
                 </div>
             @endif
