@@ -259,7 +259,6 @@ BLADE;
                     $this->files->makeDirectory(dirname($sectionPath), 0755, true);
                 }
 
-                // Use single :data prop approach here
                 $sectionContent = $this->generateSectionContent($section, $componentType, $config['data'] ?? []);
 
                 $this->files->put($sectionPath, $sectionContent);
@@ -273,16 +272,7 @@ BLADE;
 
     protected function generateSectionContent($section, $componentType, $data)
     {
-        $dataVarName = Str::camel($section) . 'Data';
-
-        // Map section names to component names
-        $componentMap = [
-            'pricing' => 'pricing-box',
-            // Add other mappings as needed
-        ];
-
-        // Use mapped component name if it exists, otherwise use the original
-        $componentName = $componentMap[$componentType] ?? $componentType;
+        $dataVarName = "{$section}Data";
 
         $dataLines = [];
         foreach ($data as $key => $value) {
@@ -304,11 +294,78 @@ BLADE;
 BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
-        $template .= "<div class=\"{{ \$class }}\">\n";
-        $template .= "    <x-bonsai::{$componentName} :data=\"\${$dataVarName}\" />\n";
-        $template .= "</div>\n";
+
+        // Special case for pricing component:
+        if ($componentType === 'pricing' && !empty($data['pricingBoxes']) && is_array($data['pricingBoxes'])) {
+            $template .= <<<BLADE
+<div class="{{ \$class }}">
+    <section class="py-24" id="plans">
+        <div class="py-12">
+            <div class="mx-auto px-4 text-center">
+                <div class="inline-flex items-center gap-2 rounded-md bg-white text-sm px-3 py-1 text-center mb-4">
+                    <x-heroicon-s-calendar-days class="h-6 w-6" />
+                    <span class="text-gray-400">{{ \${$dataVarName}['subtitle'] ?? '' }}</span>
+                </div>
+                <h2 class="text-5xl font-bold text-gray-900 mb-4 pt-4">{{ \${$dataVarName}['title'] ?? '' }}</h2>
+                <p class="text-gray-500 mb-8">{{ \${$dataVarName}['description'] ?? '' }}</p>
+            </div>
+        </div>
+
+        <div class="mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-center items-start space-y-8 md:space-y-0 md:space-x-8">
+                @foreach (\${$dataVarName}['pricingBoxes'] as \$box)
+                    <x-pricing-box 
+                        :icon="\$box['icon']"
+                        :iconColor="\$box['iconColor']"
+                        :planType="\$box['planType']"
+                        :price="\$box['price']"
+                        :features="\$box['features']"
+                        :ctaLink="\$box['ctaLink']"
+                        :ctaText="\$box['ctaText']"
+                        :ctaColor="\$box['ctaColor']"
+                        :iconBtn="\$box['iconBtn']"
+                        :iconBtnColor="\$box['iconBtnColor']"
+                    />
+                @endforeach
+            </div>
+        </div>
+    </section>
+</div>
+BLADE;
+
+        } else {
+            // Default: single :data for other components
+            $template .= <<<BLADE
+<div class="{{ \$class }}">
+    <x-{$componentType} :data="\${$dataVarName}" />
+</div>
+BLADE;
+        }
 
         return $template;
+    }
+
+    protected function arrayToPhpString($array, $depth = 0)
+    {
+        $indent = str_repeat('    ', $depth);
+        $output = "[\n";
+
+        foreach ($array as $key => $value) {
+            $output .= $indent . "    ";
+            if (is_string($key)) {
+                $output .= "'{$key}' => ";
+            }
+
+            if (is_array($value)) {
+                $output .= $this->arrayToPhpString($value, $depth + 1);
+            } else {
+                $output .= "'" . addslashes($value) . "'";
+            }
+            $output .= ",\n";
+        }
+
+        $output .= $indent . "]";
+        return $output;
     }
 
     protected function generateLayouts($layouts)
@@ -681,36 +738,5 @@ BLADE;
     protected function importSqlFile($file)
     {
         // Implement if needed
-    }
-
-    protected function arrayToPhpString($array, $depth = 0)
-    {
-        $indent = str_repeat('    ', $depth);
-        $output = "[\n";
-        
-        foreach ($array as $key => $value) {
-            $output .= $indent . "    ";
-            
-            if (is_string($key)) {
-                $output .= "'" . addslashes($key) . "' => ";
-            }
-            
-            if (is_array($value)) {
-                $output .= $this->arrayToPhpString($value, $depth + 1);
-            } elseif (is_bool($value)) {
-                $output .= $value ? 'true' : 'false';
-            } elseif (is_null($value)) {
-                $output .= 'null';
-            } elseif (is_int($value) || is_float($value)) {
-                $output .= $value;
-            } else {
-                $output .= "'" . addslashes($value) . "'";
-            }
-            
-            $output .= ",\n";
-        }
-        
-        $output .= $indent . "]";
-        return $output;
     }
 }
