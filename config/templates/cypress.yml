@@ -1,7 +1,13 @@
-name: Bonsai Cypress
-description: Premium WordPress theme with no-code editing capabilities
+name: Cypress
+description: Agency-focused WordPress theme optimized for landing pages with no-code editing capabilities
 version: 0.0.1
 
+# Add theme settings at the top level
+theme:
+  body:
+    class: 'bg-white'
+
+# ASCII art configuration section
 ascii_art:
   default: |
     ${green}                    &
@@ -43,19 +49,20 @@ sections:
         {"url": "#docs", "label": "Documentation"}
       ]
       primaryLink: "https://cypress.bonsai-cli.com"
-      containerClasses: "max-w-7xl mx-auto"
-      containerInnerClasses: "px-4 sm:px-6 lg:px-8"
-  
+      containerClasses: "max-w-5xl mx-auto"
+      containerInnerClasses: "px-6"
+      headerClass: "bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4"
+
   home_hero:
     component: hero
     data:
-      title: "The Future of WordPress Development"
-      subtitle: "No-Code Meets Developer Freedom"
-      description: "Experience the perfect blend of visual editing and developer control with Cypress - the premium WordPress theme powered by Bonsai CLI"
+      title: "Elevate Your Agency's Web Presence"
+      subtitle: "Sleek Design Meets Powerful Functionality"
+      description: "Cypress offers a streamlined approach to creating stunning landing pages with the flexibility of no-code editing and developer-friendly tools."
       imagePaths: ["https://placehold.co/600x400/png"]
-      buttonText: "Start Building"
+      buttonText: "Get Started"
       buttonLink: "#pricing"
-      secondaryText: "Watch Demo"
+      secondaryText: "View Demo"
       secondaryLink: "#demo"
       buttonLinkIcon: true
       secondaryIcon: true
@@ -63,110 +70,156 @@ sections:
         dropdownIcon: "heroicon-s-chevron-down"
         buttonLinkIcon: "heroicon-s-sparkles"
         secondaryIcon: "heroicon-s-play"
-  
+
   services_card:
     component: card
     data:
-      title: "Premium Features"
-      subtitle: "Everything you need to build professional WordPress sites"
-      features: [
+      sectionId: "services"
+      sectionTitle: "<span class=\"hidden sm:inline\">Our</span> Services"
+      navLinks: [
+        {"url": "#features", "label": "Features"},
+        {"url": "#docs", "label": "Documentation"}
+      ]
+      featureItems: [
         {
           "icon": "heroicon-o-paint-brush",
           "title": "Visual Builder",
-          "description": "Intuitive drag-and-drop interface for content editing"
+          "description": "Intuitive drag-and-drop interface for effortless content creation"
         },
         {
           "icon": "heroicon-o-code-bracket",
-          "title": "Developer Tools",
-          "description": "Full development control with Bonsai CLI integration"
+          "title": "Developer Friendly",
+          "description": "Seamless integration with Bonsai CLI for advanced customization"
         },
         {
           "icon": "heroicon-o-cube-transparent",
-          "title": "Block Library",
-          "description": "Extensive collection of custom Gutenberg blocks"
+          "title": "Flexible Templates",
+          "description": "A variety of pre-built templates tailored for agency needs"
         },
         {
           "icon": "heroicon-o-squares-2x2",
-          "title": "Template System",
-          "description": "Pre-built layouts for rapid site development"
+          "title": "Responsive Design",
+          "description": "Optimized for all devices to ensure a consistent user experience"
         }
       ]
 
   features_widget:
     component: widget
     data:
-      title: "Loved by Developers"
-      subtitle: "See what others are saying about Cypress"
-      testimonials: [
-        {
-          "avatar": ["https://placehold.co/100x100/png"],
-          "name": "Sarah Johnson",
-          "role": "Lead Developer",
-          "company": "TechCorp",
-          "quote": "Cypress has revolutionized how we build WordPress sites. The no-code interface is perfect for clients, while maintaining the developer experience we love."
-        },
-        {
-          "avatar": ["https://placehold.co/100x100/png"],
-          "name": "Michael Chen",
-          "role": "Agency Owner",
-          "company": "PixelPerfect",
-          "quote": "The combination of Bonsai CLI and visual editing has cut our development time in half. It's a game-changer."
-        }
-      ]
+      items:
+        - id: "widget-1"
+          title: "Component Generation"
+          icon: "heroicon-o-command-line"
+          content: ""
+          cta:
+            title: "Component Generation"
+            link: "#components"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Generate and manage reusable components with ease:"
+          listItems:
+            - number: 1
+              itemName: "Quick Setup"
+              text: "Initialize your project with bonsai:init"
+            - number: 2
+              itemName: "Component Library"
+              text: "Access pre-built components ready for customization"
+            - number: 3
+              itemName: "Custom Components"
+              text: "Create your own components with simple commands"
+
+        - id: "widget-2"
+          title: "Section Builder"
+          icon: "heroicon-o-puzzle-piece"
+          content: ""
+          cta:
+            title: "Section Builder"
+            link: "#sections"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Build dynamic page sections with powerful features:"
+          listItems:
+            - number: 1
+              itemName: "Dynamic Data"
+              text: "Configure sections using YAML files"
+            - number: 2
+              itemName: "Reusable Sections"
+              text: "Create once, use anywhere in your site"
+            - number: 3
+              itemName: "Flexible Layout"
+              text: "Combine sections into custom page layouts"
+
+        - id: "widget-3"
+          title: "Template System"
+          icon: "heroicon-o-template"
+          content: ""
+          cta:
+            title: "Template System"
+            link: "#templates"
+            imagePath: "https://placehold.co/600x400/png"
+          description: "Generate complete WordPress sites from templates:"
+          listItems:
+            - number: 1
+              itemName: "Pre-built Templates"
+              text: "Start with our collection of ready-to-use templates"
+            - number: 2
+              itemName: "Custom Templates"
+              text: "Create your own templates for reuse"
+            - number: 3
+              itemName: "WordPress Integration"
+              text: "Seamlessly works with WordPress and Sage"
 
   pricing:
     component: pricing-box
     data:
-      title: "Choose Your License"
-      subtitle: "Flexible options for every need"
-      description: "All plans include premium support and regular updates. Plus, lock in your price forever."
+      title: "Flexible Pricing Plans"
+      subtitle: "Choose a plan that fits your agency's needs"
+      description: "All plans include premium support and regular updates. Upgrade anytime to unlock more features."
       pricingBoxes:
         - icon: "heroicon-o-building-storefront"
           iconColor: "text-purple-500"
-          planType: "Single Site"
-          price: "$199"
+          planType: "Starter"
+          price: "$99"
           features:
-            - "1 site license"
+            - "3 site licenses"
             - "All premium features"
-            - "Visual builder"
-            - "Premium support"
+            - "Visual builder access"
+            - "Standard support"
             - "Regular updates"
-          ctaLink: "#buy-single"
+          ctaLink: "#buy-starter"
           ctaText: "Purchase"
           ctaColor: "bg-white"
           iconBtn: "heroicon-o-arrow-right"
           iconBtnColor: "text-gray-500"
-        
+
         - icon: "heroicon-o-building-office-2"
           iconColor: "text-indigo-600"
-          planType: "Agency"
-          price: "$499"
+          planType: "Professional"
+          price: "$299"
           features:
-            - "5 site licenses"
+            - "10 site licenses"
             - "White labeling"
             - "Priority support"
-            - "Client management"
-            - "Advanced blocks"
-            - "Early access"
-          ctaLink: "#buy-agency"
+            - "Client management tools"
+            - "Advanced templates"
+            - "Early access to new features"
+          ctaLink: "#buy-professional"
           ctaText: "Purchase"
           ctaColor: "bg-gradient-to-r from-emerald-600 to-green-500 text-white"
           iconBtn: "heroicon-o-shopping-cart"
           iconBtnColor: "text-white"
-        
+
         - icon: "heroicon-o-globe-americas"
           iconColor: "text-blue-600"
-          planType: "Unlimited"
-          price: "$999"
+          planType: "Enterprise"
+          price: "$799"
           features:
-            - "Unlimited sites"
-            - "All Agency features"
-            - "Custom development"
+            - "Unlimited site licenses"
+            - "All Professional features"
+            - "Custom development services"
             - "VIP support"
-            - "1-on-1 training"
+            - "Dedicated account manager"
+            - "1-on-1 training sessions"
             - "Custom integrations"
-            - "Beta access"
-          ctaLink: "#buy-unlimited"
+          ctaLink: "#buy-enterprise"
           ctaText: "Purchase"
           ctaColor: "bg-gradient-to-r from-yellow-500 to-amber-500 text-white"
           iconBtn: "heroicon-o-shopping-cart"
@@ -175,20 +228,21 @@ sections:
 layouts:
   cypress:
     sections:
-      - home_hero
-      - features_widget
-      - services_card
-      - pricing
       - site_header
+      - home_hero
+      - services_card
+      - features_widget
+      - pricing
 
 pages:
   home:
-    title: "Cypress - Premium WordPress Theme"
+    title: "Cypress - Agency WordPress Theme"
     layout: cypress
     is_homepage: true
     meta:
       _wp_page_template: templates/template-cypress.blade.php
 
+# WordPress specific configurations
 wordpress:
   menus:
     primary_navigation:
@@ -197,7 +251,7 @@ wordpress:
     footer_navigation:
       location: "footer_navigation"
       name: "Footer Navigation"
-  
+
   theme_support:
     - title-tag
     - post-thumbnails
@@ -205,7 +259,7 @@ wordpress:
     - gutenberg
     - wide-images
     - responsive-embeds
-    
+
   image_sizes:
     hero_image:
       width: 2560
@@ -220,6 +274,7 @@ wordpress:
       height: 96
       crop: true
 
+# Asset compilation settings
 assets:
   styles:
     - resources/styles/cypress.scss
