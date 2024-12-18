@@ -162,7 +162,7 @@ sections:
               text: "Seamlessly works with WordPress and Sage"
 
   pricing:
-    component: pricing
+    component: pricing-box
     data:
       title: "Choose Your Plan"
       subtitle: "Limited-time pricing available now"

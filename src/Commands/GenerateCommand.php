@@ -275,6 +275,15 @@ BLADE;
     {
         $dataVarName = Str::camel($section) . 'Data';
 
+        // Map section names to component names
+        $componentMap = [
+            'pricing' => 'pricing-box',
+            // Add other mappings as needed
+        ];
+
+        // Use mapped component name if it exists, otherwise use the original
+        $componentName = $componentMap[$componentType] ?? $componentType;
+
         $dataLines = [];
         foreach ($data as $key => $value) {
             if (is_array($value)) {
@@ -296,7 +305,7 @@ BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
         $template .= "<div class=\"{{ \$class }}\">\n";
-        $template .= "    <x-bonsai::{$componentType} :data=\"\${$dataVarName}\" />\n";
+        $template .= "    <x-bonsai::{$componentName} :data=\"\${$dataVarName}\" />\n";
         $template .= "</div>\n";
 
         return $template;
