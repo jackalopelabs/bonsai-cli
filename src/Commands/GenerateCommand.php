@@ -673,4 +673,35 @@ BLADE;
     {
         // Implement if needed
     }
+
+    protected function arrayToPhpString($array, $depth = 0)
+    {
+        $indent = str_repeat('    ', $depth);
+        $output = "[\n";
+        
+        foreach ($array as $key => $value) {
+            $output .= $indent . "    ";
+            
+            if (is_string($key)) {
+                $output .= "'" . addslashes($key) . "' => ";
+            }
+            
+            if (is_array($value)) {
+                $output .= $this->arrayToPhpString($value, $depth + 1);
+            } elseif (is_bool($value)) {
+                $output .= $value ? 'true' : 'false';
+            } elseif (is_null($value)) {
+                $output .= 'null';
+            } elseif (is_int($value) || is_float($value)) {
+                $output .= $value;
+            } else {
+                $output .= "'" . addslashes($value) . "'";
+            }
+            
+            $output .= ",\n";
+        }
+        
+        $output .= $indent . "]";
+        return $output;
+    }
 }
