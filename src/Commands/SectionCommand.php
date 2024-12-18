@@ -1,6 +1,6 @@
 <?php
 
-namespace JackalopeLabs\BonsaiCli\Commands;
+namespace Jackalopelabs\BonsaiCli\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -49,15 +49,14 @@ class SectionCommand extends Command
     protected function getComponentSchema($componentName)
     {
         $template = getenv('BONSAI_TEMPLATE') ?: 'bonsai';
-    
-        // New search order for template config
+
         $possiblePaths = [
-            base_path("config/bonsai/templates/{$template}.yml"),    // Local new templates directory
-            base_path("config/bonsai/{$template}.yml"),             // Legacy project config
-            base_path("config/templates/{$template}.yml"),          // Legacy templates
-            __DIR__ . "/../../config/templates/{$template}.yml"     // Package default templates
+            base_path("config/bonsai/templates/{$template}.yml"),
+            base_path("config/bonsai/{$template}.yml"),
+            base_path("config/templates/{$template}.yml"),
+            __DIR__ . "/../../config/templates/{$template}.yml"
         ];
-    
+
         $configPath = null;
         foreach ($possiblePaths as $path) {
             if (file_exists($path)) {
@@ -65,9 +64,8 @@ class SectionCommand extends Command
                 break;
             }
         }
-    
+
         if (!$configPath) {
-            // No config found, fallback to basic schema
             return [
                 'title' => [
                     'type' => 'string',
@@ -81,7 +79,7 @@ class SectionCommand extends Command
                 ]
             ];
         }
-    
+
         try {
             $config = Yaml::parseFile($configPath);
             $sections = $config['sections'] ?? [];
@@ -101,8 +99,7 @@ class SectionCommand extends Command
         } catch (\Exception $e) {
             $this->error("Error loading template configuration: " . $e->getMessage());
         }
-    
-        // If we reach here, no matching section was found in config
+
         return [
             'title' => [
                 'type' => 'string',
@@ -115,8 +112,7 @@ class SectionCommand extends Command
                 'default' => 'Default description'
             ]
         ];
-    }    
-
+    }
 
     protected function promptForData($schema)
     {
@@ -124,59 +120,52 @@ class SectionCommand extends Command
 
         foreach ($schema as $key => $field) {
             if ($field['type'] === 'string') {
-                $data[$key] = $this->ask(
-                    $field['prompt'],
-                    $field['default'] ?? null
-                );
+                $data[$key] = $this->ask($field['prompt'], $field['default'] ?? null);
             } elseif ($field['type'] === 'array') {
                 if ($key === 'faqs') {
                     $useDefaults = !$this->ask('Would you like to enter custom FAQs? (yes/no)', 'no');
-                    
                     if ($useDefaults) {
                         $data[$key] = $this->getDefaultFaqs();
                         $this->info('Using default FAQs.');
                     } else {
                         $count = (int) $this->ask($field['prompt'], $field['default'] ?? 3);
                         $data[$key] = [];
-                        
+
                         $this->info("\nEntering details for {$count} items:");
-                        
+
                         for ($i = 0; $i < $count; $i++) {
                             $item = [];
                             foreach ($field['schema'] as $subKey => $subField) {
                                 $prompt = sprintf(
-                                    "%s #%d: %s", 
-                                    Str::title($key), 
-                                    $i + 1, 
+                                    "%s #%d: %s",
+                                    Str::title($key),
+                                    $i + 1,
                                     $subField['prompt']
                                 );
                                 $item[$subKey] = $this->ask($prompt);
                             }
-                            
-                            // Only add the item if both question and answer are provided
+
                             if (!empty($item['question']) && !empty($item['answer'])) {
                                 $data[$key][] = $item;
                             }
                         }
-                        
-                        // If no valid FAQs were entered, use defaults
+
                         if (empty($data[$key])) {
                             $data[$key] = $this->getDefaultFaqs();
                             $this->info('No valid FAQs entered. Using default FAQs.');
                         }
                     }
                 } else {
-                    // Handle other array types if needed
                     $count = (int) $this->ask($field['prompt'] ?? 'How many items?', $field['default'] ?? 3);
                     $data[$key] = [];
-                    
+
                     for ($i = 0; $i < $count; $i++) {
                         $item = [];
                         foreach ($field['schema'] as $subKey => $subField) {
                             $prompt = sprintf(
-                                "%s #%d: %s", 
-                                Str::title($key), 
-                                $i + 1, 
+                                "%s #%d: %s",
+                                Str::title($key),
+                                $i + 1,
                                 $subField['prompt']
                             );
                             $item[$subKey] = $this->ask($prompt);
@@ -201,7 +190,18 @@ class SectionCommand extends Command
     protected function generateBladeTemplate($name, $componentName, $data)
     {
         $dataVarName = Str::camel($name) . 'Data';
-        
+
+        // Build the PHP array for data
+        $dataLines = [];
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $arrayStr = $this->arrayToPhpString($value, 1);
+                $dataLines[] = "    '{$key}' => {$arrayStr},";
+            } else {
+                $dataLines[] = "    '{$key}' => " . var_export($value, true) . ",";
+            }
+        }
+
         $template = <<<BLADE
 @props([
     'class' => ''
@@ -211,31 +211,10 @@ class SectionCommand extends Command
 \${$dataVarName} = [
 BLADE;
 
-        // Handle each data field
-        foreach ($data as $key => $value) {
-            if ($key === 'iconMappings') {
-                // Special handling for icon mappings
-                $template .= "    '{$key}' => " . $this->arrayToPhpString($value, 1) . ",\n";
-            } elseif (is_array($value)) {
-                $arrayStr = $this->arrayToPhpString($value, 1);
-                $template .= "    '{$key}' => " . $arrayStr . ",\n";
-            } else {
-                $template .= "    '{$key}' => " . var_export($value, true) . ",\n";
-            }
-        }
-
-        $template .= <<<BLADE
-];
-@endphp
-
-<div class="{{ \$class }}">
-    <x-bonsai::{$componentName}
-        @foreach(\${$dataVarName} as \$key => \$value)
-        :{{\$key}}="\${$dataVarName}['{{\$key}}']"
-        @endforeach
-    />
-</div>
-BLADE;
+        $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
+        $template .= "<div class=\"{{ \$class }}\">\n";
+        $template .= "    <x-bonsai::{$componentName} :data=\"\${$dataVarName}\" />\n";
+        $template .= "</div>\n";
 
         return $template;
     }
@@ -285,7 +264,7 @@ BLADE;
             return 1;
         }
 
-        // Get data from environment variables first
+        // Get data from environment variables or prompt
         $data = [];
         foreach ($schema as $key => $field) {
             $envKey = "BONSAI_DATA_{$key}";
@@ -300,14 +279,12 @@ BLADE;
                 }
                 $this->info("Using environment data for {$key}: {$envValue}");
             } else {
-                // If no environment variable and using defaults, use schema default
                 if ($useDefault) {
                     $data[$key] = $field['default'];
                     $this->info("Using default value for {$key}");
                 } else {
-                    // If not using defaults and no env var, prompt for input
                     if ($field['type'] === 'array') {
-                        $data[$key] = $field['default']; // For arrays, use default if no env var
+                        $data[$key] = $field['default'];
                     } else {
                         $data[$key] = $this->ask($field['prompt'], $field['default']);
                     }
@@ -341,7 +318,6 @@ BLADE;
                 if ($key === 'faqs') {
                     $data[$key] = $this->getDefaultFaqs();
                 } elseif (isset($field['schema'])) {
-                    // Only process schema if it exists
                     $data[$key] = [];
                     $count = $field['default'] ?? 3;
                     for ($i = 0; $i < $count; $i++) {
@@ -352,7 +328,6 @@ BLADE;
                         $data[$key][] = $item;
                     }
                 } else {
-                    // Handle arrays without schema
                     $data[$key] = $field['default'] ?? [];
                 }
             } elseif ($field['type'] === 'boolean') {
@@ -369,7 +344,7 @@ BLADE;
 
     protected function generateHeaderSection($name)
     {
-        // Get data from environment variables or use defaults
+        // This method remains for backward compatibility, you can remove or refactor similarly if needed.
         $siteName = getenv('BONSAI_DATA_siteName') ?: 'Cypress';
         $iconComponent = getenv('BONSAI_DATA_iconComponent') ?: 'icon-bonsai';
         $navLinks = json_decode(getenv('BONSAI_DATA_navLinks'), true) ?: [
@@ -398,14 +373,7 @@ BLADE;
 @endphp
 
 <div class="{{ \$class }}">
-    <x-bonsai::header
-        :siteName="\$headerData['siteName']"
-        :iconComponent="\$headerData['iconComponent']"
-        :navLinks="\$headerData['navLinks']"
-        :primaryLink="\$headerData['primaryLink']"
-        :containerClasses="\$headerData['containerClasses']"
-        :containerInnerClasses="\$headerData['containerInnerClasses']"
-    />
+    <x-bonsai::header :data="\$headerData"/>
 </div>
 BLADE;
 

@@ -1,24 +1,26 @@
-{{-- bonsai-cli/templates/components/hero.blade.php --}}
-@props([
-    'product' => null, 
-    'titleClass' => 'font-semibold text-6xl',
-    'title' => null,
-    'subtitle' => null,
-    'description' => null,
-    'dropdownIcon' => null,
-    'buttonLinkIcon' => null,
-    'secondaryIcon' => null,
-    'buttonText' => null,
-    'buttonLink' => null,
-    'secondaryText' => null,
-    'secondaryLink' => null,
-    'imagePaths' => [], // Image paths as an array of URLs
-    'iconMappings' => [
-        'dropdownIcon' => 'heroicon-s-chevron-down',
-        'buttonLinkIcon' => 'heroicon-s-shopping-cart',
-        'secondaryIcon' => 'heroicon-s-chevron-right',
-    ]
-])
+@props(['data' => []])
+
+@php
+  // Extract variables from $data array
+  $product = $data['product'] ?? null;
+  $titleClass = $data['titleClass'] ?? 'font-semibold text-6xl';
+  $title = $data['title'] ?? null;
+  $subtitle = $data['subtitle'] ?? null;
+  $description = $data['description'] ?? null;
+  $dropdownIcon = $data['dropdownIcon'] ?? null;
+  $buttonLinkIcon = $data['buttonLinkIcon'] ?? null;
+  $secondaryIcon = $data['secondaryIcon'] ?? null;
+  $buttonText = $data['buttonText'] ?? null;
+  $buttonLink = $data['buttonLink'] ?? null;
+  $secondaryText = $data['secondaryText'] ?? null;
+  $secondaryLink = $data['secondaryLink'] ?? null;
+  $imagePaths = $data['imagePaths'] ?? [];
+  $iconMappings = $data['iconMappings'] ?? [
+    'dropdownIcon' => 'heroicon-s-chevron-down',
+    'buttonLinkIcon' => 'heroicon-s-shopping-cart',
+    'secondaryIcon' => 'heroicon-s-chevron-right',
+  ];
+@endphp
 
 <div class="container mx-auto px-4 mb-12 mt-0 md:mt-24">
     <div class="flex flex-col md:flex-row items-center md:items-start -mx-4">
@@ -43,7 +45,7 @@
                 <div class="bg-white bg-opacity-50 px-3 py-1 text-sm inline-block">
                     {{ $product }} 
                     @if($dropdownIcon)
-                        <x-bonsai::icons.chevron-down class="w-4 h-4 ml-2 inline-block align-middle" />
+                        <x-dynamic-component :component="$iconMappings['dropdownIcon']" class="w-4 h-4 ml-2 inline-block align-middle" />
                     @endif
                 </div>
             @endif
