@@ -199,8 +199,8 @@ BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
 
-        if ($componentType === 'pricing') {
-            // Simplified pricing snippet: 3 pricing boxes, no conditional logic
+        // If component is pricing-box, output the multi-box snippet
+        if ($componentType === 'pricing-box') {
             $template .= <<<BLADE
 <section class="py-24" id="plans">
     <div class="py-12">
@@ -279,7 +279,6 @@ BLADE;
                 $this->files->makeDirectory(dirname($layoutPath), 0755, true);
             }
 
-            // Simple layout
             $layoutContent = <<<BLADE
 <!doctype html>
 <html @php(language_attributes())>
@@ -429,8 +428,6 @@ BLADE;
         if (!empty($settings['api_keys'])) {
             $this->storeApiKeys($settings['api_keys']);
         }
-
-        // Restore template/stylesheet if changed (optional)
     }
 
     protected function updateEnvFile($envVars)
@@ -474,7 +471,6 @@ BLADE;
 
     protected function checkHeroiconsSetup()
     {
-        // Minimal check
         return class_exists(\BladeUI\Icons\BladeIconsServiceProvider::class) &&
                class_exists(\BladeUI\Heroicons\BladeHeroiconsServiceProvider::class);
     }
