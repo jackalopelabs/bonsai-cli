@@ -11,7 +11,7 @@
         <!-- Sidebar -->
         <div class="md:w-1/3 mb-4 md:mb-0">
             @foreach ($items as $item)
-                <x-accordion :item="$item" />
+                <x-bonsai::accordion :data="['item' => $item]" />
             @endforeach
         </div>
 
@@ -19,10 +19,12 @@
         <div class="md:w-2/3">
             @foreach ($items as $item)
                 <div x-show="activeAccordion === '{{ $item['id'] }}'" class="p-2">
-                    <x-cta 
-                        :title="$item['cta']['title']" 
-                        :link="$item['cta']['link']" 
-                        :image-path="$item['cta']['imagePath']" 
+                    <x-bonsai::cta 
+                        :data="[
+                            'title' => $item['cta']['title'],
+                            'link' => $item['cta']['link'],
+                            'imagePath' => $item['cta']['imagePath']
+                        ]" 
                     />
 
                     @if(isset($item['description']))
@@ -34,10 +36,12 @@
                     @if(isset($item['listItems']) && is_array($item['listItems']))
                         <div class="grid md:grid-cols-2 gap-4 mt-4">
                             @foreach ($item['listItems'] as $listItem)
-                                <x-list-item 
-                                    :number="$listItem['number']" 
-                                    :itemName="$listItem['itemName']" 
-                                    :text="$listItem['text']" 
+                                <x-bonsai::list-item 
+                                    :data="[
+                                        'number' => $listItem['number'],
+                                        'itemName' => $listItem['itemName'],
+                                        'text' => $listItem['text']
+                                    ]"
                                 />
                             @endforeach
                         </div>
