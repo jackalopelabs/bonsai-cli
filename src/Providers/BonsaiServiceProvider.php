@@ -13,15 +13,19 @@ class BonsaiServiceProvider extends ServiceProvider
         error_log('BonsaiServiceProvider register() method called');
         
         // Register commands
-        $this->commands([
-            \Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand::class,
-            \Jackalopelabs\BonsaiCli\Commands\ComponentCommand::class,
-            \Jackalopelabs\BonsaiCli\Commands\LayoutCommand::class,
-            \Jackalopelabs\BonsaiCli\Commands\PageCommand::class,
-            \Jackalopelabs\BonsaiCli\Commands\SectionCommand::class,
-            \Jackalopelabs\BonsaiCli\Commands\GenerateCommand::class,
-            \Jackalopelabs\BonsaiCli\Commands\CleanupCommand::class,
-        ]);
+        if ($this->app->runningInConsole()) {
+            error_log('Registering Bonsai commands...');
+            $this->commands([
+                \Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand::class,
+                \Jackalopelabs\BonsaiCli\Commands\ComponentCommand::class,
+                \Jackalopelabs\BonsaiCli\Commands\LayoutCommand::class,
+                \Jackalopelabs\BonsaiCli\Commands\PageCommand::class,
+                \Jackalopelabs\BonsaiCli\Commands\SectionCommand::class,
+                \Jackalopelabs\BonsaiCli\Commands\GenerateCommand::class,
+                \Jackalopelabs\BonsaiCli\Commands\CleanupCommand::class,
+            ]);
+            error_log('Bonsai commands registered');
+        }
     }
 
     public function boot()
