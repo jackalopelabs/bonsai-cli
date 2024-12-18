@@ -115,7 +115,7 @@ sections:
       ]
 
   pricing:
-    component: pricing
+    component: pricing-box
     data:
       title: "Choose Your License"
       subtitle: "Flexible options for every need"
