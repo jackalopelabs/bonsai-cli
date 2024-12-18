@@ -273,7 +273,7 @@ BLADE;
 
     protected function generateSectionContent($section, $componentType, $data)
     {
-        $dataVarName = "{$section}Data";
+        $dataVarName = Str::camel($section) . 'Data';
 
         $dataLines = [];
         foreach ($data as $key => $value) {
@@ -296,7 +296,7 @@ BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
         $template .= "<div class=\"{{ \$class }}\">\n";
-        $template .= "    <x-{$componentType} :data=\"\${$dataVarName}\" />\n";
+        $template .= "    <x-bonsai::{$componentType} :data=\"\${$dataVarName}\" />\n";
         $template .= "</div>\n";
 
         return $template;
