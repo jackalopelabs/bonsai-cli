@@ -1,4 +1,8 @@
-@props(['items' => []])
+@props(['data' => []])
+
+@php
+  $items = $data['items'] ?? [];
+@endphp
 
 <div class="container mx-auto p-4 rounded-xl shadow-lg bg-white bg-opacity-30"
      x-data="{ activeAccordion: '{{ $items[0]['id'] ?? '' }}' }" 

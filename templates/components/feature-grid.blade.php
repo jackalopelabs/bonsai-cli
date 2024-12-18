@@ -1,8 +1,10 @@
-@props([
-    'sectionTitle',
-    'subtitle',
-    'features' => [],
-])
+@props(['data' => []])
+
+@php
+  $sectionTitle = $data['sectionTitle'] ?? '';
+  $subtitle = $data['subtitle'] ?? '';
+  $features = $data['features'] ?? [];
+@endphp
 
 <section class="py-24 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

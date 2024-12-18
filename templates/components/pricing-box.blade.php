@@ -1,15 +1,17 @@
-@props([
-    'icon', // Icon component name (e.g., 'heroicon-o-command-line')
-    'iconColor', // Icon color class
-    'planType', // e.g., 'Basic', 'Pro'
-    'price', // e.g., 'Free', '$99'
-    'features', // Array of feature strings
-    'ctaLink', // Link for the CTA button
-    'ctaText', // Text for the CTA button
-    'ctaColor', // Class for button background color
-    'iconBtn', // Icon for the CTA button
-    'iconBtnColor', // Icon color for the CTA button
-])
+@props(['data' => []])
+
+@php
+  $icon = $data['icon'] ?? '';
+  $iconColor = $data['iconColor'] ?? '';
+  $planType = $data['planType'] ?? '';
+  $price = $data['price'] ?? '';
+  $features = $data['features'] ?? [];
+  $ctaLink = $data['ctaLink'] ?? '#';
+  $ctaText = $data['ctaText'] ?? 'Get Started';
+  $ctaColor = $data['ctaColor'] ?? '';
+  $iconBtn = $data['iconBtn'] ?? '';
+  $iconBtnColor = $data['iconBtnColor'] ?? '';
+@endphp
 
 <div class="bg-white bg-opacity-50 rounded-xl shadow-lg overflow-hidden mx-auto md:mx-0 text-center my-3 transition-transform transform hover:scale-105 {{ $planType == 'Pro' ? 'border border-emerald-500' : ($planType == 'Sensei' ? 'border border-yellow-500' : '') }}">
     <div class="p-6">

@@ -1,7 +1,6 @@
 @props(['data' => []])
 
 @php
-  // Extract variables from $data array
   $product = $data['product'] ?? null;
   $titleClass = $data['titleClass'] ?? 'font-semibold text-6xl';
   $title = $data['title'] ?? null;

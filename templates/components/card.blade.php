@@ -1,10 +1,12 @@
-@props([
-    'sectionId' => 'services',
-    'sectionTitle' => 'Our Services',
-    'navLinks' => [],
-    'featureItems' => [],
-    'image' => null,
-])
+@props(['data' => []])
+
+@php
+  $sectionId = $data['sectionId'] ?? 'services';
+  $sectionTitle = $data['sectionTitle'] ?? 'Our Services';
+  $navLinks = $data['navLinks'] ?? [];
+  $featureItems = $data['featureItems'] ?? [];
+  $image = $data['image'] ?? null;
+@endphp
 
 <section id="{{ $sectionId }}" class="py-12">
     <div class="max-w-4xl mx-auto px-6">

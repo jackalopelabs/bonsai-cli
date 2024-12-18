@@ -1,12 +1,14 @@
-@props([
-    'containerClasses' => 'max-w-5xl mx-auto',
-    'containerInnerClasses' => 'px-6',
-    'siteName' => '',
-    'iconComponent' => 'heroicon-o-cube',
-    'navLinks' => [],
-    'primaryLink' => '#pricing',
-    'headerClass' => 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4'
-])
+@props(['data' => []])
+
+@php
+  $containerClasses = $data['containerClasses'] ?? 'max-w-5xl mx-auto';
+  $containerInnerClasses = $data['containerInnerClasses'] ?? 'px-6';
+  $siteName = $data['siteName'] ?? '';
+  $iconComponent = $data['iconComponent'] ?? 'heroicon-o-cube';
+  $navLinks = $data['navLinks'] ?? [];
+  $primaryLink = $data['primaryLink'] ?? '#pricing';
+  $headerClass = $data['headerClass'] ?? 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
+@endphp
 
 <script>
 document.addEventListener('alpine:init', () => {
@@ -53,4 +55,4 @@ document.addEventListener('alpine:init', () => {
             </a>              
         </div>
     </div>
-</header> 
+</header>

@@ -1,4 +1,10 @@
-@props(['title', 'link', 'imagePath'])
+@props(['data' => []])
+
+@php
+  $title = $data['title'] ?? '';
+  $link = $data['link'] ?? '#';
+  $imagePath = $data['imagePath'] ?? '';
+@endphp
 
 <div class="cta bg-white bg-opacity-50 rounded-lg flex items-center space-x-8 mt-2">
     <!-- Image -->
