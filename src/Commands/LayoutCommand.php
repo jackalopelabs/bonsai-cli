@@ -51,6 +51,7 @@ class LayoutCommand extends Command
         // Try to load template configuration
         $configPaths = [
             base_path("config/bonsai/{$template}.yml"),
+            base_path("config/bonsai/templates/{$template}.yml"),
             base_path("config/templates/{$template}.yml"),
             __DIR__ . "/../../config/templates/{$template}.yml"
         ];
@@ -74,12 +75,10 @@ class LayoutCommand extends Command
 
     protected function getLayoutContent($name, $sections, $themeSettings)
     {
-        // If this is the cypress layout, use the specific template
         if ($name === 'cypress') {
             return $this->getCypressLayoutContent($themeSettings);
         }
 
-        // For other layouts, use the default template with theme settings
         return $this->getDefaultLayoutContent($name, $sections, $themeSettings);
     }
 
@@ -184,10 +183,8 @@ BLADE;
 
     protected function getSections()
     {
-        // Check if sections were provided as an option
         $sections = $this->option('sections') ? explode(',', $this->option('sections')) : [];
 
-        // If not, prompt for sections interactively
         if (empty($sections)) {
             $this->info("Specify the sections to include in the layout (e.g., hero,about,cta)");
             while (true) {
