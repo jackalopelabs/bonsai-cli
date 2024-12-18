@@ -89,6 +89,8 @@ class LayoutCommand extends Command
             ->map(fn($section) => "@include('bonsai.sections.{$section}')")
             ->implode("\n        ");
 
+        $bodyClass = $themeSettings['body']['class'] ?? 'bg-gray-100';
+
         return <<<BLADE
 {{-- Layout: {$name} --}}
 <!doctype html>
@@ -101,7 +103,7 @@ class LayoutCommand extends Command
         @include('utils.styles')
     </head>
 
-    <body @php(body_class('{$themeSettings['body']['class']}'))>
+    <body @php(body_class()) class="{$bodyClass}">
         @php(wp_body_open())
         @php(\$containerInnerClasses = 'container mx-auto px-4 py-8')
 
@@ -139,6 +141,8 @@ BLADE;
 
     protected function getCypressLayoutContent($themeSettings)
     {
+        $bodyClass = $themeSettings['body']['class'] ?? 'bg-gray-100';
+
         return <<<BLADE
 <!doctype html>
 <html @php(language_attributes())>
@@ -150,7 +154,7 @@ BLADE;
         @include('utils.styles')
     </head>
 
-    <body @php(body_class('{$themeSettings['body']['class']}'))>
+    <body @php(body_class()) class="{$bodyClass}">
         @php(wp_body_open())
         @php(\$containerInnerClasses = 'container mx-auto px-4 py-8')
 
