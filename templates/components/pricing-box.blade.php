@@ -1,20 +1,20 @@
-@props(['data' => []])
+@props([
+    'icon' => 'heroicon-o-command-line',
+    'iconColor' => 'text-gray-400',
+    'planType' => 'Basic',
+    'price' => 'Free',
+    'features' => [],
+    'ctaLink' => '#',
+    'ctaText' => 'Get Started',
+    'ctaColor' => 'bg-white',
+    'iconBtn' => null,
+    'iconBtnColor' => 'text-gray-500',
+])
 
-@php
-  $icon = $data['icon'] ?? '';
-  $iconColor = $data['iconColor'] ?? '';
-  $planType = $data['planType'] ?? '';
-  $price = $data['price'] ?? '';
-  $features = $data['features'] ?? [];
-  $ctaLink = $data['ctaLink'] ?? '#';
-  $ctaText = $data['ctaText'] ?? 'Get Started';
-  $ctaColor = $data['ctaColor'] ?? '';
-  $iconBtn = $data['iconBtn'] ?? '';
-  $iconBtnColor = $data['iconBtnColor'] ?? '';
-@endphp
-
-<div class="bg-white bg-opacity-50 rounded-xl shadow-lg overflow-hidden mx-auto md:mx-0 text-center my-3 transition-transform transform hover:scale-105 {{ $planType == 'Pro' ? 'border border-emerald-500' : ($planType == 'Sensei' ? 'border border-yellow-500' : '') }}">
+<div class="bg-white bg-opacity-50 rounded-xl shadow-lg overflow-hidden mx-auto md:mx-0 text-center my-3 transition-transform transform hover:scale-105 
+    {{ $planType == 'Pro' ? 'border border-emerald-500' : ($planType == 'Sensei' ? 'border border-yellow-500' : '') }}">
     <div class="p-6">
+        <!-- Icon -->
         <svg 
             class="{{ $iconColor }} inline-block h-12 w-12 mt-8 mb-4"
             xmlns="http://www.w3.org/2000/svg" 
@@ -32,20 +32,34 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
             @endif
         </svg>
+
+        <!-- Plan Type -->
         <h3 class="text-gray-400">{{ $planType }}</h3>
+
+        <!-- Price -->
         <p class="text-4xl font-bold">{!! $price !!}</p>
         <hr class="border-t border-gray-200 my-5" />
+
+        <!-- Features -->
         <ul class="my-4 text-left space-y-3">
             @foreach ($features as $feature)
                 <li class="flex items-center justify-start text-gray-500">
-                    <svg class="w-5 h-5 {{ $planType == 'Sensei' ? 'text-yellow-500' : 'text-emerald-500' }} mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-5 h-5 {{ $planType == 'Sensei' ? 'text-yellow-500' : 'text-emerald-500' }} mr-2" 
+                         xmlns="http://www.w3.org/2000/svg" 
+                         fill="none" 
+                         viewBox="0 0 24 24" 
+                         stroke="currentColor"
+                    >
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                     {{ $feature }}
                 </li>
             @endforeach
         </ul>
+
         <hr class="border-t border-gray-200 my-5" />
+
+        <!-- CTA Button -->
         <a href="{{ $ctaLink }}" class="inline-block py-2 px-6 rounded-full {{ $ctaColor }}" target="_blank">
             {{ $ctaText }}
             <svg 
@@ -55,14 +69,16 @@
                 viewBox="0 0 24 24" 
                 stroke="currentColor"
             >
-                @if(str_contains($iconBtn, 'arrow-right'))
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                @elseif(str_contains($iconBtn, 'shopping-cart'))
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                @else
+                @if($iconBtn && str_contains($iconBtn, 'arrow-right'))
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M7 5l-7 7 7 7"/>
+                @elseif($iconBtn && str_contains($iconBtn, 'shopping-cart'))
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17
+                             m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                @elseif($iconBtn)
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 @endif
             </svg>
         </a>
     </div>
-</div> 
+</div>
