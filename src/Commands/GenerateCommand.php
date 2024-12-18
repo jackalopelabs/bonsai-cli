@@ -34,7 +34,7 @@ class GenerateCommand extends Command
             $this->info("Config Path: {$configPath}");
 
             $config = $this->loadConfig($configPath);
-            
+
             // Debug configuration
             $this->info("\nConfiguration loaded:");
             $this->info("- Name: " . ($config['name'] ?? 'Not set'));
@@ -42,30 +42,30 @@ class GenerateCommand extends Command
             $this->info("- Sections count: " . count($config['sections'] ?? []));
             $this->info("- Layouts: " . json_encode($config['layouts'] ?? []));
             $this->info("- Pages: " . json_encode($config['pages'] ?? []));
-            
+
             // Verify the home page configuration
             if (isset($config['pages']['home'])) {
                 $this->info("\nHome page configuration:");
                 $this->info("- Title: " . ($config['pages']['home']['title'] ?? 'Not set'));
                 $this->info("- Layout: " . ($config['pages']['home']['layout'] ?? 'Not set'));
-                $this->info("- Is Homepage: " . ($config['pages']['home']['is_homepage'] ? 'Yes' : 'No'));
+                $this->info("- Is Homepage: " . (!empty($config['pages']['home']['is_homepage']) ? 'Yes' : 'No'));
             } else {
                 $this->warn("\nNo home page configuration found");
             }
-            
+
             // Check Heroicons setup before generating components
             $hasHeroicons = $this->checkHeroiconsSetup();
-            
+
             // Execute generation steps in sequence
             $this->generateComponents($config['components'] ?? [], $hasHeroicons);
             $this->generateSections($config['sections'] ?? []);
             $this->generateLayouts($config['layouts'] ?? []);
-            $this->generatePages($config['pages'] ?? []);
+            $this->generateSitePages($config['pages'] ?? []);
             $this->generateDatabase($config['database'] ?? []);
             $this->configureSettings($config['settings'] ?? []);
-            
+
             $this->displaySuccessMessage($template);
-            
+
         } catch (\Exception $e) {
             $this->error("Error generating site: " . $e->getMessage());
             $this->error("Stack trace: " . $e->getTraceAsString());
@@ -75,16 +75,14 @@ class GenerateCommand extends Command
 
     protected function getConfigPath($template)
     {
-        // Get the project root directory
         $rootPath = $this->getLaravel()->basePath();
         $this->info("Project root path: {$rootPath}");
 
-        // Check locations in order of priority
         $paths = [
-            "{$rootPath}/config/bonsai/templates/{$template}.yml",  // 1. New templates location
-            "{$rootPath}/config/bonsai/{$template}.yml",           // 2. Legacy project config
-            "{$rootPath}/config/templates/{$template}.yml",         // 3. Legacy templates
-            __DIR__ . "/../../config/templates/{$template}.yml"     // 4. Package default config
+            "{$rootPath}/config/bonsai/templates/{$template}.yml",
+            "{$rootPath}/config/bonsai/{$template}.yml",
+            "{$rootPath}/config/templates/{$template}.yml",
+            __DIR__ . "/../../config/templates/{$template}.yml"
         ];
 
         $this->info("Checking possible config paths:");
@@ -104,28 +102,24 @@ class GenerateCommand extends Command
     protected function loadConfig($path)
     {
         $this->info("Attempting to load config from: {$path}");
-        
-        // Check if file exists
+
         if (!file_exists($path)) {
             $this->error("File does not exist at path: {$path}");
             throw new \Exception("Configuration file not found: {$path}");
         }
 
-        // Check if file is readable
         if (!is_readable($path)) {
             $this->error("File exists but is not readable: {$path}");
             throw new \Exception("Configuration file is not readable: {$path}");
         }
 
         try {
-            // Try to read file contents
             $contents = file_get_contents($path);
             $this->info("Successfully read file contents");
-            
-            // Try to parse YAML
+
             $config = Yaml::parse($contents);
             $this->info("Successfully parsed YAML configuration");
-            
+
             return $config;
         } catch (\Exception $e) {
             $this->error("Error parsing configuration: " . $e->getMessage());
@@ -136,22 +130,20 @@ class GenerateCommand extends Command
     protected function generateComponents($components, $hasHeroicons = false)
     {
         $this->info('Generating components...');
-        
+
         if (!$hasHeroicons) {
             $this->info('Using fallback SVG icons since Heroicons is not properly configured.');
         }
-        
-        // Pass $hasHeroicons to the component templates so they can use appropriate icon handling
+
         putenv("BONSAI_HAS_HEROICONS=" . ($hasHeroicons ? "true" : "false"));
-        
-        // If components is a simple array, convert to associative
+
         if (isset($components[0])) {
             $components = array_filter($components, function($component) {
                 return in_array($component, [
                     'hero',
-                    'header', 
+                    'header',
                     'card',
-                    'widget', 
+                    'widget',
                     'accordion',
                     'cta',
                     'list-item',
@@ -165,17 +157,13 @@ class GenerateCommand extends Command
             try {
                 $componentName = is_array($config) ? $component : $config;
                 $this->info("Installing component: {$componentName}");
-
-                // Copy the component template
                 $this->copyComponentTemplate($componentName);
 
-                // Handle special components that need additional files
                 switch ($componentName) {
                     case 'card':
                         $this->copyComponentIcon('flowchart');
                         break;
                     case 'widget':
-                        // Copy widget subcomponents
                         $this->copyComponentTemplate('accordion');
                         $this->copyComponentTemplate('cta');
                         $this->copyComponentTemplate('list-item');
@@ -193,7 +181,6 @@ class GenerateCommand extends Command
 
     protected function copyComponentTemplate($componentName)
     {
-        // Update possible paths to include all component types
         $possiblePaths = [
             base_path("templates/components/{$componentName}.blade.php"),
             base_path("templates/components/icons/{$componentName}.blade.php"),
@@ -217,29 +204,24 @@ class GenerateCommand extends Command
             return;
         }
 
-        // Determine component type and target directory
         $isIcon = strpos($templatePath, '/icons/') !== false;
         $isSubComponent = in_array($componentName, ['accordion', 'cta', 'list-item']);
-        
-        // Set the target directory based on component type
+
         $targetDir = match(true) {
             $isIcon => resource_path("views/bonsai/components/icons"),
             $isSubComponent => resource_path("views/bonsai/components"),
             default => resource_path("views/bonsai/components")
         };
 
-        // Ensure directory exists
         if (!$this->files->exists($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
             $this->info("Created directory: {$targetDir}");
         }
 
-        // Copy component to appropriate directory
         $targetPath = "{$targetDir}/" . basename($templatePath);
         $this->files->copy($templatePath, $targetPath);
         $this->line("Component " . ($isIcon ? "icon " : "") . "installed at: {$targetPath}");
 
-        // Debug info
         $this->info("Component details:");
         $this->info("- Type: " . ($isIcon ? 'icon' : ($isSubComponent ? 'subcomponent' : 'component')));
         $this->info("- Source: {$templatePath}");
@@ -266,26 +248,23 @@ BLADE;
     protected function generateSections($sections)
     {
         $this->info('Generating sections...');
-        
+
         foreach ($sections as $section => $config) {
             try {
                 $this->info("Creating section: {$section}");
                 $componentType = $config['component'] ?? $section;
-                
-                // Create the section file
+
                 $sectionPath = resource_path("views/bonsai/sections/{$section}.blade.php");
-                
-                // Ensure the sections directory exists
                 if (!$this->files->exists(dirname($sectionPath))) {
                     $this->files->makeDirectory(dirname($sectionPath), 0755, true);
                 }
-                
-                // Generate the section content with the config data directly
+
+                // Use single :data prop approach here
                 $sectionContent = $this->generateSectionContent($section, $componentType, $config['data'] ?? []);
-                
+
                 $this->files->put($sectionPath, $sectionContent);
                 $this->info("✓ Section created successfully: {$sectionPath}");
-                
+
             } catch (\Exception $e) {
                 $this->error("Failed to generate section '{$section}': " . $e->getMessage());
             }
@@ -294,53 +273,55 @@ BLADE;
 
     protected function generateSectionContent($section, $componentType, $data)
     {
-        // Convert the data array to a PHP array string
-        $dataString = var_export($data, true);
-        
-        return <<<BLADE
+        $dataVarName = "{$section}Data";
+
+        $dataLines = [];
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $arrayStr = $this->arrayToPhpString($value, 1);
+                $dataLines[] = "    '{$key}' => {$arrayStr},";
+            } else {
+                $dataLines[] = "    '{$key}' => " . var_export($value, true) . ",";
+            }
+        }
+
+        $template = <<<BLADE
 @props([
     'class' => ''
 ])
 
 @php
-\${$section}Data = {$dataString};
-@endphp
-
-<div class="{{ \$class }}">
-    <x-{$componentType}
-        @foreach(\${$section}Data as \$key => \$value)
-        :{{\$key}}="\${$section}Data['{{\$key}}']"
-        @endforeach
-    />
-</div>
+\${$dataVarName} = [
 BLADE;
+
+        $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
+        $template .= "<div class=\"{{ \$class }}\">\n";
+        $template .= "    <x-{$componentType} :data=\"\${$dataVarName}\" />\n";
+        $template .= "</div>\n";
+
+        return $template;
     }
 
     protected function generateLayouts($layouts)
     {
         $this->info('Generating layouts...');
-        
-        // Get theme settings from config
+
         $template = $this->argument('template');
         $configPath = $this->option('config') ?? $this->getConfigPath($template);
         $config = $this->loadConfig($configPath);
-        
+
         $themeSettings = $config['theme'] ?? [
             'body' => ['class' => 'bg-gray-100'],
             'header' => ['class' => 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4']
         ];
 
-        foreach ($layouts as $layout => $config) {
+        foreach ($layouts as $layout => $layoutConfig) {
             try {
-                // Create the layout file
                 $layoutPath = resource_path("views/bonsai/layouts/{$layout}.blade.php");
-                
-                // Ensure the layouts directory exists
                 if (!$this->files->exists(dirname($layoutPath))) {
                     $this->files->makeDirectory(dirname($layoutPath), 0755, true);
                 }
-                
-                // Generate the layout content with theme settings
+
                 $layoutContent = <<<BLADE
 <!doctype html>
 <html @php(language_attributes())>
@@ -368,7 +349,7 @@ BLADE;
                 </div>
             </main>
 
-            @include('sections.footer')
+            @includeIf('sections.footer')
         </div>
 
         @php(do_action('get_footer'))
@@ -387,20 +368,66 @@ BLADE;
         }
     }
 
+    protected function generateSitePages($pages)
+    {
+        $this->info('Generating pages...');
+
+        foreach ($pages as $slug => $config) {
+            try {
+                $title = $config['title'] ?? Str::title($slug);
+                $layout = $config['layout'] ?? 'default';
+
+                $this->info("Creating page '{$title}' with layout '{$layout}'");
+
+                $templateContent = $this->generateTemplateContent($slug, $layout, $config);
+                $templatePath = resource_path("views/bonsai/templates/template-{$layout}.blade.php");
+
+                if (!$this->files->exists(dirname($templatePath))) {
+                    $this->files->makeDirectory(dirname($templatePath), 0755, true);
+                }
+
+                $this->files->put($templatePath, $templateContent);
+                $this->info("Created template file: {$templatePath}");
+
+                $pageId = wp_insert_post([
+                    'post_title'   => $title,
+                    'post_name'    => $slug,
+                    'post_status'  => 'publish',
+                    'post_type'    => 'page',
+                    'meta_input'   => [
+                        '_wp_page_template' => "template-{$layout}.blade.php",
+                        '_bonsai_generated' => 'true',
+                        '_bonsai_template'  => $layout,
+                    ],
+                ]);
+
+                if (is_wp_error($pageId)) {
+                    throw new \Exception("Failed to create page: " . $pageId->get_error_message());
+                }
+
+                $this->info("Page created with ID: {$pageId}");
+
+                if (!empty($config['is_homepage'])) {
+                    $this->info("Setting as homepage...");
+                    update_option('show_on_front', 'page');
+                    update_option('page_on_front', $pageId);
+                    $this->info("Homepage set successfully");
+                }
+
+            } catch (\Exception $e) {
+                $this->error("Failed to generate page '{$slug}': " . $e->getMessage());
+            }
+        }
+    }
+
     protected function generateTemplateContent($template, $layout, $config)
     {
-        // Get layout sections from configuration
         $layoutSections = $this->getLayoutSections($layout);
-        
-        // Filter out site_header from sections since it's in the layout
-        $contentSections = array_filter($layoutSections, function($section) {
-            return $section !== 'site_header';
-        });
-        
-        // Capitalize the first letter of template name
+
+        $contentSections = array_filter($layoutSections, fn($section) => $section !== 'site_header');
+
         $templateName = ucfirst($template);
-        
-        // Generate section includes with correct namespace syntax
+
         $sectionIncludes = collect($contentSections)
             ->map(fn($section) => "@include('bonsai.sections.{$section}')")
             ->implode("\n    ");
@@ -419,12 +446,10 @@ BLADE;
 
     protected function getLayoutSections($layoutName)
     {
-        // Get the template name and config
         $template = $this->argument('template');
         $configPath = $this->option('config') ?? $this->getConfigPath($template);
         $config = $this->loadConfig($configPath);
-        
-        // Get sections from the layout configuration
+
         return $config['layouts'][$layoutName]['sections'] ?? [];
     }
 
@@ -435,11 +460,10 @@ BLADE;
         }
 
         $this->info('Configuring database...');
-        
+
         if (!empty($database['seeds'])) {
             foreach ($database['seeds'] as $seeder) {
                 try {
-                    // Check if seeder class exists
                     if (!class_exists("Database\\Seeders\\{$seeder}")) {
                         $this->warn("Seeder not found, skipping: {$seeder}");
                         continue;
@@ -473,52 +497,44 @@ BLADE;
         if (empty($settings)) {
             return;
         }
-    
+
         $this->info('Configuring site settings...');
-    
-        // Get current theme settings before we start
+
         $currentTemplate = get_option('template');
         $currentStylesheet = get_option('stylesheet');
-    
-        // Get the template name and config
+
         $template = $this->argument('template');
         $configPath = $this->option('config') ?? $this->getConfigPath($template);
         $config = $this->loadConfig($configPath);
-    
-        // Update site name based on template configuration
+
         if (isset($config['name'])) {
             update_option('blogname', $config['name']);
             $this->info("Updated site name to: {$config['name']}");
         }
-    
-        // WordPress options
+
         foreach ($settings['options'] ?? [] as $option => $value) {
-            // Skip theme-related settings
-            if (in_array($option, ['template', 'stylesheet', 'current_theme']) || 
+            if (in_array($option, ['template', 'stylesheet', 'current_theme']) ||
                 strpos($option, 'theme_mods_') === 0) {
                 $this->line("Skipping theme setting: {$option}");
                 continue;
             }
-            
+
             update_option($option, $value);
         }
-    
-        // Environment variables
+
         if (!empty($settings['env'])) {
             $this->updateEnvFile($settings['env']);
         }
-    
-        // API keys and credentials
+
         if (!empty($settings['api_keys'])) {
             $this->storeApiKeys($settings['api_keys']);
         }
-    
-        // Verify theme settings haven't changed
+
         if (get_option('template') !== $currentTemplate) {
             $this->warn("Theme template was modified, restoring to: {$currentTemplate}");
             update_option('template', $currentTemplate);
         }
-    
+
         if (get_option('stylesheet') !== $currentStylesheet) {
             $this->warn("Theme stylesheet was modified, restoring to: {$currentStylesheet}");
             update_option('stylesheet', $currentStylesheet);
@@ -548,7 +564,6 @@ BLADE;
     protected function storeApiKeys($apiKeys)
     {
         foreach ($apiKeys as $service => $keys) {
-            // Store API keys in .env
             $this->updateEnvFile($keys);
         }
     }
@@ -556,20 +571,18 @@ BLADE;
     protected function copyComponentIcon($iconName)
     {
         $sourcePath = __DIR__ . "/../../templates/components/icons/{$iconName}.blade.php";
-        
+
         if (!file_exists($sourcePath)) {
             $this->error("Icon not found: {$sourcePath}");
             return;
         }
 
-        // Create the icons directory if it doesn't exist
         $targetDir = resource_path("views/bonsai/components/icons");
         if (!$this->files->exists($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
             $this->info("Created icons directory: {$targetDir}");
         }
 
-        // Copy the icon file
         $targetPath = "{$targetDir}/{$iconName}.blade.php";
         $this->files->copy($sourcePath, $targetPath);
         $this->info("Installed icon at: {$targetPath}");
@@ -579,28 +592,24 @@ BLADE;
     {
         $this->info('Checking Heroicons setup...');
 
-        // Check if blade-icons is installed
         if (!class_exists(\BladeUI\Icons\BladeIconsServiceProvider::class)) {
             $this->warn('⚠️  blade-icons package not found.');
             $this->warn('Run: composer require blade-ui-kit/blade-icons');
             return false;
         }
 
-        // Check if blade-heroicons is installed
         if (!class_exists(\BladeUI\Heroicons\BladeHeroiconsServiceProvider::class)) {
             $this->warn('⚠️  blade-heroicons package not found.');
             $this->warn('Run: composer require blade-ui-kit/blade-heroicons');
             return false;
         }
 
-        // Check if config exists and publish if needed
         if (!file_exists(config_path('blade-icons.php'))) {
             $this->info('Publishing blade-icons configuration...');
             $this->call('vendor:publish', [
                 '--tag' => 'blade-icons'
             ]);
 
-            // Update the config with correct paths
             $configPath = config_path('blade-icons.php');
             if (file_exists($configPath)) {
                 $config = file_get_contents($configPath);
@@ -614,7 +623,6 @@ BLADE;
             }
         }
 
-        // Register providers in config/app.php if not already registered
         $appConfig = config_path('app.php');
         if (file_exists($appConfig)) {
             $content = file_get_contents($appConfig);
@@ -626,7 +634,6 @@ BLADE;
             $modified = false;
             foreach ($providers as $provider) {
                 if (strpos($content, $provider) === false) {
-                    // Find the providers array
                     $pattern = "/('providers' => \[\s*)(.*?)(\s*\])/s";
                     if (preg_match($pattern, $content, $matches)) {
                         $newContent = $matches[1] . $matches[2] . "        " . $provider . "::class,\n" . $matches[3];
@@ -642,14 +649,12 @@ BLADE;
             }
         }
 
-        // Create icons directory if it doesn't exist
         $iconsPath = resource_path('images/icons');
         if (!is_dir($iconsPath)) {
             mkdir($iconsPath, 0755, true);
             $this->info("Created icons directory at: {$iconsPath}");
         }
 
-        // Cache icons in production
         if (app()->environment('production') && !cache()->has('blade-icons')) {
             $this->call('icons:cache');
         }
@@ -664,87 +669,8 @@ BLADE;
         $this->info('Run `npm run dev` to compile assets.');
     }
 
-    protected function generatePages($pages)
+    protected function importSqlFile($file)
     {
-        $this->info('Generating pages...');
-        
-        foreach ($pages as $slug => $config) {
-            try {
-                $title = $config['title'] ?? Str::title($slug);
-                $layout = $config['layout'] ?? 'default';
-                
-                $this->info("Creating page '{$title}' with layout '{$layout}'");
-                
-                // Generate template file first
-                $templateContent = $this->generateTemplateContent($slug, $layout, $config);
-                $templatePath = resource_path("views/bonsai/templates/template-{$layout}.blade.php");
-                
-                // Ensure templates directory exists
-                if (!$this->files->exists(dirname($templatePath))) {
-                    $this->files->makeDirectory(dirname($templatePath), 0755, true);
-                }
-                
-                // Write template file
-                $this->files->put($templatePath, $templateContent);
-                $this->info("Created template file: {$templatePath}");
-                
-                // Create or update the page in WordPress
-                $pageId = wp_insert_post([
-                    'post_title'   => $title,
-                    'post_name'    => $slug,
-                    'post_status'  => 'publish',
-                    'post_type'    => 'page',
-                    'meta_input'   => [
-                        '_wp_page_template' => "template-{$layout}.blade.php",
-                        '_bonsai_generated' => 'true',
-                        '_bonsai_template'  => $layout,
-                    ],
-                ]);
-
-                if (is_wp_error($pageId)) {
-                    throw new \Exception("Failed to create page: " . $pageId->get_error_message());
-                }
-
-                $this->info("Page created with ID: {$pageId}");
-
-                // Set as homepage if specified
-                if (!empty($config['is_homepage'])) {
-                    $this->info("Setting as homepage...");
-                    update_option('show_on_front', 'page');
-                    update_option('page_on_front', $pageId);
-                    $this->info("Homepage set successfully");
-                }
-
-            } catch (\Exception $e) {
-                $this->error("Failed to generate page '{$slug}': " . $e->getMessage());
-            }
-        }
-    }
-
-    protected function findConfigFile($template)
-    {
-        $projectRoot = $this->laravel->basePath();
-        $possiblePaths = [
-            // First check in project's bonsai templates directory (new location)
-            "{$projectRoot}/config/bonsai/templates/{$template}.yml",
-            
-            // Then check legacy locations
-            "{$projectRoot}/config/bonsai/{$template}.yml",
-            "{$projectRoot}/config/templates/{$template}.yml",
-            
-            // Finally check package templates
-            __DIR__ . "/../../config/templates/{$template}.yml"
-        ];
-
-        foreach ($possiblePaths as $path) {
-            $this->info("Checking: {$path}");
-            if (file_exists($path)) {
-                $this->info("Found configuration at: {$path}");
-                return $path;
-            }
-            $this->info("Not found at: {$path}");
-        }
-
-        throw new \Exception("Configuration file not found for template: {$template}");
+        // Implement if needed
     }
 }
