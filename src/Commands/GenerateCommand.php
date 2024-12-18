@@ -295,8 +295,8 @@ BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
 
-        // Special case for pricing component:
         if ($componentType === 'pricing' && !empty($data['pricingBoxes']) && is_array($data['pricingBoxes'])) {
+            // Special pricing case
             $template .= <<<BLADE
 <div class="{{ \$class }}">
     <section class="py-24" id="plans">
@@ -314,7 +314,7 @@ BLADE;
         <div class="mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-center items-start space-y-8 md:space-y-0 md:space-x-8">
                 @foreach (\${$dataVarName}['pricingBoxes'] as \$box)
-                    <x-pricing-box 
+                    <x-bonsai::pricing-box 
                         :icon="\$box['icon']"
                         :iconColor="\$box['iconColor']"
                         :planType="\$box['planType']"
@@ -332,12 +332,11 @@ BLADE;
     </section>
 </div>
 BLADE;
-
         } else {
-            // Default: single :data for other components
+            // Default scenario: always prefix with bonsai:: to ensure component resolution
             $template .= <<<BLADE
 <div class="{{ \$class }}">
-    <x-{$componentType} :data="\${$dataVarName}" />
+    <x-bonsai::{$componentType} :data="\${$dataVarName}" />
 </div>
 BLADE;
         }
