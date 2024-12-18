@@ -35,7 +35,6 @@ class GenerateCommand extends Command
 
             $config = $this->loadConfig($configPath);
 
-            // Debug configuration
             $this->info("\nConfiguration loaded:");
             $this->info("- Name: " . ($config['name'] ?? 'Not set'));
             $this->info("- Components: " . json_encode($config['components'] ?? []));
@@ -43,7 +42,6 @@ class GenerateCommand extends Command
             $this->info("- Layouts: " . json_encode($config['layouts'] ?? []));
             $this->info("- Pages: " . json_encode($config['pages'] ?? []));
 
-            // Verify the home page configuration
             if (isset($config['pages']['home'])) {
                 $this->info("\nHome page configuration:");
                 $this->info("- Title: " . ($config['pages']['home']['title'] ?? 'Not set'));
@@ -53,10 +51,8 @@ class GenerateCommand extends Command
                 $this->warn("\nNo home page configuration found");
             }
 
-            // Check Heroicons setup before generating components
             $hasHeroicons = $this->checkHeroiconsSetup();
 
-            // Execute generation steps in sequence
             $this->generateComponents($config['components'] ?? [], $hasHeroicons);
             $this->generateSections($config['sections'] ?? []);
             $this->generateLayouts($config['layouts'] ?? []);
@@ -295,42 +291,203 @@ BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
 
-        if ($componentType === 'pricing' && !empty($data['pricingBoxes']) && is_array($data['pricingBoxes'])) {
-            // Special pricing case
-            $template .= <<<BLADE
-<div class="{{ \$class }}">
-    <section class="py-24" id="plans">
-        <div class="py-12">
-            <div class="mx-auto px-4 text-center">
-                <div class="inline-flex items-center gap-2 rounded-md bg-white text-sm px-3 py-1 text-center mb-4">
-                    <x-heroicon-s-calendar-days class="h-6 w-6" />
-                    <span class="text-gray-400">{{ \${$dataVarName}['subtitle'] ?? '' }}</span>
-                </div>
-                <h2 class="text-5xl font-bold text-gray-900 mb-4 pt-4">{{ \${$dataVarName}['title'] ?? '' }}</h2>
-                <p class="text-gray-500 mb-8">{{ \${$dataVarName}['description'] ?? '' }}</p>
-            </div>
-        </div>
+        if ($componentType === 'pricing') {
+            // Here we use the exact snippet you provided for the pricing section:
+            $template = <<<BLADE
+@props([
+    'class' => ''
+])
 
-        <div class="mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-center items-start space-y-8 md:space-y-0 md:space-x-8">
-                @foreach (\${$dataVarName}['pricingBoxes'] as \$box)
-                    <x-bonsai::pricing-box 
-                        :icon="\$box['icon']"
-                        :iconColor="\$box['iconColor']"
-                        :planType="\$box['planType']"
-                        :price="\$box['price']"
-                        :features="\$box['features']"
-                        :ctaLink="\$box['ctaLink']"
-                        :ctaText="\$box['ctaText']"
-                        :ctaColor="\$box['ctaColor']"
-                        :iconBtn="\$box['iconBtn']"
-                        :iconBtnColor="\$box['iconBtnColor']"
-                    />
-                @endforeach
+@php
+// Directly insert your complex snippet here without the single :data approach.
+// This snippet will rely on Request::is() logic and define \$pricingBoxes inline.
+
+@endphp
+
+{{-- EXACT SNIPPET YOU PROVIDED --}}
+<section class="py-24" id="plans">
+    <div class="py-12">
+        <div class="mx-auto px-4 text-center">
+            <div class="inline-flex items-center gap-2 rounded-md bg-white text-sm px-3 py-1 text-center mb-4">
+                <x-heroicon-s-calendar-days class="h-6 w-6" />
+                <span class="text-gray-400">Limited-time pricing available now</span>
+            </div>
+            <h2 class="text-5xl font-bold text-gray-900 mb-4 pt-4">Choose Your Plan</h2>
+            <p class="text-gray-500 mb-8">Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel.</p>
+        </div>
+    </div>
+
+    @if (Request::is('/'))
+        @php
+            \$pricingBoxes = [
+                [
+                    'icon' => 'heroicon-o-calendar',
+                    'iconColor' => 'text-gray-400',
+                    'planType' => 'Intro Call',
+                    'price' => 'Free',
+                    'features' => [
+                        '15 minute intro call on Zoom',
+                        'Walkthrough on how it works',
+                        'Questions',
+                    ],
+                    'ctaLink' => 'https://calendly.com/mason-bonsai-so/15-minute-intro',
+                    'ctaText' => 'Book a Call',
+                    'ctaColor' => 'bg-white',
+                    'iconBtn' => 'heroicon-o-calendar',
+                    'iconBtnColor' => 'text-gray-500',
+                ],
+                [
+                    'icon' => 'heroicon-o-home',
+                    'iconColor' => 'text-gray-500',
+                    'planType' => 'Standard',
+                    'price' => '\$4,250<span class="text-xs text-gray-400">/m</span>',
+                    'features' => [
+                        'One request at a time',
+                        'Avg. 48-hour delivery',
+                        'Unlimited brands',
+                        'Unlimited team members',
+                        'Unlimited requests',
+                        'Unlimited projects',
+                        'Pause or cancel anytime',
+                        'Easy credit-card payments',
+                    ],
+                    'ctaLink' => 'https://buy.stripe.com/eVa14jb3Zco50dG8wB',
+                    'ctaText' => 'Buy now',
+                    'ctaColor' => 'pink-purple-gradient',
+                    'iconBtn' => 'heroicon-o-shopping-cart',
+                    'iconBtnColor' => 'text-gray-100',
+                ],
+                [
+                    'icon' => 'heroicon-o-building-office',
+                    'iconColor' => 'text-gray-600',
+                    'planType' => 'Pro',
+                    'price' => '\$7,250<span class="text-xs text-gray-400">/m</span>',
+                    'features' => [
+                        'Two requests in Queue',
+                        'Avg. 48-hour delivery',
+                        'Unlimited brands',
+                        'Unlimited team members',
+                        'Unlimited requests',
+                        'Unlimited projects',
+                        'Pause or cancel anytime',
+                        'Easy credit-card payments',
+                        'iOS and VisionOS apps',
+                    ],
+                    'ctaLink' => 'https://buy.stripe.com/3csfZd0pl1Jrd0saEK',
+                    'ctaText' => 'Buy now',
+                    'ctaColor' => 'text-white bonsai-gradient',
+                    'iconBtn' => 'heroicon-o-shopping-cart',
+                    'iconBtnColor' => 'text-gray-100',
+                ],
+            ];
+        @endphp
+    @elseif (Request::is('cypress'))
+        @php
+            \$pricingBoxes = [
+                [
+                    'icon' => 'heroicon-o-computer-desktop',
+                    'iconColor' => 'text-indigo-500',
+                    'planType' => 'Single Site License',
+                    'price' => '\$59<span class="text-xs text-gray-400">/yr</span>',
+                    'features' => [
+                        'Use on one site',
+                        'Access to all theme features',
+                        'One year of updates',
+                        'Standard support',
+                        'Detailed documentation',
+                    ],
+                    'ctaLink' => 'https://your-purchase-link.com/single-site',
+                    'ctaText' => 'Buy Now',
+                    'ctaColor' => 'bg-indigo-600 text-white',
+                    'iconBtn' => 'heroicon-o-shopping-cart',
+                    'iconBtnColor' => 'text-white',
+                ],
+                [
+                    'icon' => 'heroicon-o-globe-alt',
+                    'iconColor' => 'text-green-500',
+                    'planType' => 'Unlimited Sites License',
+                    'price' => '\$259<span class="text-xs text-gray-400">/yr</span>',
+                    'features' => [
+                        'Use on unlimited sites',
+                        'Access to all theme features',
+                        'One year of updates',
+                        'Priority support',
+                        'Detailed documentation',
+                        'Early access to new features',
+                    ],
+                    'ctaLink' => 'https://your-purchase-link.com/unlimited-sites',
+                    'ctaText' => 'Buy Now',
+                    'ctaColor' => 'bg-green-600 text-white',
+                    'iconBtn' => 'heroicon-o-shopping-cart',
+                    'iconBtnColor' => 'text-white',
+                ],
+                [
+                    'icon' => 'heroicon-o-star',
+                    'iconColor' => 'text-yellow-500',
+                    'planType' => 'Jackalope Labs Subscription',
+                    'price' => '\$4,250<span class="text-xs text-gray-400">/mo</span>',
+                    'features' => [
+                        'Custom design services',
+                        'Unlimited design requests',
+                        'Dedicated design team',
+                        'Customized components',
+                        'Personalized consultation',
+                        'Priority feature implementation',
+                        'Exclusive access to beta features',
+                    ],
+                    'ctaLink' => 'https://your-contact-link.com',
+                    'ctaText' => 'Contact Us',
+                    'ctaColor' => 'bg-yellow-500 text-white',
+                    'iconBtn' => 'heroicon-o-phone',
+                    'iconBtnColor' => 'text-white',
+                ],
+            ];
+        @endphp
+    @else
+        @php
+            // Default pricing data for other pages
+            // Copy from home or customize as needed
+            \$pricingBoxes = [
+                // ... same as home page or a fallback
+            ];
+        @endphp
+    @endif
+
+    <div class="mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-center items-start space-y-8 md:space-y-0 md:space-x-8">
+            @foreach (\$pricingBoxes as \$box)
+                <x-bonsai::pricing-box 
+                    :icon="\$box['icon']"
+                    :iconColor="\$box['iconColor']"
+                    :planType="\$box['planType']"
+                    :price="\$box['price']"
+                    :features="\$box['features']"
+                    :ctaLink="\$box['ctaLink']"
+                    :ctaText="\$box['ctaText']"
+                    :ctaColor="\$box['ctaColor']"
+                    :iconBtn="\$box['iconBtn']"
+                    :iconBtnColor="\$box['iconBtnColor']"
+                />
+            @endforeach
+        </div>
+    </div>
+
+    @if (Request::is('cypress'))
+        <div class="flex justify-center py-12">
+            <div class="flex flex-col md:flex-row items-center rounded-lg shadow p-4 w-full md:max-w-2xl mx-auto md:w-1/2 bg-white border border-yellow-500">
+                <x-icon-bonsai class="h-32 w-32 flex mx-5 mb-4 md:mb-0 text-yellow-500" />
+                <div class="flex-grow text-center md:text-left">
+                    <h3 class="font-semibold text-lg text-yellow-500">Elevate Your Projects with Jackalope Labs</h3>
+                    <p class="text-gray-500">Unlock unlimited custom designs and dedicated support to bring your vision to life.</p>
+                </div>
+                <a href="https://your-contact-link.com" class="mt-4 md:mt-0 bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 flex-shrink-0">
+                    Learn More
+                    <x-heroicon-o-arrow-right class="w-4 h-4 inline ml-2"/>
+                </a>
             </div>
         </div>
-    </section>
-</div>
+    @endif
+</section>
 BLADE;
         } else {
             // Default scenario: always prefix with bonsai:: to ensure component resolution
