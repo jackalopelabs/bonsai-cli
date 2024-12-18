@@ -34,7 +34,7 @@ class BonsaiServiceProvider extends ServiceProvider
         // Register Bonsai view namespace
         $this->app['view']->addNamespace('bonsai', resource_path('views/bonsai'));
 
-        // Register Blade Components
+        // Register Blade components
         $this->registerBladeComponents();
 
         // Template path filter
@@ -81,7 +81,7 @@ class BonsaiServiceProvider extends ServiceProvider
             return array_merge($page_templates, $bonsai_templates);
         });
 
-        // View composer example
+        // Example view composer
         view()->composer('bonsai.layouts.bonsai', function ($view) {
             $view->with(['containerInnerClasses' => 'px-6']);
         });
@@ -91,7 +91,7 @@ class BonsaiServiceProvider extends ServiceProvider
     {
         error_log('registerBladeComponents called in BonsaiServiceProvider');
 
-        // Register anonymous namespace for bonsai components
+        // Register an anonymous namespace for bonsai components
         Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
 
         $componentsPath = resource_path('views/bonsai/components');
@@ -108,15 +108,16 @@ class BonsaiServiceProvider extends ServiceProvider
             error_log("Registered component: {$componentName} as <x-bonsai::{$componentName}>");
         }
 
-        // Register nested components (e.g. icons)
+        // Register nested components (e.g., icons)
         $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
         foreach ($nestedDirs as $dir) {
             $dirName = basename($dir);
             $nestedFiles = glob($dir . '/*.blade.php');
-            foreach ($nestedFiles as $file) {
-                $componentName = $dirName . '.' . basename($file, '.blade.php');
-                Blade::component("bonsai.components.{$componentName}", "bonsai::{$componentName}");
-                error_log("Registered nested component: {$componentName} as <x-bonsai::{$componentName}>");
+            foreach ($nestedFiles as $nestedFile) {
+                $nestedComponentName = basename($nestedFile, '.blade.php');
+                $fullName = "{$dirName}.{$nestedComponentName}";
+                Blade::component("bonsai.components.{$fullName}", "bonsai::{$fullName}");
+                error_log("Registered nested component: {$fullName} as <x-bonsai::{$fullName}>");
             }
         }
 
