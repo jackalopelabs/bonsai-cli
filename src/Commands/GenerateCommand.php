@@ -84,7 +84,8 @@ class GenerateCommand extends Command
         if (isset($components[0])) {
             $components = array_filter($components, function($c) {
                 return in_array($c, [
-                    'hero','header','card','widget','accordion','cta','list-item','pricing-box'
+                    'hero','header','card','widget','accordion',
+                    'cta','list-item','pricing-box','feature-grid'
                 ]);
             });
             $components = array_combine($components, array_fill(0, count($components), []));
@@ -100,6 +101,8 @@ class GenerateCommand extends Command
                 $this->copyComponentTemplate('accordion');
                 $this->copyComponentTemplate('cta');
                 $this->copyComponentTemplate('list-item');
+            } else if ($componentName === 'feature-grid') {
+                $this->info("Installing feature-grid component...");
             }
         }
     }
