@@ -35,6 +35,7 @@ components:
   - card
   - widget
   - pricing-box
+  - feature-grid
 
 sections:
   site_header:
