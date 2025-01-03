@@ -36,8 +36,7 @@
             @foreach ($features as $feature)
                 <div class="{{ $featureCardClasses }}">
                     <div class="{{ $iconWrapperClasses }}">
-                        <x-dynamic-component 
-                            :component="$feature['icon']"
+                        <x-{{ $feature['icon'] }} 
                             class="{{ $iconClasses }}"
                         />
                     </div>
