@@ -33,7 +33,7 @@ document.addEventListener('alpine:init', () => {
             <a class="py-3 font-bold text-lg block" href="{{ home_url('/') }}">
                 <div class="flex items-center">
                     <x-{{ $iconComponent }} class="{{ $iconClasses }}" />
-                    {!! $siteName !!}
+                    <span>{!! $siteName !!}</span>
                 </div>
             </a>
         
