@@ -8,6 +8,10 @@
   $navLinks = $data['navLinks'] ?? [];
   $primaryLink = $data['primaryLink'] ?? '#pricing';
   $headerClass = $data['headerClass'] ?? 'bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
+  
+  // Icon classes
+  $iconClasses = $data['iconClasses'] ?? 'h-8 w-8 mr-2 p-1';
+  $chevronClasses = $data['chevronClasses'] ?? 'w-4 h-4 ml-2 inline-block';
 @endphp
 
 <script>
@@ -28,13 +32,7 @@ document.addEventListener('alpine:init', () => {
         <div class="flex">
             <a class="py-3 font-bold text-lg block" href="{{ home_url('/') }}">
                 <div class="flex items-center">
-                    @if(str_starts_with($iconComponent, 'heroicon'))
-                        <x-dynamic-component :component="$iconComponent" class="h-8 w-8 mr-2 p-1" />
-                    @else
-                        <div class="h-8 w-8 mr-2 p-1">
-                            <x-heroicon-o-cube class="h-full w-full" />
-                        </div>
-                    @endif
+                    <x-{{ $iconComponent }} class="{{ $iconClasses }}" />
                     {!! $siteName !!}
                 </div>
             </a>
@@ -51,7 +49,7 @@ document.addEventListener('alpine:init', () => {
         </div>
         <div class="flex space-x-4 items-center">
             <a href="{{ $primaryLink }}" class="btn bg-white py-2 px-4 border border-transparent rounded-full bg-opacity-60 backdrop-blur-md shadow-lg" x-on:click.prevent="scrollTo('{{ $primaryLink }}')">
-                <span class="hidden sm:inline">See</span> Plans <x-heroicon-s-chevron-down class="w-4 h-4 ml-2 inline-block"/>
+                <span class="hidden sm:inline">See</span> Plans <x-heroicon-s-chevron-down class="{{ $chevronClasses }}"/>
             </a>              
         </div>
     </div>
