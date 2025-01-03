@@ -89,6 +89,22 @@ sections:
         {"url": "#features", "label": "Features"},
         {"url": "#docs", "label": "Documentation"}
       ]
+      # Style classes
+      sectionClasses: "py-12"
+      containerClasses: "max-w-4xl mx-auto px-6"
+      navContainerClasses: "flex flex-col sm:flex-row flex-wrap items-start mb-6 justify-center md:justify-center"
+      titleClasses: "text-lg text-gray-700 bg-white p-3 rounded-lg mr-4 mb-4 sm:mb-0"
+      titleIconClasses: "w-4 h-4 ml-2 inline-block align-middle"
+      navLinkClasses: "text-lg text-gray-700 p-3 mb-4 sm:mb-0 hidden sm:inline"
+      navLinkIconClasses: "w-4 h-4 ml-2 inline-block align-middle"
+      # Card styles
+      cardContainerClasses: "bg-white bg-opacity-50 grid md:grid-cols-2 gap-8 rounded-3xl p-3"
+      imageColumnClasses: "md:w-1/2 mx-auto"
+      featuresColumnClasses: "md:w-2/2 space-y-6"
+      featureItemClasses: "flex items-start space-x-4 bg-white rounded-xl p-3"
+      featureIconClasses: "h-6 w-6 text-indigo-500"
+      featureTitleClasses: "text-lg font-semibold"
+      featureDescriptionClasses: "text-sm text-gray-500"
       featureItems: [
         {
           "icon": "heroicon-o-command-line",
