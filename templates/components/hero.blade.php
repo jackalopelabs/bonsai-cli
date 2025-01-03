@@ -14,6 +14,19 @@
   $secondaryText = $data['secondaryText'] ?? null;
   $secondaryLink = $data['secondaryLink'] ?? null;
   $imagePaths = $data['imagePaths'] ?? [];
+  
+  // Style classes
+  $containerClasses = $data['containerClasses'] ?? 'container mx-auto px-4 mb-12 mt-0 md:mt-24';
+  $columnClasses = $data['columnClasses'] ?? 'flex flex-col md:flex-row items-center md:items-start -mx-4';
+  $imageColumnClasses = $data['imageColumnClasses'] ?? 'w-full md:w-1/2 px-4 flex justify-center items-center mt-12 md:mt-0 md:order-last';
+  $textColumnClasses = $data['textColumnClasses'] ?? 'w-full md:w-1/2 px-4';
+  $productTagClasses = $data['productTagClasses'] ?? 'bg-white bg-opacity-50 px-3 py-1 text-sm inline-block';
+  $productIconClasses = $data['productIconClasses'] ?? 'w-4 h-4 ml-2 inline-block align-middle';
+  $buttonClasses = $data['buttonClasses'] ?? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-xl py-2 px-5 rounded-full';
+  $buttonIconClasses = $data['buttonIconClasses'] ?? 'text-white w-6 h-6 ml-2 inline-block align-middle';
+  $secondaryClasses = $data['secondaryClasses'] ?? 'text-sm bg-transparent px-2 py-1 backdrop-blur-md shadow-lg rounded-md border border-gray-100';
+  $secondaryIconClasses = $data['secondaryIconClasses'] ?? 'w-4 h-4 ml-2 inline-block align-middle';
+  
   $iconMappings = $data['iconMappings'] ?? [
     'dropdownIcon' => 'heroicon-s-chevron-down',
     'buttonLinkIcon' => 'heroicon-s-shopping-cart',
@@ -21,11 +34,11 @@
   ];
 @endphp
 
-<div class="container mx-auto px-4 mb-12 mt-0 md:mt-24">
-    <div class="flex flex-col md:flex-row items-center md:items-start -mx-4">
+<div class="{{ $containerClasses }}">
+    <div class="{{ $columnClasses }}">
         <!-- Image Column with Slideshow -->
         @if(!empty($imagePaths) && is_array($imagePaths))
-            <div class="w-full md:w-1/2 px-4 flex justify-center items-center mt-12 md:mt-0 md:order-last">
+            <div class="{{ $imageColumnClasses }}">
                 <div class="relative">
                     @foreach($imagePaths as $index => $path)
                         <img src="{{ $path }}" 
@@ -39,12 +52,12 @@
         @endif
 
         <!-- Text Column -->
-        <div class="w-full md:w-1/2 px-4">
+        <div class="{{ $textColumnClasses }}">
             @if($product)
-                <div class="bg-white bg-opacity-50 px-3 py-1 text-sm inline-block">
+                <div class="{{ $productTagClasses }}">
                     {{ $product }} 
                     @if($dropdownIcon)
-                        <x-dynamic-component :component="$iconMappings['dropdownIcon']" class="w-4 h-4 ml-2 inline-block align-middle" />
+                        <x-dynamic-component :component="$iconMappings['dropdownIcon']" class="{{ $productIconClasses }}" />
                     @endif
                 </div>
             @endif
@@ -65,19 +78,19 @@
 
             <div class="flex flex-col items-start">
                 @if($buttonText && $buttonLink)
-                    <a href="{{ $buttonLink }}" class="bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-xl py-2 px-5 rounded-full mb-2 inline-flex items-center justify-center">
+                    <a href="{{ $buttonLink }}" class="{{ $buttonClasses }} mb-2 inline-flex items-center justify-center">
                         {{ $buttonText }}
                         @if($buttonLinkIcon)
-                            <x-dynamic-component :component="$iconMappings['buttonLinkIcon']" class="text-white w-6 h-6 ml-2 inline-block align-middle" />
+                            <x-dynamic-component :component="$iconMappings['buttonLinkIcon']" class="{{ $buttonIconClasses }}" />
                         @endif
                     </a>
                 @endif
 
                 @if($secondaryText && $secondaryLink)
-                    <a href="{{ $secondaryLink }}" class="text-sm bg-transparent px-2 py-1 backdrop-blur-md shadow-lg rounded-md inline-flex items-center justify-center border border-gray-100">
+                    <a href="{{ $secondaryLink }}" class="{{ $secondaryClasses }} inline-flex items-center justify-center">
                         {{ $secondaryText }}
                         @if($secondaryIcon)
-                            <x-dynamic-component :component="$iconMappings['secondaryIcon']" class="w-4 h-4 ml-2 inline-block align-middle" />
+                            <x-dynamic-component :component="$iconMappings['secondaryIcon']" class="{{ $secondaryIconClasses }}" />
                         @endif
                     </a>
                 @endif
