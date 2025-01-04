@@ -36,13 +36,11 @@
                     @if(isset($item['listItems']) && is_array($item['listItems']))
                         <div class="grid md:grid-cols-2 gap-4 mt-4">
                             @foreach ($item['listItems'] as $listItem)
-                                <x-bonsai::list-item 
-                                    :data="[
-                                        'number' => $listItem['number'],
-                                        'itemName' => $listItem['itemName'],
-                                        'text' => $listItem['text']
-                                    ]"
-                                />
+                                @php
+                                    // Merge global styles with list item data
+                                    $listItem['globalStyles'] = $data['listItemStyles'] ?? [];
+                                @endphp
+                                <x-bonsai::list-item :data="$listItem" />
                             @endforeach
                         </div>
                     @endif
