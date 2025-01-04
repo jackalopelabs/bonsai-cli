@@ -276,11 +276,18 @@ BLADE;
 
     protected function generateLayouts($layouts)
     {
+        $config = $this->loadConfig($this->getConfigPath($this->argument('template')));
+        $themeSettings = $config['theme'] ?? [
+            'body' => ['class' => 'bg-gray-100']
+        ];
+
         foreach ($layouts as $layout => $layoutConfig) {
             $layoutPath = resource_path("views/bonsai/layouts/{$layout}.blade.php");
             if (!$this->files->exists(dirname($layoutPath))) {
                 $this->files->makeDirectory(dirname($layoutPath), 0755, true);
             }
+
+            $bodyClass = $themeSettings['body']['class'] ?? 'bg-gray-100';
 
             $layoutContent = <<<BLADE
 <!doctype html>
@@ -292,7 +299,7 @@ BLADE;
         @php(wp_head())
         @include('utils.styles')
     </head>
-    <body @php(body_class())>
+    <body @php(body_class("{$bodyClass}"))>
         @php(wp_body_open())
         <div id="app">
             <a class="sr-only focus:not-sr-only" href="#main">
