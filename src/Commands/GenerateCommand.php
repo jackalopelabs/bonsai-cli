@@ -287,10 +287,6 @@ BLADE;
                 $this->files->makeDirectory(dirname($layoutPath), 0755, true);
             }
 
-            $bodyClass = $themeSettings['body']['class'] ?? 'bg-gray-100';
-
-            // Force update existing layout
-            $this->info("Updating layout: {$layout}");
             $layoutContent = <<<BLADE
 <!doctype html>
 <html @php(language_attributes())>
@@ -301,9 +297,9 @@ BLADE;
         @php(wp_head())
         @include('utils.styles')
     </head>
-    <body @php(body_class("{$bodyClass}"))>
+    <body @php(body_class())>
         @php(wp_body_open())
-        <div id="app">
+        <div id="app" class="{{ \$themeSettings['body']['class'] ?? 'bg-gray-100' }}">
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
@@ -322,9 +318,7 @@ BLADE;
 </html>
 BLADE;
 
-            // Always update the layout file
             $this->files->put($layoutPath, $layoutContent);
-            $this->info("✓ Layout updated with theme settings: {$layoutPath}");
         }
     }
 

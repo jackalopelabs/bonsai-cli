@@ -101,12 +101,9 @@ class LayoutCommand extends Command
         @php(wp_head())
         @include('utils.styles')
     </head>
-
-    <body @php(body_class("{$bodyClass}"))>
+    <body @php(body_class())>
         @php(wp_body_open())
-        @php(\$containerInnerClasses = 'container mx-auto px-4 py-8')
-
-        <div id="app">
+        <div id="app" class="{{ \$themeSettings['body']['class'] ?? 'bg-gray-100' }}">
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>

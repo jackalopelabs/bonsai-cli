@@ -37,6 +37,9 @@ class BonsaiServiceProvider extends ServiceProvider
         // Register Blade components
         $this->registerBladeComponents();
 
+        // Load theme settings
+        $this->loadThemeSettings();
+
         // Template path filter
         add_filter('template_include', function($template) {
             $template_slug = get_page_template_slug();
@@ -85,6 +88,38 @@ class BonsaiServiceProvider extends ServiceProvider
         view()->composer('bonsai.layouts.bonsai', function ($view) {
             $view->with(['containerInnerClasses' => 'px-6']);
         });
+    }
+
+    protected function loadThemeSettings()
+    {
+        $template = 'bonsai'; // Default template
+        $configPaths = [
+            base_path("config/bonsai/templates/{$template}.yml"),
+            base_path("config/bonsai/{$template}.yml"),
+            base_path("config/templates/{$template}.yml"),
+            __DIR__ . "/../../config/templates/{$template}.yml"
+        ];
+
+        foreach ($configPaths as $path) {
+            if (file_exists($path)) {
+                $config = \Symfony\Component\Yaml\Yaml::parseFile($path);
+                $themeSettings = $config['theme'] ?? [
+                    'body' => ['class' => 'bg-gray-100']
+                ];
+
+                // Share theme settings with all views
+                view()->share('themeSettings', $themeSettings);
+
+                // Add body class filter
+                add_filter('body_class', function($classes) use ($themeSettings) {
+                    $bodyClass = $themeSettings['body']['class'] ?? 'bg-gray-100';
+                    $classes[] = $bodyClass;
+                    return $classes;
+                });
+
+                break;
+            }
+        }
     }
 
     protected function registerBladeComponents()
