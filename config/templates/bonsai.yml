@@ -55,6 +55,8 @@ sections:
       # Add icon classes
       iconClasses: "h-8 w-8 mr-2 p-1"
       chevronClasses: "w-4 h-4 ml-2 inline-block"
+      buttonText: "Plans"
+      buttonPrefix: "See"
   
   home_hero:
     component: hero

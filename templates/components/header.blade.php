@@ -12,6 +12,8 @@
   // Icon classes
   $iconClasses = $data['iconClasses'] ?? 'h-8 w-8 mr-2 p-1';
   $chevronClasses = $data['chevronClasses'] ?? 'w-4 h-4 ml-2 inline-block';
+  $buttonText = $data['buttonText'] ?? 'Plans';
+  $buttonPrefix = $data['buttonPrefix'] ?? 'See';
 @endphp
 
 <script>
@@ -55,7 +57,7 @@ document.addEventListener('alpine:init', () => {
         </div>
         <div class="flex space-x-4 items-center">
             <a href="{{ $primaryLink }}" class="btn bg-white py-2 px-4 border border-transparent rounded-full bg-opacity-60 backdrop-blur-md shadow-lg" x-on:click.prevent="scrollTo('{{ $primaryLink }}')">
-                <span class="hidden sm:inline">See</span> Plans <x-heroicon-s-chevron-down class="{{ $chevronClasses }}"/>
+                <span class="hidden sm:inline">{{ $buttonPrefix }}</span> {{ $buttonText }} <x-heroicon-s-chevron-down class="{{ $chevronClasses }}"/>
             </a>              
         </div>
     </div>
