@@ -15,17 +15,17 @@
   $secondaryLink = $data['secondaryLink'] ?? null;
   $imagePaths = $data['imagePaths'] ?? [];
   
-  // Style classes
-  $containerClasses = $data['containerClasses'] ?? 'container mx-auto px-4 mb-12 mt-0 md:mt-24';
-  $columnClasses = $data['columnClasses'] ?? 'flex flex-col md:flex-row items-center md:items-start -mx-4';
-  $imageColumnClasses = $data['imageColumnClasses'] ?? 'w-full md:w-1/2 px-4 flex justify-center items-center mt-12 md:mt-0 md:order-last';
-  $textColumnClasses = $data['textColumnClasses'] ?? 'w-full md:w-1/2 px-4';
-  $productTagClasses = $data['productTagClasses'] ?? 'bg-white bg-opacity-50 px-3 py-1 text-sm inline-block';
-  $productIconClasses = $data['productIconClasses'] ?? 'w-4 h-4 ml-2 inline-block align-middle';
-  $buttonClasses = $data['buttonClasses'] ?? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-xl py-2 px-5 rounded-full';
-  $buttonIconClasses = $data['buttonIconClasses'] ?? 'text-white w-6 h-6 ml-2 inline-block align-middle';
-  $secondaryClasses = $data['secondaryClasses'] ?? 'text-sm bg-transparent px-2 py-1 backdrop-blur-md shadow-lg rounded-md border border-gray-100';
-  $secondaryIconClasses = $data['secondaryIconClasses'] ?? 'w-4 h-4 ml-2 inline-block align-middle';
+  // Style classes from data
+  $containerClasses = $data['containerClasses'] ?? '';
+  $columnClasses = $data['columnClasses'] ?? '';
+  $imageColumnClasses = $data['imageColumnClasses'] ?? '';
+  $textColumnClasses = $data['textColumnClasses'] ?? '';
+  $productTagClasses = $data['productTagClasses'] ?? '';
+  $productIconClasses = $data['productIconClasses'] ?? '';
+  $buttonClasses = $data['buttonClasses'] ?? '';
+  $buttonIconClasses = $data['buttonIconClasses'] ?? '';
+  $secondaryClasses = $data['secondaryClasses'] ?? '';
+  $secondaryIconClasses = $data['secondaryIconClasses'] ?? '';
   
   $iconMappings = $data['iconMappings'] ?? [
     'dropdownIcon' => 'heroicon-s-chevron-down',
