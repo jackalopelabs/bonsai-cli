@@ -102,7 +102,7 @@ class LayoutCommand extends Command
         @include('utils.styles')
     </head>
 
-    <body @php(body_class()) class="{$bodyClass}">
+    <body @php(body_class("{$bodyClass}"))>
         @php(wp_body_open())
         @php(\$containerInnerClasses = 'container mx-auto px-4 py-8')
 
@@ -153,7 +153,7 @@ BLADE;
         @include('utils.styles')
     </head>
 
-    <body @php(body_class()) class="{$bodyClass}">
+    <body @php(body_class("{$bodyClass}"))>
         @php(wp_body_open())
         @php(\$containerInnerClasses = 'container mx-auto px-4 py-8')
 
