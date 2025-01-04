@@ -108,10 +108,10 @@ sections:
     data:
       # Global widget styles
       globalStyles:
-        containerClasses: "bg-white bg-opacity-30 shadow-lg rounded-xl"
+        containerClasses: "container mx-auto p-4 rounded-xl shadow-lg bg-white bg-opacity-30"
         contentClasses: "p-2"
-        descriptionClasses: "text-gray-600 text-sm"
-        noteClasses: "text-gray-600 text-sm"
+        descriptionClasses: "mt-6 text-gray-600 text-sm"
+        noteClasses: "mt-6 text-gray-600 text-sm"
         noteLabelClasses: "font-bold"
 
       # Global list item styles
