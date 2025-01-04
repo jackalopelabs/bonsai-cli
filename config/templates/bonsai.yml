@@ -138,102 +138,13 @@ sections:
   features_widget:
     component: widget
     data:
-      # Global list item styles
-      listItemStyles:
-        listItemClasses: "flex items-start py-2"
-        numberClasses: "flex-shrink-0 flex items-center justify-center text-white mr-4 bg-gray-600 rounded-full w-8 h-8 text-sm"
-        contentClasses: ""
-        titleClasses: "font-semibold"
-        textClasses: "text-sm text-gray-500"
-      
-      # Global CTA styles
-      ctaStyles:
-        containerClasses: "cta bg-white bg-opacity-50 rounded-lg flex items-center space-x-8 mt-2"
-        imageClasses: "w-44 h-44 object-cover rounded-xl"
-        contentContainerClasses: "flex items-center justify-between flex-1"
-        titleClasses: "text-xl font-semibold"
-        buttonClasses: "inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-        buttonIconClasses: "w-4 h-4 ml-2"
-      
-      items:
-        - id: "widget-1"
-          title: "Component Generation"
-          icon: "heroicon-o-command-line"
-          content: ""
-          cta:
-            title: "Component Generation"
-            link: "#components"
-            imagePath: "https://placehold.co/600x400/png"
-            buttonText: "Learn more"
-          description: "Generate and manage reusable components with ease:"
-          listItems:
-            - number: 1
-              itemName: "Quick Setup"
-              text: "Initialize your project with bonsai:init"
-            - number: 2
-              itemName: "Component Library"
-              text: "Access pre-built components ready for customization"
-            - number: 3
-              itemName: "Custom Components"
-              text: "Create your own components with simple commands"
-
-        - id: "widget-2"
-          title: "Section Builder"
-          icon: "heroicon-o-puzzle-piece"
-          content: ""
-          cta:
-            title: "Section Builder"
-            link: "#sections"
-            imagePath: "https://placehold.co/600x400/png"
-          description: "Build dynamic page sections with powerful features:"
-          listItems:
-            - number: 1
-              itemName: "Dynamic Data"
-              text: "Configure sections using YAML files"
-            - number: 2
-              itemName: "Reusable Sections"
-              text: "Create once, use anywhere in your site"
-            - number: 3
-              itemName: "Flexible Layout"
-              text: "Combine sections into custom page layouts"
-
-        - id: "widget-3"
-          title: "Template System"
-          icon: "heroicon-o-template"
-          content: ""
-          cta:
-            title: "Template System"
-            link: "#templates"
-            imagePath: "https://placehold.co/600x400/png"
-          description: "Generate complete WordPress sites from templates:"
-          listItems:
-            - number: 1
-              itemName: "Pre-built Templates"
-              text: "Start with our collection of ready-to-use templates"
-            - number: 2
-              itemName: "Custom Templates"
-              text: "Create your own templates for reuse"
-            - number: 3
-              itemName: "WordPress Integration"
-              text: "Seamlessly works with WordPress and Sage"
-
-      # Accordion style configurations
-      accordionClasses: "flex items-center space-x-2 cursor-pointer px-3"
-      activeAccordionClasses: "bg-white bg-opacity-50 rounded-xl p-3"
-      containerClasses: "my-4"
-      iconContainerClasses: "h-10 w-10 flex items-center justify-center mr-2"
-      activeIconContainerClasses: "bg-gradient-to-r from-emerald-600 to-green-500 rounded-full"
-      inactiveIconContainerClasses: "bg-white rounded-full"
-      iconClasses: "inline-block h-4 w-4"
-      activeIconClasses: "text-white"
-      inactiveIconClasses: "text-gray-700"
-      titleClasses: "font-bold"
-      contentClasses: "text-gray-400"
-      contentWrapperClasses: "flex-1"
-      iconPaths:
-        template: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
-        command-line: "M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-        puzzle-piece: "M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"
+      # Global widget styles
+      globalStyles:
+        containerClasses: "bg-white bg-opacity-30 shadow-lg rounded-xl"
+        contentClasses: "p-2"
+        descriptionClasses: "text-gray-600 text-sm"
+        noteClasses: "text-gray-600 text-sm"
+        noteLabelClasses: "font-bold"
 
   pricing:
     component: pricing-box
