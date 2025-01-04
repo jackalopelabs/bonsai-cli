@@ -289,6 +289,8 @@ BLADE;
 
             $bodyClass = $themeSettings['body']['class'] ?? 'bg-gray-100';
 
+            // Force update existing layout
+            $this->info("Updating layout: {$layout}");
             $layoutContent = <<<BLADE
 <!doctype html>
 <html @php(language_attributes())>
@@ -320,7 +322,9 @@ BLADE;
 </html>
 BLADE;
 
+            // Always update the layout file
             $this->files->put($layoutPath, $layoutContent);
+            $this->info("✓ Layout updated with theme settings: {$layoutPath}");
         }
     }
 
