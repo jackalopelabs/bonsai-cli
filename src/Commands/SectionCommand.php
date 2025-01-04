@@ -100,6 +100,90 @@ class SectionCommand extends Command
             $this->error("Error loading template configuration: " . $e->getMessage());
         }
 
+        if ($componentName === 'pricing-box') {
+            return [
+                'title' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter section title',
+                    'default' => 'Choose Your Plan'
+                ],
+                'subtitle' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter subtitle',
+                    'default' => 'Limited-time pricing available now'
+                ],
+                'description' => [
+                    'type' => 'string',
+                    'prompt' => 'Enter description',
+                    'default' => 'Select the plan that best suits your needs.'
+                ],
+                'pricingBoxes' => [
+                    'type' => 'array',
+                    'prompt' => 'How many pricing boxes?',
+                    'default' => 3,
+                    'schema' => [
+                        'icon' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter icon name (e.g., heroicon-o-command-line)',
+                            'default' => 'heroicon-o-command-line'
+                        ],
+                        'iconColor' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter icon color class',
+                            'default' => 'text-gray-400'
+                        ],
+                        'planType' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter plan type',
+                            'default' => 'Basic'
+                        ],
+                        'price' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter price',
+                            'default' => 'Free'
+                        ],
+                        'features' => [
+                            'type' => 'array',
+                            'prompt' => 'How many features?',
+                            'default' => 3,
+                            'schema' => [
+                                'feature' => [
+                                    'type' => 'string',
+                                    'prompt' => 'Enter feature',
+                                    'default' => 'Feature item'
+                                ]
+                            ]
+                        ],
+                        'ctaLink' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA link',
+                            'default' => '#'
+                        ],
+                        'ctaText' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA text',
+                            'default' => 'Get Started'
+                        ],
+                        'ctaColor' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA color class',
+                            'default' => 'bg-white'
+                        ],
+                        'iconBtn' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter button icon name',
+                            'default' => 'heroicon-o-arrow-right'
+                        ],
+                        'iconBtnColor' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter button icon color class',
+                            'default' => 'text-gray-500'
+                        ]
+                    ]
+                ]
+            ];
+        }
+
         return [
             'title' => [
                 'type' => 'string',
