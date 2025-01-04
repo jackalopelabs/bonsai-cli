@@ -146,6 +146,15 @@ sections:
         titleClasses: "font-semibold"
         textClasses: "text-sm text-gray-500"
       
+      # Global CTA styles
+      ctaStyles:
+        containerClasses: "cta bg-white bg-opacity-50 rounded-lg flex items-center space-x-8 mt-2"
+        imageClasses: "w-44 h-44 object-cover rounded-xl"
+        contentContainerClasses: "flex items-center justify-between flex-1"
+        titleClasses: "text-xl font-semibold"
+        buttonClasses: "inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        buttonIconClasses: "w-4 h-4 ml-2"
+      
       items:
         - id: "widget-1"
           title: "Component Generation"
@@ -156,13 +165,6 @@ sections:
             link: "#components"
             imagePath: "https://placehold.co/600x400/png"
             buttonText: "Learn more"
-            # CTA style configurations
-            containerClasses: "cta bg-white bg-opacity-50 rounded-lg flex items-center space-x-8 mt-2"
-            imageClasses: "w-44 h-44 object-cover rounded-xl"
-            contentContainerClasses: "flex items-center justify-between flex-1"
-            titleClasses: "text-xl font-semibold"
-            buttonClasses: "inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            buttonIconClasses: "w-4 h-4 ml-2"
           description: "Generate and manage reusable components with ease:"
           listItems:
             - number: 1

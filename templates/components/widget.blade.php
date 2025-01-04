@@ -19,13 +19,12 @@
         <div class="md:w-2/3">
             @foreach ($items as $item)
                 <div x-show="activeAccordion === '{{ $item['id'] }}'" class="p-2">
-                    <x-bonsai::cta 
-                        :data="[
-                            'title' => $item['cta']['title'],
-                            'link' => $item['cta']['link'],
-                            'imagePath' => $item['cta']['imagePath']
-                        ]" 
-                    />
+                    @php
+                        // Add global CTA styles to the CTA data
+                        $ctaData = $item['cta'];
+                        $ctaData['globalStyles'] = $data['ctaStyles'] ?? [];
+                    @endphp
+                    <x-bonsai::cta :data="$ctaData" />
 
                     @if(isset($item['description']))
                         <p class="mt-6 text-gray-600 text-sm">
