@@ -238,9 +238,22 @@ sections:
   pricing:
     component: pricing-box
     data:
+      # Global pricing box styles
+      pricingBoxStyles:
+        containerClasses: "bg-white bg-opacity-50 rounded-xl shadow-lg overflow-hidden mx-auto md:mx-0 text-center my-3 transition-transform transform hover:scale-105"
+        iconClasses: "inline-block h-12 w-12 mt-8 mb-4"
+        planTypeClasses: "text-gray-400"
+        priceClasses: "text-4xl font-bold"
+        dividerClasses: "border-t border-gray-200 my-5"
+        featureListClasses: "my-4 text-left space-y-3"
+        featureItemClasses: "flex items-center justify-start text-gray-500"
+        featureIconClasses: "w-5 h-5 mr-2"
+        ctaButtonClasses: "inline-block py-2 px-6 rounded-full"
+        ctaIconClasses: "inline-block h-4 w-4 ml-2"
+      
       title: "Choose Your Plan"
       subtitle: "Limited-time pricing available now"
-      description: "Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel."
+      description: "Select the plan that best suits your needs."
       pricingBoxes: [
         {
           "icon": "heroicon-o-command-line",
