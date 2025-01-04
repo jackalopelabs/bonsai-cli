@@ -49,13 +49,19 @@ sections:
         {"url": "#docs", "label": "Documentation"}
       ]
       primaryLink: "https://cypress.bonsai-cli.com"
+      # Style Classes
       containerClasses: "max-w-5xl mx-auto"
       containerInnerClasses: "px-6"
       headerClass: "bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4"
+      iconClasses: "h-8 w-8 mr-2 p-1"
+      chevronClasses: "w-4 h-4 ml-2 inline-block"
+      buttonText: "Plans"
+      buttonPrefix: "See"
 
   home_hero:
     component: hero
     data:
+      # Content
       title: "Elevate Your Agency's Web Presence"
       subtitle: "Sleek Design Meets Powerful Functionality"
       description: "Cypress offers a streamlined approach to creating stunning landing pages with the flexibility of no-code editing and developer-friendly tools."
@@ -66,6 +72,21 @@ sections:
       secondaryLink: "#demo"
       buttonLinkIcon: true
       secondaryIcon: true
+      
+      # Style Classes
+      containerClasses: "container mx-auto px-4 mb-12 mt-0 md:mt-24"
+      columnClasses: "flex flex-col md:flex-row items-center md:items-start -mx-4"
+      imageColumnClasses: "w-full md:w-1/2 px-4 flex justify-center items-center mt-12 md:mt-0 md:order-last"
+      textColumnClasses: "w-full md:w-1/2 px-4"
+      titleClass: "font-semibold text-6xl"
+      productTagClasses: "bg-white bg-opacity-50 px-3 py-1 text-sm inline-block"
+      productIconClasses: "w-4 h-4 ml-2 inline-block align-middle"
+      buttonClasses: "bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-xl py-2 px-5 rounded-full"
+      buttonIconClasses: "text-white w-6 h-6 ml-2 inline-block align-middle"
+      secondaryClasses: "text-sm bg-transparent px-2 py-1 backdrop-blur-md shadow-lg rounded-md border border-gray-100"
+      secondaryIconClasses: "w-4 h-4 ml-2 inline-block align-middle"
+      
+      # Icons
       iconMappings:
         dropdownIcon: "heroicon-s-chevron-down"
         buttonLinkIcon: "heroicon-s-sparkles"
@@ -80,26 +101,37 @@ sections:
         {"url": "#features", "label": "Features"},
         {"url": "#docs", "label": "Documentation"}
       ]
+      # Style classes
+      sectionClasses: "py-12"
+      containerClasses: "max-w-4xl mx-auto px-6"
+      navContainerClasses: "flex flex-col sm:flex-row flex-wrap items-start mb-6 justify-center md:justify-center"
+      titleClasses: "text-lg text-gray-700 bg-white p-3 rounded-lg mr-4 mb-4 sm:mb-0"
+      titleIconClasses: "w-4 h-4 ml-2 inline-block align-middle"
+      navLinkClasses: "text-lg text-gray-700 p-3 mb-4 sm:mb-0 hidden sm:inline"
+      navLinkIconClasses: "w-4 h-4 ml-2 inline-block align-middle"
+      # Card styles
+      cardContainerClasses: "bg-white bg-opacity-50 grid md:grid-cols-2 gap-8 rounded-3xl p-3"
+      imageColumnClasses: "md:w-1/2 mx-auto"
+      featuresColumnClasses: "md:w-2/2 space-y-6"
+      featureItemClasses: "flex items-start space-x-4 bg-white rounded-xl p-3"
+      featureIconClasses: "h-6 w-6 text-indigo-500"
+      featureTitleClasses: "text-lg font-semibold"
+      featureDescriptionClasses: "text-sm text-gray-500"
       featureItems: [
         {
-          "icon": "heroicon-o-paint-brush",
-          "title": "Visual Builder",
-          "description": "Intuitive drag-and-drop interface for effortless content creation"
+          "icon": "heroicon-o-command-line",
+          "title": "Component Generation",
+          "description": "Generate reusable components with a single command."
         },
         {
-          "icon": "heroicon-o-code-bracket",
-          "title": "Developer Friendly",
-          "description": "Seamless integration with Bonsai CLI for advanced customization"
+          "icon": "heroicon-o-puzzle-piece",
+          "title": "Section Builder",
+          "description": "Create and manage page sections with dynamic data."
         },
         {
-          "icon": "heroicon-o-cube-transparent",
-          "title": "Flexible Templates",
-          "description": "A variety of pre-built templates tailored for agency needs"
-        },
-        {
-          "icon": "heroicon-o-squares-2x2",
-          "title": "Responsive Design",
-          "description": "Optimized for all devices to ensure a consistent user experience"
+          "icon": "heroicon-o-template",
+          "title": "Template System",
+          "description": "Pre-built templates for rapid WordPress development."
         }
       ]
 
@@ -108,10 +140,10 @@ sections:
     data:
       # Global widget styles
       globalStyles:
-        containerClasses: "container mx-auto p-4 rounded-xl shadow-lg bg-white bg-opacity-30"
+        containerClasses: "bg-white bg-opacity-30 shadow-lg rounded-xl"
         contentClasses: "p-2"
-        descriptionClasses: "mt-6 text-gray-600 text-sm"
-        noteClasses: "mt-6 text-gray-600 text-sm"
+        descriptionClasses: "text-gray-600 text-sm"
+        noteClasses: "text-gray-600 text-sm"
         noteLabelClasses: "font-bold"
 
       # Global list item styles
