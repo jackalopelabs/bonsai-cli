@@ -32,7 +32,13 @@ document.addEventListener('alpine:init', () => {
         <div class="flex">
             <a class="py-3 font-bold text-lg block" href="{{ home_url('/') }}">
                 <div class="flex items-center">
-                    <x-{{ $iconComponent }} class="{{ $iconClasses }}" />
+                    @if(str_starts_with($iconComponent, 'heroicon'))
+                        <x-dynamic-component :component="$iconComponent" class="{{ $iconClasses }}" />
+                    @else
+                        <div class="{{ $iconClasses }}">
+                            <x-heroicon-o-cube class="h-full w-full" />
+                        </div>
+                    @endif
                     <span>{!! $siteName !!}</span>
                 </div>
             </a>
