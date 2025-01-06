@@ -141,6 +141,17 @@ class BonsaiServiceProvider extends ServiceProvider
                         $opacity = $themeSettings['body']['background']['styles']['opacity'] ?? '100';
                         $opacity = intval($opacity) / 100;
                         
+                        // Get the correct image URL using Sage's asset handling
+                        $imagePath = $themeSettings['body']['background']['image'];
+                        if (function_exists('sage')) {
+                            // If path starts with /resources/, remove it
+                            $imagePath = preg_replace('/^\/resources\//', '', $imagePath);
+                            $imageUrl = sage($imagePath);
+                        } else {
+                            // Fallback to theme directory
+                            $imageUrl = get_theme_file_uri($imagePath);
+                        }
+                        
                         echo '<style>
                             body::before {
                                 content: "";
@@ -150,7 +161,7 @@ class BonsaiServiceProvider extends ServiceProvider
                                 width: 100%;
                                 height: 100%;
                                 z-index: -1;
-                                background-image: url("' . esc_url($themeSettings['body']['background']['image']) . '");
+                                background-image: url("' . esc_url($imageUrl) . '");
                                 opacity: ' . $opacity . ';
                             }
                         </style>';

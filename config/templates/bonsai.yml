@@ -7,7 +7,7 @@ theme:
   body:
     class: 'bg-gray-100'
     background:
-      image: '/images/background.jpg'
+      image: 'images/background.png'
       styles:
         size: 'cover'
         position: 'center'
