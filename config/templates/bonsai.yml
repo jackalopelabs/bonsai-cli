@@ -6,6 +6,13 @@ version: 0.0.1
 theme:
   body:
     class: 'bg-gray-100'
+    background:
+      image: '/images/background.jpg'
+      styles:
+        size: 'cover'
+        position: 'center'
+        repeat: 'no-repeat'
+        opacity: '50'
 
 # ASCII art configuration section
 ascii_art:

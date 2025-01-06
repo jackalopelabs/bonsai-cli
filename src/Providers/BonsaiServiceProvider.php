@@ -103,18 +103,58 @@ class BonsaiServiceProvider extends ServiceProvider
         foreach ($configPaths as $path) {
             if (file_exists($path)) {
                 $config = \Symfony\Component\Yaml\Yaml::parseFile($path);
-                $themeSettings = $config['theme'] ?? [
-                    'body' => ['class' => 'bg-gray-100']
-                ];
+                $themeSettings = $config['theme'] ?? [];
 
                 // Share theme settings with all views
                 view()->share('themeSettings', $themeSettings);
 
-                // Add body class filter
-                add_filter('body_class', function($classes) use ($themeSettings) {
+                // Add Sage body class filter
+                add_filter('sage/body/classes', function($classes) use ($themeSettings) {
                     $bodyClass = $themeSettings['body']['class'] ?? 'bg-gray-100';
                     $classes[] = $bodyClass;
+
+                    // Add background image classes if present
+                    if (!empty($themeSettings['body']['background']['image'])) {
+                        $classes[] = 'bg-no-repeat';  // Default
+                        
+                        // Add size class
+                        $size = $themeSettings['body']['background']['styles']['size'] ?? 'cover';
+                        $classes[] = "bg-{$size}";
+
+                        // Add position class
+                        $position = $themeSettings['body']['background']['styles']['position'] ?? 'center';
+                        $classes[] = "bg-{$position}";
+
+                        // Add repeat class if not using no-repeat
+                        $repeat = $themeSettings['body']['background']['styles']['repeat'] ?? 'no-repeat';
+                        if ($repeat !== 'no-repeat') {
+                            $classes[] = "bg-{$repeat}";
+                        }
+                    }
+
                     return $classes;
+                });
+
+                // Add inline styles for background image
+                add_action('wp_head', function() use ($themeSettings) {
+                    if (!empty($themeSettings['body']['background']['image'])) {
+                        $opacity = $themeSettings['body']['background']['styles']['opacity'] ?? '100';
+                        $opacity = intval($opacity) / 100;
+                        
+                        echo '<style>
+                            body::before {
+                                content: "";
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                z-index: -1;
+                                background-image: url("' . esc_url($themeSettings['body']['background']['image']) . '");
+                                opacity: ' . $opacity . ';
+                            }
+                        </style>';
+                    }
                 });
 
                 break;
