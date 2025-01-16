@@ -7,18 +7,20 @@ use Illuminate\Support\Facades\Blade;
 
 class BonsaiServiceProvider extends ServiceProvider
 {
+    protected function log($message)
+    {
+        if (defined('WP_CLI') && WP_CLI) {
+            \WP_CLI::log($message);
+        }
+    }
+
     public function register()
     {
-        // Skip registration if this is a core command or if we're in a deployment context
-        if ($this->shouldSkipLoading()) {
-            return;
-        }
-
-        error_log('BonsaiServiceProvider register() method called');
+        $this->log('BonsaiServiceProvider register() method called');
 
         // Register commands only if running in console
         if ($this->app->runningInConsole()) {
-            error_log('Registering Bonsai commands...');
+            $this->log('Registering Bonsai commands...');
             $this->commands([
                 \Jackalopelabs\BonsaiCli\Commands\BonsaiInitCommand::class,
                 \Jackalopelabs\BonsaiCli\Commands\ComponentCommand::class,
@@ -28,18 +30,13 @@ class BonsaiServiceProvider extends ServiceProvider
                 \Jackalopelabs\BonsaiCli\Commands\GenerateCommand::class,
                 \Jackalopelabs\BonsaiCli\Commands\CleanupCommand::class,
             ]);
-            error_log('Bonsai commands registered');
+            $this->log('Bonsai commands registered');
         }
     }
 
     public function boot()
     {
-        // Skip boot if this is a core command or if we're in a deployment context
-        if ($this->shouldSkipLoading()) {
-            return;
-        }
-
-        error_log('BonsaiServiceProvider boot() method called');
+        $this->log('BonsaiServiceProvider boot() method called');
 
         // Register Bonsai view namespace
         $this->app['view']->addNamespace('bonsai', resource_path('views/bonsai'));
@@ -57,21 +54,21 @@ class BonsaiServiceProvider extends ServiceProvider
                 return $template;
             }
 
-            error_log("Template slug: {$template_slug}");
+            $this->log("Template slug: {$template_slug}");
 
             $resource_path = resource_path("views/bonsai/templates/{$template_slug}");
             if (file_exists($resource_path)) {
-                error_log("Found template in resources: {$resource_path}");
+                $this->log("Found template in resources: {$resource_path}");
                 return $resource_path;
             }
 
             $theme_path = get_theme_file_path("views/bonsai/templates/{$template_slug}");
             if (file_exists($theme_path)) {
-                error_log("Found template in theme: {$theme_path}");
+                $this->log("Found template in theme: {$theme_path}");
                 return $theme_path;
             }
 
-            error_log("No template found, using default: {$template}");
+            $this->log("No template found, using default: {$template}");
             return $template;
         });
 
@@ -185,14 +182,14 @@ class BonsaiServiceProvider extends ServiceProvider
 
     protected function registerBladeComponents()
     {
-        error_log('registerBladeComponents called in BonsaiServiceProvider');
+        $this->log('registerBladeComponents called in BonsaiServiceProvider');
 
         // Register an anonymous namespace for bonsai components
         Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
 
         $componentsPath = resource_path('views/bonsai/components');
         if (!is_dir($componentsPath)) {
-            error_log('No bonsai components directory found at: ' . $componentsPath);
+            $this->log('No bonsai components directory found at: ' . $componentsPath);
             return;
         }
 
@@ -201,7 +198,7 @@ class BonsaiServiceProvider extends ServiceProvider
         foreach ($files as $file) {
             $componentName = basename($file, '.blade.php');
             Blade::component("bonsai.components.{$componentName}", "bonsai::{$componentName}");
-            error_log("Registered component: {$componentName} as <x-bonsai::{$componentName}>");
+            $this->log("Registered component: {$componentName} as <x-bonsai::{$componentName}>");
         }
 
         // Register nested components (e.g., icons)
@@ -213,60 +210,10 @@ class BonsaiServiceProvider extends ServiceProvider
                 $nestedComponentName = basename($nestedFile, '.blade.php');
                 $fullName = "{$dirName}.{$nestedComponentName}";
                 Blade::component("bonsai.components.{$fullName}", "bonsai::{$fullName}");
-                error_log("Registered nested component: {$fullName} as <x-bonsai::{$fullName}>");
+                $this->log("Registered nested component: {$fullName} as <x-bonsai::{$fullName}>");
             }
         }
 
-        error_log('Finished registering bonsai components.');
-    }
-
-    /**
-     * Determine if Bonsai should skip loading
-     */
-    protected function shouldSkipLoading(): bool
-    {
-        // Skip if WP_CLI is not defined
-        if (!defined('WP_CLI') || !WP_CLI) {
-            return false;
-        }
-
-        $args = $_SERVER['argv'] ?? [];
-        
-        // List of commands that should skip Bonsai loading
-        $skipCommands = [
-            'core',
-            'db',
-            'cache',
-            'option',
-            'package',
-            'plugin',
-            'theme',
-            'maintenance',
-        ];
-
-        // Check if we're running any of these commands
-        foreach ($args as $arg) {
-            foreach ($skipCommands as $cmd) {
-                if (strpos($arg, $cmd) === 0) {
-                    return true;
-                }
-            }
-        }
-
-        // Check if we're in a deployment context by looking for specific environment variables
-        // that Trellis/Ansible typically sets
-        $deploymentVars = [
-            'ANSIBLE_PLAYBOOK_RUNNING',
-            'ANSIBLE_VERSION',
-            'ANSIBLE_VERBOSITY'
-        ];
-
-        foreach ($deploymentVars as $var) {
-            if (getenv($var) !== false) {
-                return true;
-            }
-        }
-
-        return false;
+        $this->log('Finished registering bonsai components.');
     }
 }
