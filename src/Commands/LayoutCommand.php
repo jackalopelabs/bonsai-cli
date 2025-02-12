@@ -137,37 +137,52 @@ BLADE;
 
     protected function getCypressLayoutContent($themeSettings)
     {
-        $bodyClass = $themeSettings['body']['class'] ?? 'bg-gray-100';
+        $bodyClass = $themeSettings['body']['class'] ?? 'dark relative h-screen';
+        $htmlClass = $themeSettings['html']['class'] ?? 'dark relative h-screen';
+        $xData = $themeSettings['html']['x-data'] ?? '{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }';
+        $xInit = $themeSettings['html']['x-init'] ?? '$watch("darkMode", val => localStorage.setItem("darkMode", val))';
+        $xBindClass = $themeSettings['html']['x-bind:class'] ?? '{ "dark": darkMode }';
 
         return <<<BLADE
 <!doctype html>
-<html @php(language_attributes())>
+<html @php(language_attributes()) class="{$htmlClass}" x-data="{$xData}" x-init="{$xInit}" :class="{$xBindClass}">
+    <!-- Hero Background Images -->
+    <div class="absolute inset-0 z-0">
+        <img src="{{ asset('images/bonsai_hero_03.png') }}" 
+             alt="Background Light" 
+             class="w-full h-full object-cover object-top opacity-100 block dark:hidden"
+        />
+        <img src="{{ asset('images/bonsai_hero_01.png') }}" 
+             alt="Background Dark" 
+             class="w-full h-full object-cover object-top opacity-100 hidden dark:block"
+        />
+    </div>
+
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         @php(do_action('get_header'))
         @php(wp_head())
+        @include('bonsai.components.analytics')
         @include('utils.styles')
     </head>
 
-    <body @php(body_class("{$bodyClass}"))>
+    <body @php(body_class('transition-colors duration-200 p-0 m-0 bg-transparent'))>
         @php(wp_body_open())
-        @php(\$containerInnerClasses = 'container mx-auto px-4 py-8')
-
-        <div id="app">
+        <div id="app" class="relative z-10">
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
 
-            @includeIf('bonsai.sections.header')
+            @includeIf('bonsai.sections.site_header')
 
             <main id="main" class="max-w-5xl mx-auto">
-                <div class="{{ \$containerInnerClasses }}">
+                <div class="{{ \$containerInnerClasses ?? 'px-6' }}">
                     @yield('content')
                 </div>
             </main>
 
-            @includeIf('sections.footer')
+            @includeIf('bonsai.sections.footer')
         </div>
 
         @php(do_action('get_footer'))

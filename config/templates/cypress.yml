@@ -5,7 +5,12 @@ version: 0.0.1
 # Add theme settings at the top level
 theme:
   body:
-    class: 'bg-white'
+    class: 'dark relative h-screen'
+  html:
+    class: 'dark relative h-screen'
+    x-data: '{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }'
+    x-init: '$watch("darkMode", val => localStorage.setItem("darkMode", val))'
+    x-bind:class: '{ "dark": darkMode }'
 
 # ASCII art configuration section
 ascii_art:
@@ -57,6 +62,9 @@ sections:
       chevronClasses: "w-4 h-4 ml-2 inline-block"
       buttonText: "Plans"
       buttonPrefix: "See"
+      # Dark Mode Toggle
+      showDarkModeToggle: true
+      darkModeToggleClass: "ml-4"
 
   home_hero:
     component: hero
@@ -346,9 +354,13 @@ wordpress:
 
 # Asset compilation settings
 assets:
+  images:
+    - bonsai_hero_01.png
+    - bonsai_hero_03.png
   styles:
     - resources/styles/cypress.scss
     - resources/styles/editor.scss
   scripts:
     - resources/scripts/cypress.js
     - resources/scripts/gutenberg.js
+    - resources/scripts/alpine.js
