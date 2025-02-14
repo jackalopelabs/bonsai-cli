@@ -187,21 +187,26 @@ class BonsaiServiceProvider extends ServiceProvider
         // Register an anonymous namespace for bonsai components
         Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
 
-        $componentsPath = resource_path('views/bonsai/components');
-        if (!is_dir($componentsPath)) {
-            $this->log('No bonsai components directory found at: ' . $componentsPath);
-            return;
-        }
+        // Register core components
+        $coreComponents = [
+            'accordion',
+            'card',
+            'cta',
+            'dark-mode-toggle',
+            'header',
+            'hero',
+            'list-item',
+            'pricing-box',
+            'widget'
+        ];
 
-        // Register main level components
-        $files = glob($componentsPath . '/*.blade.php');
-        foreach ($files as $file) {
-            $componentName = basename($file, '.blade.php');
+        foreach ($coreComponents as $componentName) {
             Blade::component("bonsai.components.{$componentName}", "bonsai::{$componentName}");
             $this->log("Registered component: {$componentName} as <x-bonsai::{$componentName}>");
         }
 
         // Register nested components (e.g., icons)
+        $componentsPath = resource_path('views/bonsai/components');
         $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
         foreach ($nestedDirs as $dir) {
             $dirName = basename($dir);
