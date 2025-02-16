@@ -1,0 +1,27 @@
+sections:
+  home_hero:
+    component: hero
+    data:
+      title: 'Welcome to Cypress'
+      subtitle: 'A Modern SaaS Landing Page'
+  services_card:
+    component: card
+    data:
+      title: 'Our Services'
+      subtitle: 'What we offer'
+  features_widget:
+    component: widget
+    data:
+      title: Features
+      subtitle: 'What makes us different'
+  pricing:
+    component: pricing
+    data:
+      title: 'Pricing Plans'
+      subtitle: "Choose the plan that's right for you"
+layout:
+  sections:
+    - home_hero
+    - services_card
+    - features_widget
+    - pricing
