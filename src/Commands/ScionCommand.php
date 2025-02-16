@@ -34,6 +34,13 @@ class ScionCommand extends Command
         $templateName = $input->getArgument('templateName');
         $output->writeln("<info>Starting extraction for template: {$templateName}</info>");
 
+        // Create component directory
+        $componentDir = __DIR__ . '/../../templates/components/' . $templateName;
+        if (!is_dir($componentDir)) {
+            mkdir($componentDir, 0755, true);
+            $output->writeln("<info>Created component directory: {$componentDir}</info>");
+        }
+
         // Read the template file
         $content = file_get_contents($source);
 
@@ -51,29 +58,39 @@ class ScionCommand extends Command
             $output->writeln(" - " . $include);
         }
 
-        // For each include, prompt for section key and component mapping
+        // For each include, analyze the section and extract its components
         $helper = $this->getHelper('question');
         $sections = [];
         
         foreach ($includes as $include) {
+            // Convert include path to file path
+            $sectionPath = $this->convertIncludeToPath($source, $include);
+            if (!file_exists($sectionPath)) {
+                $output->writeln("<error>Section file not found: {$sectionPath}</error>");
+                continue;
+            }
+
             // Extract the last part of the include path as the default key
             $parts = explode('.', $include);
             $defaultKey = end($parts);
             
             $sectionKeyQuestion = new Question("Enter section key for include '{$include}' [{$defaultKey}]: ", $defaultKey);
             $sectionKey = $helper->ask($input, $output, $sectionKeyQuestion);
-            
-            // Determine default component based on section name
-            $defaultComponent = $this->guessComponentType($sectionKey);
-            $componentQuestion = new Question("Enter component for section '{$sectionKey}' [{$defaultComponent}]: ", $defaultComponent);
-            $component = $helper->ask($input, $output, $componentQuestion);
 
-            // Get component-specific data
-            $data = $this->getComponentData($helper, $input, $output, $component, $sectionKey);
+            // Analyze section file to find component usage
+            $componentInfo = $this->analyzeSectionComponents($sectionPath, $output);
+            if (empty($componentInfo)) {
+                $output->writeln("<error>No components found in section: {$sectionPath}</error>");
+                continue;
+            }
+
+            // Copy each component used in the section
+            foreach ($componentInfo as $componentName => $componentData) {
+                $this->copyComponentToTemplate($componentName, $componentDir, $output);
+            }
 
             $sections[$sectionKey] = [
-                'component' => $component,
-                'data'      => $data,
+                'components' => $componentInfo,
             ];
         }
 
@@ -104,66 +121,83 @@ class ScionCommand extends Command
         file_put_contents($targetPath, $yamlContent);
 
         $output->writeln("<info>Configuration saved to: {$targetPath}</info>");
+        $output->writeln("<info>Components created in: {$componentDir}</info>");
         $output->writeln("<info>Now run 'wp acorn bonsai:generate {$templateName}' in your Roots project to generate the landing page.</info>");
 
         return Command::SUCCESS;
     }
 
-    private function guessComponentType(string $sectionKey): string
+    private function convertIncludeToPath(string $templatePath, string $include): string
     {
-        if (strpos($sectionKey, 'hero') !== false) {
-            return 'hero';
-        }
-        if (strpos($sectionKey, 'card') !== false) {
-            return 'card';
-        }
-        if (strpos($sectionKey, 'widget') !== false) {
-            return 'widget';
-        }
-        if (strpos($sectionKey, 'pricing') !== false) {
-            return 'pricing';
-        }
-        return 'hero'; // default fallback
+        // Get the base path from the template
+        $basePath = dirname($templatePath);
+        
+        // Convert dot notation to directory structure
+        $relativePath = str_replace('.', '/', $include) . '.blade.php';
+        
+        // Remove 'bonsai' prefix if it exists (since we're already in the bonsai directory)
+        $relativePath = preg_replace('/^bonsai\//', '', $relativePath);
+        
+        return $basePath . '/' . $relativePath;
     }
 
-    private function getComponentData($helper, $input, $output, string $component, string $sectionKey): array
+    private function analyzeSectionComponents(string $sectionPath, OutputInterface $output): array
     {
-        $data = [];
-        
-        switch ($component) {
-            case 'hero':
-                $titleQuestion = new Question("Enter title for hero section '{$sectionKey}' [Welcome to Cypress]: ", "Welcome to Cypress");
-                $subtitleQuestion = new Question("Enter subtitle for hero section '{$sectionKey}' [A Modern SaaS Landing Page]: ", "A Modern SaaS Landing Page");
-                
-                $data['title'] = $helper->ask($input, $output, $titleQuestion);
-                $data['subtitle'] = $helper->ask($input, $output, $subtitleQuestion);
-                break;
+        $content = file_get_contents($sectionPath);
+        $components = [];
 
-            case 'card':
-                $titleQuestion = new Question("Enter title for card section '{$sectionKey}' [Our Services]: ", "Our Services");
-                $subtitleQuestion = new Question("Enter subtitle for card section '{$sectionKey}' [What we offer]: ", "What we offer");
-                
-                $data['title'] = $helper->ask($input, $output, $titleQuestion);
-                $data['subtitle'] = $helper->ask($input, $output, $subtitleQuestion);
-                break;
-
-            case 'widget':
-                $titleQuestion = new Question("Enter title for widget section '{$sectionKey}' [Features]: ", "Features");
-                $subtitleQuestion = new Question("Enter subtitle for widget section '{$sectionKey}' [What makes us different]: ", "What makes us different");
-                
-                $data['title'] = $helper->ask($input, $output, $titleQuestion);
-                $data['subtitle'] = $helper->ask($input, $output, $subtitleQuestion);
-                break;
-
-            case 'pricing':
-                $titleQuestion = new Question("Enter title for pricing section '{$sectionKey}' [Pricing Plans]: ", "Pricing Plans");
-                $subtitleQuestion = new Question("Enter subtitle for pricing section '{$sectionKey}' [Choose the plan that's right for you]: ", "Choose the plan that's right for you");
-                
-                $data['title'] = $helper->ask($input, $output, $titleQuestion);
-                $data['subtitle'] = $helper->ask($input, $output, $subtitleQuestion);
-                break;
+        // Look for x-component tags
+        preg_match_all("/<x-([^\\s>]+)/", $content, $matches);
+        if (!empty($matches[1])) {
+            foreach ($matches[1] as $component) {
+                $components[$component] = [
+                    'type' => 'x-component',
+                    'name' => $component,
+                ];
+            }
         }
 
-        return $data;
+        // Look for @include directives that reference components
+        preg_match_all("/@include\(['\"]([^'\"]+)['\"]/", $content, $matches);
+        if (!empty($matches[1])) {
+            foreach ($matches[1] as $include) {
+                if (strpos($include, 'components.') === 0) {
+                    $componentName = str_replace('components.', '', $include);
+                    $components[$componentName] = [
+                        'type' => 'include',
+                        'name' => $componentName,
+                    ];
+                }
+            }
+        }
+
+        return $components;
+    }
+
+    private function copyComponentToTemplate(string $componentName, string $targetDir, OutputInterface $output): void
+    {
+        // First try to find the component in the standard components directory
+        $sourcePaths = [
+            __DIR__ . '/../../templates/components/' . $componentName . '.blade.php',
+            __DIR__ . '/../../resources/views/components/' . $componentName . '.blade.php',
+        ];
+
+        $sourceFile = null;
+        foreach ($sourcePaths as $path) {
+            if (file_exists($path)) {
+                $sourceFile = $path;
+                break;
+            }
+        }
+
+        if (!$sourceFile) {
+            $output->writeln("<error>Component not found: {$componentName}</error>");
+            return;
+        }
+
+        // Copy the component to the template-specific directory
+        $targetFile = $targetDir . '/' . basename($sourceFile);
+        copy($sourceFile, $targetFile);
+        $output->writeln("<info>Copied component {$componentName} to template directory</info>");
     }
 } 
