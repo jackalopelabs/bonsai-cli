@@ -129,16 +129,20 @@ class ScionCommand extends Command
 
     private function convertIncludeToPath(string $templatePath, string $include): string
     {
-        // Get the base path from the template
-        $basePath = dirname($templatePath);
+        // Get the resources/views path by removing everything after and including /bonsai/
+        $viewsPath = preg_replace('/\/bonsai\/.*$/', '', dirname($templatePath));
         
         // Convert dot notation to directory structure
-        $relativePath = str_replace('.', '/', $include) . '.blade.php';
+        $parts = explode('.', $include);
         
-        // Remove 'bonsai' prefix if it exists (since we're already in the bonsai directory)
-        $relativePath = preg_replace('/^bonsai\//', '', $relativePath);
+        // If it starts with 'bonsai', handle it specially
+        if ($parts[0] === 'bonsai') {
+            array_shift($parts); // Remove 'bonsai'
+            return $viewsPath . '/bonsai/' . implode('/', $parts) . '.blade.php';
+        }
         
-        return $basePath . '/' . $relativePath;
+        // For non-bonsai paths
+        return $viewsPath . '/' . implode('/', $parts) . '.blade.php';
     }
 
     private function analyzeSectionComponents(string $sectionPath, OutputInterface $output): array
@@ -146,13 +150,26 @@ class ScionCommand extends Command
         $content = file_get_contents($sectionPath);
         $components = [];
 
-        // Look for x-component tags
-        preg_match_all("/<x-([^\\s>]+)/", $content, $matches);
+        // Look for x-bonsai::cypress style components
+        preg_match_all("/<x-bonsai::([^\\s>]+)/", $content, $matches);
+        if (!empty($matches[1])) {
+            foreach ($matches[1] as $component) {
+                $components[$component] = [
+                    'type' => 'x-bonsai',
+                    'name' => $component,
+                    'data' => $this->extractComponentData($content),
+                ];
+            }
+        }
+
+        // Look for standard x-component tags
+        preg_match_all("/<x-([^\\s>:]+)/", $content, $matches);
         if (!empty($matches[1])) {
             foreach ($matches[1] as $component) {
                 $components[$component] = [
                     'type' => 'x-component',
                     'name' => $component,
+                    'data' => $this->extractComponentData($content),
                 ];
             }
         }
@@ -166,6 +183,7 @@ class ScionCommand extends Command
                     $components[$componentName] = [
                         'type' => 'include',
                         'name' => $componentName,
+                        'data' => $this->extractComponentData($content),
                     ];
                 }
             }
@@ -174,12 +192,55 @@ class ScionCommand extends Command
         return $components;
     }
 
+    private function extractComponentData(string $content): array
+    {
+        $data = [];
+        
+        // Look for PHP arrays with component data
+        if (preg_match('/\$[a-zA-Z_]+Data\s*=\s*\[(.*?)\];/s', $content, $matches)) {
+            $arrayContent = $matches[1];
+            
+            // Extract key-value pairs
+            preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $arrayContent, $pairs);
+            if (!empty($pairs[1])) {
+                for ($i = 0; $i < count($pairs[1]); $i++) {
+                    $key = $pairs[1][$i];
+                    $value = $pairs[2][$i];
+                    $data[$key] = $value;
+                }
+            }
+
+            // Extract nested arrays (like iconMappings)
+            if (preg_match("/'iconMappings'\s*=>\s*\[(.*?)\]/s", $arrayContent, $iconMatches)) {
+                $iconContent = $iconMatches[1];
+                preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $iconContent, $iconPairs);
+                if (!empty($iconPairs[1])) {
+                    $data['iconMappings'] = [];
+                    for ($i = 0; $i < count($iconPairs[1]); $i++) {
+                        $key = $iconPairs[1][$i];
+                        $value = $iconPairs[2][$i];
+                        $data['iconMappings'][$key] = $value;
+                    }
+                }
+            }
+        }
+
+        return $data;
+    }
+
     private function copyComponentToTemplate(string $componentName, string $targetDir, OutputInterface $output): void
     {
-        // First try to find the component in the standard components directory
+        // Handle cypress-specific components
+        if (strpos($componentName, 'cypress.') === 0) {
+            $componentName = str_replace('cypress.', '', $componentName);
+        }
+
+        // First try to find the component in various possible locations
         $sourcePaths = [
+            __DIR__ . '/../../templates/components/cypress/' . $componentName . '.blade.php',
             __DIR__ . '/../../templates/components/' . $componentName . '.blade.php',
             __DIR__ . '/../../resources/views/components/' . $componentName . '.blade.php',
+            __DIR__ . '/../../resources/views/bonsai/components/' . $componentName . '.blade.php',
         ];
 
         $sourceFile = null;
@@ -191,7 +252,7 @@ class ScionCommand extends Command
         }
 
         if (!$sourceFile) {
-            $output->writeln("<error>Component not found: {$componentName}</error>");
+            $output->writeln("<error>Component not found: {$componentName} (searched in standard locations)</error>");
             return;
         }
 
