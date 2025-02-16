@@ -107,6 +107,120 @@ Removes all generated:
 - Templates
 - Menu items
 
+# Scion: Reverse Engineer a Template
+
+Scion is a feature of Bonsai‑CLI that allows you to reverse‑engineer an existing Roots project template into a Bonsai‑CLI YAML configuration. This lets you capture your landing page's layout, sections, and component data, and then generate it using Bonsai‑CLI's built‑in generation system.
+
+> **Note:** Scion is designed to run from within the Bonsai‑CLI package repository (e.g. `~/sites/bonsai-cli`). It works independently of a full WordPress environment.
+
+## Installation
+
+Ensure you have the following dependencies in your Bonsai‑CLI package:
+- [Illuminate/Console](https://packagist.org/packages/illuminate/console) – for Laravel's Console commands.
+- [Symfony/Yaml](https://packagist.org/packages/symfony/yaml) – for generating YAML configurations.
+
+If they are not already installed, add them via Composer:
+
+```bash
+composer require illuminate/console symfony/yaml
+```
+
+Also, in your `composer.json`, expose your CLI entry point by adding a `"bin"` section:
+
+```json
+"bin": [
+    "bin/bonsai"
+]
+```
+
+Make sure the entry point is executable:
+
+```bash
+chmod +x bin/bonsai
+```
+
+## Usage
+
+Once installed, you can run the Scion command directly. The command is designed to be as simple as possible. For example:
+
+```bash
+bonsai scion cypress --source=/path/to/template-cypress.blade.php
+```
+
+Where:
+- `cypress` is the new template name.
+- `--source` points to the exact Roots template file you wish to reverse‑engineer (e.g., the Cypress template located in your Roots project).
+
+## How Scion Works
+
+1. **Template Analysis:**  
+   Scion reads the specified Roots template file (e.g. `template-cypress.blade.php`) to identify the layout and included sections. For example, it will detect:
+   - The layout being extended (e.g. `bonsai.layouts.cypress`).
+   - All section includes such as:
+     - `bonsai.sections.cypress.home_hero`
+     - `bonsai.sections.services_card`
+     - `bonsai.sections.features_widget`
+     - `bonsai.sections.pricing`
+     - Additionally, global includes from the layout like `bonsai.sections.site_header`.
+
+2. **Interactive Prompts:**  
+   For each detected section, Scion will prompt you to:
+   - Confirm or adjust the section identifier.
+   - Specify which Bonsai component to use (for example, `hero`, `card`, `widget`, etc.).
+   - Input key data values (titles, subtitles, descriptions, etc.) with pre‑filled defaults extracted from the section's file.
+
+3. **YAML Configuration Generation:**  
+   After collecting your input, Scion assembles a YAML configuration that defines:
+   - **Sections:** Each with its component and associated data.
+   - **Layout:** The ordered list of section identifiers.
+   
+   The YAML file is saved to:
+   ```
+   config/bonsai/templates/cypress.yml
+   ```
+
+4. **Generate the Landing Page:**  
+   Once your configuration is ready, generate your landing page in your Roots project by running:
+   ```bash
+   wp acorn bonsai:generate cypress
+   ```
+   Bonsai‑CLI will then use its built‑in generation system to build the landing page based on your Scion‑generated configuration.
+
+## Example Walkthrough
+
+Suppose you have a Roots template file at:
+```
+/Users/youruser/sites/your-roots-project/resources/views/bonsai/templates/template-cypress.blade.php
+```
+
+Run the Scion command from within your Bonsai‑CLI package repo:
+
+```bash
+bonsai scion cypress --source=/Users/youruser/sites/your-roots-project/resources/views/bonsai/templates/template-cypress.blade.php
+```
+
+Scion will:
+- Analyze the template to detect includes like `bonsai.sections.cypress.home_hero`, `services_card`, etc.
+- Prompt you for each section (e.g., "Enter section key for include 'bonsai.sections.cypress.home_hero' [default: home_hero]").
+- Prompt for component mappings and data (e.g., for a hero section, ask for title and subtitle).
+- Assemble the collected data into a YAML configuration and save it as:
+  ```
+  config/bonsai/templates/cypress.yml
+  ```
+
+Finally, in your Roots project, you can generate the landing page with:
+
+```bash
+wp acorn bonsai:generate cypress
+```
+
+## Summary
+
+- **Scion** reverse‑engineers a Roots template into a YAML config.
+- It is run from within the Bonsai‑CLI package repository and does not require a full WordPress environment.
+- Use the `--source` option to point to your desired template file.
+- Once the configuration is generated, use Bonsai‑CLI's `generate` command to build your landing page.
+
 ## Project Structure
 
 ```
