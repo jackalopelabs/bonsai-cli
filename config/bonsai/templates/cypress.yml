@@ -1,24 +1,54 @@
 sections:
   home_hero:
-    component: hero
+    component: cypress.hero
     data:
-      title: 'Welcome to Cypress'
-      subtitle: 'A Modern SaaS Landing Page'
+      title: 'Bonsai CLI'
+      subtitle: 'Generate a beautful Roots project in minutes'
+      description: 'A WordPress CLI tool for generating and managing reusable components, layouts, and sections in Roots-based projects'
+      buttonText: 'Learn More'
+      buttonLink: '#installation'
+      secondaryText: Github
+      secondaryLink: 'https://github.com/jackalopelabs/bonsai-cli'
+      dropdownIcon: heroicon-s-chevron-down
+      buttonLinkIcon: heroicon-s-play
+      secondaryIcon: heroicon-s-arrow-right
+      iconMappings: { dropdownIcon: heroicon-s-chevron-down, buttonLinkIcon: heroicon-s-play, secondaryIcon: heroicon-s-arrow-right }
   services_card:
     component: card
     data:
-      title: 'Our Services'
-      subtitle: 'What we offer'
+      sectionId: services
+      sectionTitle: Features
+      url: '#pricing'
+      label: Pricing
+      icon: heroicon-o-template
+      title: 'Template System'
+      description: 'Pre-built templates for rapid WordPress development.'
   features_widget:
     component: widget
     data:
-      title: Features
-      subtitle: 'What makes us different'
+      id: widget-4
+      title: Documentation
+      icon: heroicon-o-book-open
+      link: 'https://github.com/jackalopelabs/bonsai-cli'
+      description: 'Comprehensive documentation and configuration guides:'
+      number: '4'
+      itemName: Troubleshooting
+      text: 'Common issues, debugging steps, and best practices'
   pricing:
-    component: pricing
+    component: pricing-box
     data:
-      title: 'Pricing Plans'
-      subtitle: "Choose the plan that's right for you"
+      title: 'Choose Your Plan'
+      subtitle: 'Limited-time pricing available now'
+      description: 'Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel.'
+      icon: heroicon-o-star
+      iconColor: text-yellow-500
+      planType: Sensei
+      price: '$249<span class=\"text-xs text-gray-400\">/yr</span>'
+      ctaLink: '#buy-sensei'
+      ctaText: 'Coming soon'
+      ctaColor: 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white'
+      iconBtn: heroicon-o-shopping-cart
+      iconBtnColor: text-white
 layout:
   sections:
     - home_hero

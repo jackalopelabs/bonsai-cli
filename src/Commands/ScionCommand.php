@@ -84,14 +84,17 @@ class ScionCommand extends Command
                 continue;
             }
 
-            // Copy each component used in the section
-            foreach ($componentInfo as $componentName => $componentData) {
-                $this->copyComponentToTemplate($componentName, $componentDir, $output);
-            }
+            // Get the primary component and its data
+            $primaryComponent = $this->getPrimaryComponent($componentInfo);
+            if ($primaryComponent) {
+                $sections[$sectionKey] = [
+                    'component' => $primaryComponent['name'],
+                    'data' => $primaryComponent['data'],
+                ];
 
-            $sections[$sectionKey] = [
-                'components' => $componentInfo,
-            ];
+                // Copy the component
+                $this->copyComponentToTemplate($primaryComponent['name'], $componentDir, $output);
+            }
         }
 
         // Ask the user for layout order
@@ -129,16 +132,32 @@ class ScionCommand extends Command
 
     private function convertIncludeToPath(string $templatePath, string $include): string
     {
-        // Get the resources/views path by removing everything after and including /bonsai/
-        $viewsPath = preg_replace('/\/bonsai\/.*$/', '', dirname($templatePath));
+        // Get the base views path from the template path
+        $viewsPath = dirname(dirname(dirname($templatePath))); // Go up 3 levels from template file
         
         // Convert dot notation to directory structure
         $parts = explode('.', $include);
         
-        // If it starts with 'bonsai', handle it specially
+        // Handle different path patterns
         if ($parts[0] === 'bonsai') {
             array_shift($parts); // Remove 'bonsai'
-            return $viewsPath . '/bonsai/' . implode('/', $parts) . '.blade.php';
+            $path = $viewsPath . '/bonsai/' . implode('/', $parts) . '.blade.php';
+            
+            // Try alternate paths if file doesn't exist
+            if (!file_exists($path)) {
+                $alternatePaths = [
+                    $viewsPath . '/resources/views/bonsai/' . implode('/', $parts) . '.blade.php',
+                    dirname($templatePath) . '/' . implode('/', $parts) . '.blade.php',
+                ];
+                
+                foreach ($alternatePaths as $altPath) {
+                    if (file_exists($altPath)) {
+                        return $altPath;
+                    }
+                }
+            }
+            
+            return $path;
         }
         
         // For non-bonsai paths
@@ -147,49 +166,111 @@ class ScionCommand extends Command
 
     private function analyzeSectionComponents(string $sectionPath, OutputInterface $output): array
     {
+        if (!file_exists($sectionPath)) {
+            $output->writeln("<comment>Warning: Section file not found at {$sectionPath}, trying alternate locations...</comment>");
+            
+            // Try alternate locations
+            $alternatePaths = [
+                str_replace('/resources/views/', '/', $sectionPath),
+                str_replace('/bonsai/', '/resources/views/bonsai/', $sectionPath),
+            ];
+            
+            foreach ($alternatePaths as $path) {
+                if (file_exists($path)) {
+                    $sectionPath = $path;
+                    $output->writeln("<info>Found section file at: {$path}</info>");
+                    break;
+                }
+            }
+            
+            if (!file_exists($sectionPath)) {
+                $output->writeln("<error>Could not find section file in any location</error>");
+                return [];
+            }
+        }
+
         $content = file_get_contents($sectionPath);
         $components = [];
 
-        // Look for x-bonsai::cypress style components
+        // Look for x-bonsai::cypress style components first (highest priority)
         preg_match_all("/<x-bonsai::([^\\s>]+)/", $content, $matches);
         if (!empty($matches[1])) {
             foreach ($matches[1] as $component) {
-                $components[$component] = [
-                    'type' => 'x-bonsai',
-                    'name' => $component,
-                    'data' => $this->extractComponentData($content),
-                ];
-            }
-        }
-
-        // Look for standard x-component tags
-        preg_match_all("/<x-([^\\s>:]+)/", $content, $matches);
-        if (!empty($matches[1])) {
-            foreach ($matches[1] as $component) {
-                $components[$component] = [
-                    'type' => 'x-component',
-                    'name' => $component,
-                    'data' => $this->extractComponentData($content),
-                ];
-            }
-        }
-
-        // Look for @include directives that reference components
-        preg_match_all("/@include\(['\"]([^'\"]+)['\"]/", $content, $matches);
-        if (!empty($matches[1])) {
-            foreach ($matches[1] as $include) {
-                if (strpos($include, 'components.') === 0) {
-                    $componentName = str_replace('components.', '', $include);
-                    $components[$componentName] = [
-                        'type' => 'include',
-                        'name' => $componentName,
+                if (!$this->shouldSkipComponent($component)) {
+                    $components[$component] = [
+                        'type' => 'x-bonsai',
+                        'name' => $component,
                         'data' => $this->extractComponentData($content),
+                        'priority' => 1,
                     ];
                 }
             }
         }
 
+        // Look for standard x-component tags (medium priority)
+        preg_match_all("/<x-([^\\s>:]+)/", $content, $matches);
+        if (!empty($matches[1])) {
+            foreach ($matches[1] as $component) {
+                if (!$this->shouldSkipComponent($component)) {
+                    $components[$component] = [
+                        'type' => 'x-component',
+                        'name' => $component,
+                        'data' => $this->extractComponentData($content),
+                        'priority' => 2,
+                    ];
+                }
+            }
+        }
+
+        // Look for @include directives that reference components (lowest priority)
+        preg_match_all("/@include\(['\"]([^'\"]+)['\"]/", $content, $matches);
+        if (!empty($matches[1])) {
+            foreach ($matches[1] as $include) {
+                if (strpos($include, 'components.') === 0) {
+                    $componentName = str_replace('components.', '', $include);
+                    if (!$this->shouldSkipComponent($componentName)) {
+                        $components[$componentName] = [
+                            'type' => 'include',
+                            'name' => $componentName,
+                            'data' => $this->extractComponentData($content),
+                            'priority' => 3,
+                        ];
+                    }
+                }
+            }
+        }
+
         return $components;
+    }
+
+    private function shouldSkipComponent(string $component): bool
+    {
+        // Skip generic bonsai component
+        if ($component === 'bonsai') {
+            return true;
+        }
+
+        // Skip Heroicon components
+        if (strpos($component, 'heroicon-') === 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function getPrimaryComponent(array $components): ?array
+    {
+        if (empty($components)) {
+            return null;
+        }
+
+        // Sort components by priority (lower number = higher priority)
+        uasort($components, function($a, $b) {
+            return $a['priority'] <=> $b['priority'];
+        });
+
+        // Return the first (highest priority) component
+        return reset($components);
     }
 
     private function extractComponentData(string $content): array

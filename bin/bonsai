@@ -1,11 +1,14 @@
 #!/usr/bin/env php
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+// Suppress deprecation warnings
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
+require __DIR__.'/../vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
 use Jackalopelabs\BonsaiCli\Commands\ScionCommand;
 
-$app = new Application('Bonsai CLI', '1.0.0');
-$app->add(new ScionCommand());
-$app->run();
+$application = new Application('Bonsai CLI', '1.0.0');
+$application->add(new ScionCommand());
+$application->run();
