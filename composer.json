@@ -7,7 +7,8 @@
         "php": "^8.0",
         "roots/acorn": "^4.0",
         "symfony/yaml": "^6.4",
-        "illuminate/console": "^10.48"
+        "illuminate/console": "^10.48",
+        "blade-ui-kit/blade-heroicons": "^2.2"
     },
     "autoload": {
         "psr-4": {

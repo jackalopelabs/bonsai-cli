@@ -187,6 +187,9 @@ class BonsaiServiceProvider extends ServiceProvider
         // Register an anonymous namespace for bonsai components
         Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
 
+        // Register Heroicons
+        $this->registerHeroicons();
+
         // Register core components
         $coreComponents = [
             'accordion',
@@ -219,5 +222,23 @@ class BonsaiServiceProvider extends ServiceProvider
         }
 
         $this->log('Finished registering bonsai components.');
+    }
+
+    protected function registerHeroicons()
+    {
+        $styles = ['o' => 'outline', 's' => 'solid', 'm' => 'mini'];
+        
+        foreach ($styles as $prefix => $style) {
+            $path = __DIR__ . "/../../vendor/blade-ui-kit/blade-heroicons/resources/svg/{$style}/*.svg";
+            $files = glob($path);
+            
+            foreach ($files as $file) {
+                $baseFilename = basename($file, '.svg');
+                $componentName = "heroicon-{$prefix}-{$baseFilename}";
+                
+                Blade::component("heroicons::{$style}.{$baseFilename}", $componentName);
+                $this->log("Registered Heroicon: {$componentName}");
+            }
+        }
     }
 }
