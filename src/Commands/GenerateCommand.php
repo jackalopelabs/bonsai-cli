@@ -117,18 +117,23 @@ class GenerateCommand extends Command
         $template = $this->argument('template');
         $possiblePaths = [
             base_path("templates/{$template}/components/{$componentName}.blade.php"),
-            __DIR__ . "/../../templates/{$template}/components/{$componentName}.blade.php"
+            __DIR__ . "/../../templates/{$template}/components/{$componentName}.blade.php",
+            base_path("resources/views/bonsai/components/{$template}/{$componentName}.blade.php")
         ];
 
         foreach ($possiblePaths as $path) {
             if (file_exists($path)) {
-                $targetDir = resource_path("views/{$template}/components");
+                // Create template-specific component directory
+                $targetDir = resource_path("views/bonsai/components/{$template}");
                 if (!$this->files->exists($targetDir)) {
                     $this->files->makeDirectory($targetDir, 0755, true);
                 }
                 
                 $targetPath = "{$targetDir}/{$componentName}.blade.php";
                 $this->files->copy($path, $targetPath);
+                
+                // Register the namespaced component
+                $this->registerBonsaiComponent("{$template}.{$componentName}");
                 return true;
             }
         }
@@ -210,21 +215,21 @@ BLADE;
             $componentType = $config['component'] ?? $section;
             $type = explode('_', $section)[0];
             
-            // Generate the section in the template's directory
-            $fullPath = resource_path("views/{$template}/sections/{$section}.blade.php");
+            // Generate the section in the template's directory structure
+            $fullPath = resource_path("views/bonsai/sections/{$template}/{$section}.blade.php");
             
             if (!$this->files->exists(dirname($fullPath))) {
                 $this->files->makeDirectory(dirname($fullPath), 0755, true);
             }
 
-            $sectionContent = $this->generateSectionContent($section, $componentType, $config['data'] ?? []);
+            $sectionContent = $this->generateSectionContent($template, $section, $componentType, $config['data'] ?? []);
             $this->files->put($fullPath, $sectionContent);
             
             $this->info("Generated section: {$template}/sections/{$section}");
         }
     }
 
-    protected function generateSectionContent($section, $componentType, $data)
+    protected function generateSectionContent($template, $section, $componentType, $data)
     {
         $dataVarName = "{$section}Data";
 
@@ -289,10 +294,10 @@ BLADE;
 </section>
 BLADE;
         } else {
-            // Default scenario
+            // Use template-specific component if it exists
             $template .= <<<BLADE
-<div class="{{ \$class }}">
-    <x-bonsai::{$componentType} :data="\${$dataVarName}" />
+<div class="{{ \$class }}" data-hero-type="{$template}">
+    <x-bonsai::{$template}.{$componentType} :data="\${$dataVarName}" />
 </div>
 BLADE;
         }
