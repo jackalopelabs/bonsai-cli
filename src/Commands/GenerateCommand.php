@@ -171,8 +171,17 @@ BLADE;
             $templateParts = explode('.', $componentType);
             $template = $templateParts[0];
             
+            // Map component types to directory names
+            $dirType = match(explode('_', $section)[0]) {
+                'home' => 'hero',
+                'services' => 'card',
+                'features' => 'widget',
+                'site' => 'header',
+                default => $template
+            };
+            
             // Create the full section path
-            $sectionPath = "{$template}/{$section}";
+            $sectionPath = $dirType === 'pricing' ? 'pricing' : "{$dirType}/{$section}";
             
             $fullPath = resource_path("views/bonsai/sections/{$sectionPath}.blade.php");
             if (!$this->files->exists(dirname($fullPath))) {
@@ -396,8 +405,14 @@ BLADE;
                 'services' => 'card',
                 'features' => 'widget',
                 'site' => 'header',
+                'pricing' => 'pricing-box',
                 default => $type
             };
+            
+            // For pricing sections, we want to include it directly
+            if ($type === 'pricing') {
+                return "@include('bonsai.sections.pricing')";
+            }
             
             return "@include('bonsai.sections.{$componentType}.{$section}')";
         }, $sections);
