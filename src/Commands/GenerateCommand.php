@@ -399,7 +399,7 @@ BLADE;
                 default => $type
             };
             
-            return "@include('bonsai.sections.{$componentType}/{$section}')";
+            return "@include('bonsai.sections.{$componentType}.{$section}')";
         }, $sections);
 
         return <<<BLADE
