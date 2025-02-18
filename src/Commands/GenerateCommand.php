@@ -80,6 +80,7 @@ class GenerateCommand extends Command
     protected function generateComponents($components, $hasHeroicons = false)
     {
         putenv("BONSAI_HAS_HEROICONS=" . ($hasHeroicons ? "true" : "false"));
+        $template = $this->argument('template');
 
         if (isset($components[0])) {
             $components = array_filter($components, function($c) {
@@ -93,96 +94,83 @@ class GenerateCommand extends Command
 
         foreach ($components as $component => $config) {
             $componentName = is_array($config) ? $component : $config;
-            $this->copyComponentTemplate($componentName);
+            
+            // First try to copy from template-specific components
+            if (!$this->copyTemplateComponent($componentName)) {
+                // If not found, fall back to core Bonsai components
+                $this->copyBonsaiComponent($componentName);
+            }
 
             if ($componentName === 'card') {
                 $this->copyComponentIcon('flowchart');
             } else if ($componentName === 'widget') {
-                $this->copyComponentTemplate('accordion');
-                $this->copyComponentTemplate('cta');
-                $this->copyComponentTemplate('list-item');
-            } else if ($componentName === 'feature-grid') {
-                $this->info("Installing feature-grid component...");
+                $this->copyTemplateComponent('accordion');
+                $this->copyTemplateComponent('cta');
+                $this->copyTemplateComponent('list-item');
             }
         }
     }
 
-    protected function copyComponentTemplate($componentName)
+    protected function copyTemplateComponent($componentName)
+    {
+        $template = $this->argument('template');
+        $possiblePaths = [
+            base_path("templates/{$template}/components/{$componentName}.blade.php"),
+            __DIR__ . "/../../templates/{$template}/components/{$componentName}.blade.php"
+        ];
+
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $targetDir = resource_path("views/{$template}/components");
+                if (!$this->files->exists($targetDir)) {
+                    $this->files->makeDirectory($targetDir, 0755, true);
+                }
+                
+                $targetPath = "{$targetDir}/{$componentName}.blade.php";
+                $this->files->copy($path, $targetPath);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function copyBonsaiComponent($componentName)
     {
         $possiblePaths = [
             base_path("templates/components/{$componentName}.blade.php"),
-            base_path("templates/components/icons/{$componentName}.blade.php"),
             __DIR__ . "/../../templates/components/{$componentName}.blade.php",
-            __DIR__ . "/../../templates/components/icons/{$componentName}.blade.php",
             base_path("resources/views/bonsai/components/{$componentName}.blade.php")
         ];
 
         foreach ($possiblePaths as $path) {
             if (file_exists($path)) {
-                $this->installComponentTemplate($path, $componentName);
-                return;
+                $targetDir = resource_path("views/bonsai/components");
+                if (!$this->files->exists($targetDir)) {
+                    $this->files->makeDirectory($targetDir, 0755, true);
+                }
+                
+                $targetPath = "{$targetDir}/{$componentName}.blade.php";
+                $this->files->copy($path, $targetPath);
+                return true;
             }
         }
 
-        // If no template found, create a basic one
+        // If no template found, create a basic one in bonsai components
         $this->createBasicComponent($componentName);
-    }
-
-    protected function installComponentTemplate($templatePath, $componentName)
-    {
-        $isIcon = strpos($templatePath, '/icons/') !== false;
-        $isSubComponent = in_array($componentName, ['accordion', 'cta', 'list-item']);
-
-        $targetDir = match(true) {
-            $isIcon => resource_path("views/bonsai/components/icons"),
-            $isSubComponent => resource_path("views/bonsai/components"),
-            default => resource_path("views/bonsai/components")
-        };
-
-        if (!$this->files->exists($targetDir)) {
-            $this->files->makeDirectory($targetDir, 0755, true);
-        }
-
-        $targetPath = "{$targetDir}/" . basename($templatePath);
-        $this->files->copy($templatePath, $targetPath);
-    }
-
-    protected function createBasicComponent($name)
-    {
-        $targetPath = base_path("resources/views/bonsai/components/{$name}.blade.php");
-        $content = <<<BLADE
-<div class="component-{$name}">
-    <div class="p-4">
-        <h2>{{ \$title ?? 'Default Title' }}</h2>
-        {{ \$slot }}
-    </div>
-</div>
-BLADE;
-
-        $this->files->put($targetPath, $content);
+        return true;
     }
 
     protected function generateSections($sections)
     {
+        $template = $this->argument('template');
+        
         foreach ($sections as $section => $config) {
             $componentType = $config['component'] ?? $section;
             $type = explode('_', $section)[0];
             
-            // Special case for pricing section - place directly in sections directory
-            if ($type === 'pricing') {
-                $fullPath = resource_path("views/bonsai/sections/pricing.blade.php");
-            } else {
-                // Map component types to directory names for other sections
-                $dirType = match($type) {
-                    'home' => 'hero',
-                    'services' => 'card',
-                    'features' => 'widget',
-                    'site' => 'header',
-                    default => $type
-                };
-                
-                $fullPath = resource_path("views/bonsai/sections/{$dirType}/{$section}.blade.php");
-            }
+            // Generate the section in the template's directory
+            $fullPath = resource_path("views/{$template}/sections/{$section}.blade.php");
             
             if (!$this->files->exists(dirname($fullPath))) {
                 $this->files->makeDirectory(dirname($fullPath), 0755, true);
@@ -191,7 +179,7 @@ BLADE;
             $sectionContent = $this->generateSectionContent($section, $componentType, $config['data'] ?? []);
             $this->files->put($fullPath, $sectionContent);
             
-            $this->info("Generated section: " . basename(dirname($fullPath)) . '/' . basename($fullPath));
+            $this->info("Generated section: {$template}/sections/{$section}");
         }
     }
 
@@ -294,13 +282,14 @@ BLADE;
 
     protected function generateLayouts($layouts)
     {
-        $config = $this->loadConfig($this->getConfigPath($this->argument('template')));
+        $template = $this->argument('template');
+        $config = $this->loadConfig($this->getConfigPath($template));
         $themeSettings = $config['theme'] ?? [
             'body' => ['class' => 'bg-gray-100']
         ];
 
         foreach ($layouts as $layout => $layoutConfig) {
-            $layoutPath = resource_path("views/bonsai/layouts/{$layout}.blade.php");
+            $layoutPath = resource_path("views/{$template}/layouts/{$layout}.blade.php");
             if (!$this->files->exists(dirname($layoutPath))) {
                 $this->files->makeDirectory(dirname($layoutPath), 0755, true);
             }
@@ -321,7 +310,7 @@ BLADE;
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
-            @include('bonsai.sections.site_header')
+            @include('{$template}.sections.site_header')
             <main id="main" class="max-w-5xl mx-auto">
                 <div class="{{ \$containerInnerClasses }}">
                     @yield('content')
@@ -394,33 +383,15 @@ BLADE;
     protected function generateTemplateContent($template, $layout, $config)
     {
         $sections = $config['sections'] ?? [];
-        $sectionIncludes = array_map(function($section) {
-            // Extract the component type and section name
-            $parts = explode('_', $section);
-            $type = $parts[0];
-            
-            // Special case for pricing section
-            if ($type === 'pricing') {
-                return "@include('bonsai.sections.pricing')";
-            }
-            
-            // Map section types to their component directories
-            $componentType = match($type) {
-                'home' => 'hero',
-                'services' => 'card',
-                'features' => 'widget',
-                'site' => 'header',
-                default => $type
-            };
-            
-            return "@include('bonsai.sections.{$componentType}.{$section}')";
+        $sectionIncludes = array_map(function($section) use ($template) {
+            return "@include('{$template}.sections.{$section}')";
         }, $sections);
 
         return <<<BLADE
 {{-- 
     Template Name: {{ \$config['name'] ?? ucfirst(\$template) }}
 --}}
-@extends('bonsai.layouts.{$template}')
+@extends('{$template}.layouts.{$layout}')
 
 @section('content')
 {$this->indent(implode("\n", $sectionIncludes), 4)}
