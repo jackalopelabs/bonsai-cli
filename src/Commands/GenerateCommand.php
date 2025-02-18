@@ -497,4 +497,13 @@ BLADE;
     {
         // Implement if needed
     }
+
+    protected function indent($content, $spaces = 4)
+    {
+        $lines = explode("\n", $content);
+        $indented = array_map(function($line) use ($spaces) {
+            return str_repeat(' ', $spaces) . $line;
+        }, $lines);
+        return implode("\n", $indented);
+    }
 }
