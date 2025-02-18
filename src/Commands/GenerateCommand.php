@@ -333,11 +333,28 @@ BLADE;
 
     protected function generateSitePages($pages)
     {
-        foreach ($pages as $slug => $config) {
-            $title = $config['title'] ?? Str::title($slug);
-            $layout = $config['layout'] ?? 'default';
+        $template = $this->argument('template');
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
 
-            $templateContent = $this->generateTemplateContent($slug, $layout, $config);
+        // If no pages defined, create a default page using the template
+        if (empty($pages)) {
+            $pages = [
+                $template => [
+                    'title' => ucfirst($template),
+                    'layout' => $template,
+                    'is_homepage' => true,
+                    'sections' => array_keys($config['sections'] ?? [])
+                ]
+            ];
+        }
+
+        foreach ($pages as $slug => $pageConfig) {
+            $title = $pageConfig['title'] ?? Str::title($slug);
+            $layout = $pageConfig['layout'] ?? $template;
+            $sections = $pageConfig['sections'] ?? array_keys($config['sections'] ?? []);
+
+            $templateContent = $this->generateTemplateContent($template, $layout, ['sections' => $sections]);
             $templatePath = resource_path("views/bonsai/templates/template-{$layout}.blade.php");
 
             if (!$this->files->exists(dirname($templatePath))) {
@@ -358,7 +375,7 @@ BLADE;
                 ],
             ]);
 
-            if (!is_wp_error($pageId) && !empty($config['is_homepage'])) {
+            if (!is_wp_error($pageId) && !empty($pageConfig['is_homepage'])) {
                 update_option('show_on_front', 'page');
                 update_option('page_on_front', $pageId);
             }
