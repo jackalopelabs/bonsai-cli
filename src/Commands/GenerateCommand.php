@@ -315,10 +315,13 @@ BLADE;
 </section>
 BLADE;
         } else {
-            // Use template-specific component
+            // Check if this is a template-specific component
+            $componentPath = resource_path("views/{$template}/components/{$componentType}.blade.php");
+            $componentPrefix = file_exists($componentPath) ? "{$template}::" : "bonsai::";
+            
             $template .= <<<BLADE
-<div class="{{ \$class }}" data-hero-type="{$template}">
-    <x-{$template}::{$componentType} :data="\${$dataVarName}" />
+<div class="{{ \$class }}">
+    <x-{$componentPrefix}{$componentType} :data="\${$dataVarName}" />
 </div>
 BLADE;
         }
