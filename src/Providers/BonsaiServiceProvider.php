@@ -184,11 +184,22 @@ class BonsaiServiceProvider extends ServiceProvider
     {
         $this->log('registerBladeComponents called in BonsaiServiceProvider');
 
-        // Register an anonymous namespace for bonsai components
-        Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
+        // Register core Bonsai components
+        $this->registerCoreComponents();
+
+        // Register template-specific components
+        $this->registerTemplateComponents();
 
         // Register Heroicons
         $this->registerHeroicons();
+
+        $this->log('Finished registering bonsai components.');
+    }
+
+    protected function registerCoreComponents()
+    {
+        // Register an anonymous namespace for bonsai components
+        Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
 
         // Register core components
         $coreComponents = [
@@ -207,7 +218,7 @@ class BonsaiServiceProvider extends ServiceProvider
             $this->log("Registered component: {$componentName} as <x-bonsai::{$componentName}>");
         }
 
-        // Register nested components (e.g., icons)
+        // Register nested components in bonsai (e.g., icons)
         $componentsPath = resource_path('views/bonsai/components');
         $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
         foreach ($nestedDirs as $dir) {
@@ -220,8 +231,53 @@ class BonsaiServiceProvider extends ServiceProvider
                 $this->log("Registered nested component: {$fullName} as <x-bonsai::{$fullName}>");
             }
         }
+    }
 
-        $this->log('Finished registering bonsai components.');
+    protected function registerTemplateComponents()
+    {
+        // Get all template directories
+        $viewsPath = resource_path('views');
+        $templateDirs = glob($viewsPath . '/*', GLOB_ONLYDIR);
+
+        foreach ($templateDirs as $templateDir) {
+            $templateName = basename($templateDir);
+            
+            // Skip the bonsai directory as it's handled separately
+            if ($templateName === 'bonsai') {
+                continue;
+            }
+
+            // Register template namespace
+            $this->app['view']->addNamespace($templateName, $templateDir);
+
+            // Register components in template/components directory
+            $componentsPath = "{$templateDir}/components";
+            if (is_dir($componentsPath)) {
+                // Register an anonymous namespace for template components
+                Blade::anonymousComponentNamespace("{$templateName}.components", $templateName);
+
+                // Register direct components
+                $componentFiles = glob($componentsPath . '/*.blade.php');
+                foreach ($componentFiles as $file) {
+                    $componentName = basename($file, '.blade.php');
+                    Blade::component("{$templateName}.components.{$componentName}", "{$templateName}::{$componentName}");
+                    $this->log("Registered template component: {$componentName} as <x-{$templateName}::{$componentName}>");
+                }
+
+                // Register nested components
+                $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
+                foreach ($nestedDirs as $dir) {
+                    $dirName = basename($dir);
+                    $nestedFiles = glob($dir . '/*.blade.php');
+                    foreach ($nestedFiles as $nestedFile) {
+                        $nestedComponentName = basename($nestedFile, '.blade.php');
+                        $fullName = "{$dirName}.{$nestedComponentName}";
+                        Blade::component("{$templateName}.components.{$fullName}", "{$templateName}::{$fullName}");
+                        $this->log("Registered nested template component: {$fullName} as <x-{$templateName}::{$fullName}>");
+                    }
+                }
+            }
+        }
     }
 
     protected function registerHeroicons()
