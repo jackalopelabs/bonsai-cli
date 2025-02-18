@@ -2,53 +2,88 @@ sections:
   home_hero:
     component: cypress.hero
     data:
-      title: 'Bonsai CLI'
-      subtitle: 'Generate a beautful Roots project in minutes'
-      description: 'A WordPress CLI tool for generating and managing reusable components, layouts, and sections in Roots-based projects'
-      buttonText: 'Learn More'
-      buttonLink: '#installation'
-      secondaryText: Github
-      secondaryLink: 'https://github.com/jackalopelabs/bonsai-cli'
-      dropdownIcon: heroicon-s-chevron-down
-      buttonLinkIcon: heroicon-s-play
-      secondaryIcon: heroicon-s-arrow-right
-      iconMappings: { dropdownIcon: heroicon-s-chevron-down, buttonLinkIcon: heroicon-s-play, secondaryIcon: heroicon-s-arrow-right }
+      title: 'Elevate Your Agency\'
+      subtitle: 'Sleek Design Meets Powerful Functionality'
+      description: 'Cypress offers a streamlined approach to creating stunning landing pages with the flexibility of no-code editing and developer-friendly tools.'
+      imagePaths: {  }
+      buttonText: 'Get Started'
+      buttonLink: '#pricing'
+      secondaryText: 'View Demo'
+      secondaryLink: '#demo'
+      buttonLinkIcon: true
+      secondaryIcon: true
+      containerClasses: 'container mx-auto px-4 mb-12 mt-0 md:mt-24'
+      columnClasses: 'flex flex-col md:flex-row items-center md:items-start -mx-4'
+      imageColumnClasses: 'w-full md:w-1/2 px-4 flex justify-center items-center mt-12 md:mt-0 md:order-last'
+      textColumnClasses: 'w-full md:w-1/2 px-4'
+      titleClass: 'font-semibold text-6xl'
+      productTagClasses: 'bg-white bg-opacity-50 px-3 py-1 text-sm inline-block'
+      productIconClasses: 'w-4 h-4 ml-2 inline-block align-middle'
+      buttonClasses: 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-xl py-2 px-5 rounded-full'
+      buttonIconClasses: 'text-white w-6 h-6 ml-2 inline-block align-middle'
+      secondaryClasses: 'text-sm bg-transparent px-2 py-1 backdrop-blur-md shadow-lg rounded-md border border-gray-100'
+      secondaryIconClasses: 'w-4 h-4 ml-2 inline-block align-middle'
+      iconMappings: { dropdownIcon: heroicon-s-chevron-down, buttonLinkIcon: heroicon-s-sparkles, secondaryIcon: heroicon-s-play }
   services_card:
-    component: card
+    component: cypress.card
     data:
       sectionId: services
-      sectionTitle: Features
-      url: '#pricing'
-      label: Pricing
+      sectionTitle: '<span class="hidden sm:inline">Our</span> Services'
+      navLinks: { url: '#features', label: Features }
+      url: '#docs'
+      label: Documentation
+      sectionClasses: py-12
+      containerClasses: 'max-w-4xl mx-auto px-6'
+      navContainerClasses: 'flex flex-col sm:flex-row flex-wrap items-start mb-6 justify-center md:justify-center'
+      titleClasses: 'text-lg text-gray-700 bg-white p-3 rounded-lg mr-4 mb-4 sm:mb-0'
+      titleIconClasses: 'w-4 h-4 ml-2 inline-block align-middle'
+      navLinkClasses: 'text-lg text-gray-700 p-3 mb-4 sm:mb-0 hidden sm:inline'
+      navLinkIconClasses: 'w-4 h-4 ml-2 inline-block align-middle'
+      cardContainerClasses: 'bg-white bg-opacity-50 grid md:grid-cols-2 gap-8 rounded-3xl p-3'
+      imageColumnClasses: 'md:w-1/2 mx-auto'
+      featuresColumnClasses: 'md:w-2/2 space-y-6'
+      featureItemClasses: 'flex items-start space-x-4 bg-white rounded-xl p-3'
+      featureIconClasses: 'h-6 w-6 text-indigo-500'
+      featureTitleClasses: 'text-lg font-semibold'
+      featureDescriptionClasses: 'text-sm text-gray-500'
+      featureItems: { icon: heroicon-o-command-line, title: 'Component Generation', description: 'Generate reusable components with a single command.' }
       icon: heroicon-o-template
       title: 'Template System'
       description: 'Pre-built templates for rapid WordPress development.'
   features_widget:
-    component: widget
+    component: cypress.widget
     data:
-      id: widget-4
-      title: Documentation
-      icon: heroicon-o-book-open
-      link: 'https://github.com/jackalopelabs/bonsai-cli'
-      description: 'Comprehensive documentation and configuration guides:'
-      number: '4'
-      itemName: Troubleshooting
-      text: 'Common issues, debugging steps, and best practices'
+      globalStyles: { containerClasses: 'bg-white bg-opacity-30 shadow-lg rounded-xl', contentClasses: p-2, descriptionClasses: 'text-gray-600 text-sm', noteClasses: 'text-gray-600 text-sm', noteLabelClasses: font-bold }
+      listItemStyles: { listItemClasses: 'flex items-start py-2', numberClasses: 'flex-shrink-0 flex items-center justify-center text-white mr-4 bg-gray-600 rounded-full w-8 h-8 text-sm', titleClasses: font-semibold, textClasses: 'text-sm text-gray-500' }
+      ctaStyles: { containerClasses: 'cta bg-white bg-opacity-50 rounded-lg flex items-center space-x-8 mt-2', imageClasses: 'w-44 h-44 object-cover rounded-xl', contentContainerClasses: 'flex items-center justify-between flex-1', titleClasses: 'text-xl font-semibold', buttonClasses: 'inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50', buttonIconClasses: 'w-4 h-4 ml-2' }
+      items: { id: widget-1, title: 'Component Generation', icon: heroicon-o-command-line, link: '#components', imagePath: 'https://placehold.co/600x400/png' }
+      description: 'Generate complete WordPress sites from templates:'
+      listItems: { number: '1', itemName: 'Pre-built Templates', text: 'Start with our collection of ready-to-use templates' }
+      number: '3'
+      itemName: 'WordPress Integration'
+      text: 'Seamlessly works with WordPress and Sage'
+      id: widget-3
+      title: 'Template System'
+      icon: heroicon-o-template
+      cta: { title: 'Template System', link: '#templates', imagePath: 'https://placehold.co/600x400/png' }
   pricing:
-    component: pricing-box
+    component: cypress.pricing-box
     data:
-      title: 'Choose Your Plan'
-      subtitle: 'Limited-time pricing available now'
-      description: 'Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel.'
-      icon: heroicon-o-star
-      iconColor: text-yellow-500
-      planType: Sensei
-      price: '$249<span class=\"text-xs text-gray-400\">/yr</span>'
-      ctaLink: '#buy-sensei'
-      ctaText: 'Coming soon'
+      pricingBoxStyles: { containerClasses: 'bg-white bg-opacity-50 rounded-xl shadow-lg overflow-hidden mx-auto md:mx-0 text-center my-3 transition-transform transform hover:scale-105', iconClasses: 'inline-block h-12 w-12 mt-8 mb-4', planTypeClasses: text-gray-400, priceClasses: 'text-4xl font-bold', dividerClasses: 'border-t border-gray-200 my-5', featureListClasses: 'my-4 text-left space-y-3', featureItemClasses: 'flex items-center justify-start text-gray-500', featureIconClasses: 'w-5 h-5 mr-2', ctaButtonClasses: 'inline-block py-2 px-6 rounded-full', ctaIconClasses: 'inline-block h-4 w-4 ml-2' }
+      title: 'Flexible Pricing Plans'
+      subtitle: 'Choose a plan that fits your agency\'
+      description: 'All plans include premium support and regular updates. Upgrade anytime to unlock more features.'
+      pricingBoxes: { icon: heroicon-o-building-storefront, iconColor: text-purple-500, planType: Starter, price: $99 }
+      ctaLink: '#buy-enterprise'
+      ctaText: Purchase
       ctaColor: 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white'
       iconBtn: heroicon-o-shopping-cart
       iconBtnColor: text-white
+      icon: heroicon-o-globe-americas
+      iconColor: text-blue-600
+      planType: Enterprise
+      price: $799
+      features: {  }
 layout:
   sections:
     - home_hero

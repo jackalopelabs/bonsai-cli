@@ -87,13 +87,18 @@ class ScionCommand extends Command
             // Get the primary component and its data
             $primaryComponent = $this->getPrimaryComponent($componentInfo);
             if ($primaryComponent) {
+                // Ensure we use the template namespace for components
+                $componentName = $primaryComponent['name'];
+                if (strpos($componentName, $templateName . '.') !== 0 && strpos($componentName, 'bonsai::' . $templateName . '.') === false) {
+                    $componentName = $templateName . '.' . $componentName;
+                }
+                
                 $sections[$sectionKey] = [
-                    'component' => $primaryComponent['name'],
+                    'component' => $componentName,
                     'data' => $primaryComponent['data'],
                 ];
 
-                // Copy the component
-                $this->copyComponentToTemplate($primaryComponent['name'], $componentDir, $output);
+                $output->writeln("<info>Using component {$componentName} for section {$sectionKey}</info>");
             }
         }
 
@@ -124,7 +129,6 @@ class ScionCommand extends Command
         file_put_contents($targetPath, $yamlContent);
 
         $output->writeln("<info>Configuration saved to: {$targetPath}</info>");
-        $output->writeln("<info>Components created in: {$componentDir}</info>");
         $output->writeln("<info>Now run 'wp acorn bonsai:generate {$templateName}' in your Roots project to generate the landing page.</info>");
 
         return Command::SUCCESS;
@@ -197,27 +201,31 @@ class ScionCommand extends Command
         if (!empty($matches[1])) {
             foreach ($matches[1] as $component) {
                 if (!$this->shouldSkipComponent($component)) {
+                    // For cypress.hero style components, preserve the full name
                     $components[$component] = [
                         'type' => 'x-bonsai',
-                        'name' => $component,
+                        'name' => $component, // Keep full name like 'cypress.hero'
                         'data' => $this->extractComponentData($content),
                         'priority' => 1,
                     ];
+                    $output->writeln("<info>Found bonsai component: {$component}</info>");
                 }
             }
         }
 
-        // Look for standard x-component tags (medium priority)
+        // Look for x-component tags (medium priority)
         preg_match_all("/<x-([^\\s>:]+)/", $content, $matches);
         if (!empty($matches[1])) {
             foreach ($matches[1] as $component) {
                 if (!$this->shouldSkipComponent($component)) {
+                    // Check if this is a namespaced component (e.g., cypress.hero)
                     $components[$component] = [
                         'type' => 'x-component',
                         'name' => $component,
                         'data' => $this->extractComponentData($content),
                         'priority' => 2,
                     ];
+                    $output->writeln("<info>Found component: {$component}</info>");
                 }
             }
         }
@@ -235,6 +243,7 @@ class ScionCommand extends Command
                             'data' => $this->extractComponentData($content),
                             'priority' => 3,
                         ];
+                        $output->writeln("<info>Found included component: {$componentName}</info>");
                     }
                 }
             }
@@ -281,27 +290,35 @@ class ScionCommand extends Command
         if (preg_match('/\$[a-zA-Z_]+Data\s*=\s*\[(.*?)\];/s', $content, $matches)) {
             $arrayContent = $matches[1];
             
-            // Extract key-value pairs
-            preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $arrayContent, $pairs);
+            // Extract key-value pairs, including string literals and booleans
+            preg_match_all("/'([^']+)'\s*=>\s*(?:'([^']+)'|true|false|\[([^\]]+)\])/", $arrayContent, $pairs);
             if (!empty($pairs[1])) {
                 for ($i = 0; $i < count($pairs[1]); $i++) {
                     $key = $pairs[1][$i];
                     $value = $pairs[2][$i];
-                    $data[$key] = $value;
-                }
-            }
-
-            // Extract nested arrays (like iconMappings)
-            if (preg_match("/'iconMappings'\s*=>\s*\[(.*?)\]/s", $arrayContent, $iconMatches)) {
-                $iconContent = $iconMatches[1];
-                preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $iconContent, $iconPairs);
-                if (!empty($iconPairs[1])) {
-                    $data['iconMappings'] = [];
-                    for ($i = 0; $i < count($iconPairs[1]); $i++) {
-                        $key = $iconPairs[1][$i];
-                        $value = $iconPairs[2][$i];
-                        $data['iconMappings'][$key] = $value;
+                    
+                    // Handle boolean values
+                    if ($value === '') {
+                        if (strpos($pairs[0][$i], '=> true') !== false) {
+                            $value = true;
+                        } elseif (strpos($pairs[0][$i], '=> false') !== false) {
+                            $value = false;
+                        }
                     }
+                    
+                    // Handle nested arrays (like iconMappings)
+                    if (empty($value) && !empty($pairs[3][$i])) {
+                        $nestedArray = [];
+                        preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $pairs[3][$i], $nestedPairs);
+                        if (!empty($nestedPairs[1])) {
+                            for ($j = 0; $j < count($nestedPairs[1]); $j++) {
+                                $nestedArray[$nestedPairs[1][$j]] = $nestedPairs[2][$j];
+                            }
+                        }
+                        $value = $nestedArray;
+                    }
+                    
+                    $data[$key] = $value;
                 }
             }
         }
