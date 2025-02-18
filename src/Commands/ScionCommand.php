@@ -337,14 +337,14 @@ class ScionCommand extends Command
         
         // First try to find the component in various possible locations
         $sourcePaths = [
-            // Try the source project's components directory
-            resource_path('views/bonsai/components/' . $baseComponentName . '.blade.php'),
-            resource_path('views/components/' . $baseComponentName . '.blade.php'),
-            // Try the package's templates directory
+            // Try the package's templates directory first
             __DIR__ . '/../../templates/components/' . $baseComponentName . '.blade.php',
-            // Try nested paths
-            resource_path('views/bonsai/components/' . implode('/', $parts) . '.blade.php'),
+            // Try nested paths in package
             __DIR__ . '/../../templates/components/' . implode('/', $parts) . '.blade.php',
+            // Try the source project's components directory (if available)
+            dirname(dirname(dirname(__DIR__))) . '/resources/views/bonsai/components/' . $baseComponentName . '.blade.php',
+            dirname(dirname(dirname(__DIR__))) . '/resources/views/components/' . $baseComponentName . '.blade.php',
+            dirname(dirname(dirname(__DIR__))) . '/resources/views/bonsai/components/' . implode('/', $parts) . '.blade.php',
         ];
 
         $sourceFile = null;
