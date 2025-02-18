@@ -87,11 +87,11 @@ class ScionCommand extends Command
             // Get the primary component and its data
             $primaryComponent = $this->getPrimaryComponent($componentInfo);
             if ($primaryComponent) {
-                // Ensure we use the template namespace for components
+                // Clean up the component name to ensure single dot
                 $componentName = $primaryComponent['name'];
-                if (strpos($componentName, $templateName . '.') !== 0 && strpos($componentName, 'bonsai::' . $templateName . '.') === false) {
-                    $componentName = $templateName . '.' . $componentName;
-                }
+                $parts = explode('.', $componentName);
+                $baseComponent = end($parts);
+                $componentName = $templateName . '.' . $baseComponent;
                 
                 $sections[$sectionKey] = [
                     'component' => $componentName,
@@ -140,27 +140,57 @@ class ScionCommand extends Command
     private function convertIncludeToPath(string $templatePath, string $include): string
     {
         // Get the base views path from the template path
-        $viewsPath = dirname(dirname(dirname($templatePath))); // Go up 3 levels from template file
+        $viewsPath = dirname(dirname(dirname($templatePath))); 
         
-        // Convert dot notation to directory structure
+        // Split the include path into parts
         $parts = explode('.', $include);
         
         // Handle different path patterns
         if ($parts[0] === 'bonsai') {
             array_shift($parts); // Remove 'bonsai'
-            $path = $viewsPath . '/bonsai/' . implode('/', $parts) . '.blade.php';
             
-            // Try alternate paths if file doesn't exist
-            if (!file_exists($path)) {
-                $alternatePaths = [
-                    $viewsPath . '/resources/views/bonsai/' . implode('/', $parts) . '.blade.php',
-                    dirname($templatePath) . '/' . implode('/', $parts) . '.blade.php',
-                ];
+            // Check if this is a template-specific section (e.g., bonsai.sections.cypress.home_hero)
+            if (count($parts) > 2 && $parts[0] === 'sections') {
+                $templateName = $parts[1];  // e.g., 'cypress'
+                $sectionName = end($parts); // e.g., 'home_hero'
                 
-                foreach ($alternatePaths as $altPath) {
-                    if (file_exists($altPath)) {
-                        return $altPath;
-                    }
+                // First try to find it in the template's sections directory
+                $templatePath = $viewsPath . '/' . $templateName . '/sections/' . $sectionName . '.blade.php';
+                if (file_exists($templatePath)) {
+                    return $templatePath;
+                }
+                
+                // Then try the bonsai directory
+                $bonsaiPath = $viewsPath . '/bonsai/sections/' . $sectionName . '.blade.php';
+                if (file_exists($bonsaiPath)) {
+                    return $bonsaiPath;
+                }
+                
+                // Finally, try the template-specific directory in bonsai
+                $bonsaiTemplatePath = $viewsPath . '/bonsai/sections/' . $templateName . '/' . $sectionName . '.blade.php';
+                if (file_exists($bonsaiTemplatePath)) {
+                    return $bonsaiTemplatePath;
+                }
+                
+                // If not found, return the template path (it will be created there)
+                return $templatePath;
+            }
+            
+            // Default bonsai path handling
+            $path = $viewsPath . '/bonsai/' . implode('/', $parts) . '.blade.php';
+            if (file_exists($path)) {
+                return $path;
+            }
+            
+            // Try alternate paths
+            $alternatePaths = [
+                $viewsPath . '/resources/views/bonsai/' . implode('/', $parts) . '.blade.php',
+                dirname($templatePath) . '/' . implode('/', $parts) . '.blade.php',
+            ];
+            
+            foreach ($alternatePaths as $altPath) {
+                if (file_exists($altPath)) {
+                    return $altPath;
                 }
             }
             
@@ -199,19 +229,49 @@ class ScionCommand extends Command
         $content = file_get_contents($sectionPath);
         $components = [];
 
-        // Look for x-bonsai::cypress style components first (highest priority)
+        // Extract template name from include path for template-specific sections
+        if (preg_match('|bonsai\.sections\.([^\.]+)\.|', $sectionPath, $matches)) {
+            $templateName = $matches[1];  // e.g., 'cypress' from bonsai.sections.cypress.home_hero
+        } else {
+            // Fallback to extracting from file path
+            preg_match('|/([^/]+)/sections/|', $sectionPath, $matches);
+            $templateName = $matches[1] ?? null;
+            
+            // If template name is 'bonsai', look for nested template name
+            if ($templateName === 'bonsai') {
+                preg_match('|/bonsai/sections/([^/]+)/|', $sectionPath, $matches);
+                $templateName = $matches[1] ?? null;
+            }
+        }
+
+        // Helper function to clean component names
+        $cleanComponentName = function($component) use ($templateName) {
+            // First remove any existing template prefixes and bonsai prefixes
+            $baseComponent = preg_replace("/^{$templateName}\.+|^bonsai::\.+|^bonsai\.+/", '', $component);
+            // Remove any remaining dots
+            $baseComponent = preg_replace("/\.+/", '', $baseComponent);
+            // Remove any remaining template prefix if it exists
+            $baseComponent = preg_replace("/^{$templateName}/", '', $baseComponent);
+            // Clean up any remaining whitespace
+            $baseComponent = trim($baseComponent);
+            
+            // Return clean component name with single dot
+            return rtrim($templateName . '.' . $baseComponent, '.');
+        };
+
+        // Look for x-bonsai:: components first (highest priority)
         preg_match_all("/<x-bonsai::([^\\s>]+)/", $content, $matches);
         if (!empty($matches[1])) {
             foreach ($matches[1] as $component) {
                 if (!$this->shouldSkipComponent($component)) {
-                    // For cypress.hero style components, preserve the full name
-                    $components[$component] = [
+                    $componentName = $cleanComponentName($component);
+                    $components[$componentName] = [
                         'type' => 'x-bonsai',
-                        'name' => $component, // Keep full name like 'cypress.hero'
+                        'name' => $componentName,
                         'data' => $this->extractComponentData($content),
                         'priority' => 1,
                     ];
-                    $output->writeln("<info>Found bonsai component: {$component}</info>");
+                    $output->writeln("<info>Found component: {$componentName}</info>");
                 }
             }
         }
@@ -221,14 +281,14 @@ class ScionCommand extends Command
         if (!empty($matches[1])) {
             foreach ($matches[1] as $component) {
                 if (!$this->shouldSkipComponent($component)) {
-                    // Check if this is a namespaced component (e.g., cypress.hero)
-                    $components[$component] = [
+                    $componentName = $cleanComponentName($component);
+                    $components[$componentName] = [
                         'type' => 'x-component',
-                        'name' => $component,
+                        'name' => $componentName,
                         'data' => $this->extractComponentData($content),
                         'priority' => 2,
                     ];
-                    $output->writeln("<info>Found component: {$component}</info>");
+                    $output->writeln("<info>Found component: {$componentName}</info>");
                 }
             }
         }
@@ -238,15 +298,16 @@ class ScionCommand extends Command
         if (!empty($matches[1])) {
             foreach ($matches[1] as $include) {
                 if (strpos($include, 'components.') === 0) {
-                    $componentName = str_replace('components.', '', $include);
-                    if (!$this->shouldSkipComponent($componentName)) {
+                    $baseComponentName = str_replace('components.', '', $include);
+                    if (!$this->shouldSkipComponent($baseComponentName)) {
+                        $componentName = $cleanComponentName($baseComponentName);
                         $components[$componentName] = [
                             'type' => 'include',
                             'name' => $componentName,
                             'data' => $this->extractComponentData($content),
                             'priority' => 3,
                         ];
-                        $output->writeln("<info>Found included component: {$componentName}</info>");
+                        $output->writeln("<info>Found component: {$componentName}</info>");
                     }
                 }
             }
@@ -293,8 +354,8 @@ class ScionCommand extends Command
         if (preg_match('/\$[a-zA-Z_]+Data\s*=\s*\[(.*?)\];/s', $content, $matches)) {
             $arrayContent = $matches[1];
             
-            // Extract key-value pairs, including string literals and booleans
-            preg_match_all("/'([^']+)'\s*=>\s*(?:'([^']+)'|true|false|\[([^\]]+)\])/", $arrayContent, $pairs);
+            // Extract key-value pairs, including arrays and nested structures
+            preg_match_all("/'([^']+)'\s*=>\s*(?:'([^']+)'|true|false|\[(.*?)\])/s", $arrayContent, $pairs);
             if (!empty($pairs[1])) {
                 for ($i = 0; $i < count($pairs[1]); $i++) {
                     $key = $pairs[1][$i];
@@ -309,16 +370,34 @@ class ScionCommand extends Command
                         }
                     }
                     
-                    // Handle nested arrays (like iconMappings)
-                    if (empty($value) && !empty($pairs[3][$i])) {
+                    // Handle array fields that should always be arrays
+                    if (in_array($key, ['imagePaths', 'featureItems', 'listItems', 'pricingBoxes', 'features'])) {
+                        if (empty($pairs[3][$i])) {
+                            $value = [];
+                        } else {
+                            $nestedArray = [];
+                            preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $pairs[3][$i], $nestedPairs);
+                            if (!empty($nestedPairs[1])) {
+                                $item = [];
+                                for ($j = 0; $j < count($nestedPairs[1]); $j++) {
+                                    $item[$nestedPairs[1][$j]] = $nestedPairs[2][$j];
+                                }
+                                $value = [$item];
+                            } else {
+                                $value = [];
+                            }
+                        }
+                    }
+                    // Handle other nested arrays
+                    elseif (empty($value) && !empty($pairs[3][$i])) {
                         $nestedArray = [];
                         preg_match_all("/'([^']+)'\s*=>\s*'([^']+)'/", $pairs[3][$i], $nestedPairs);
                         if (!empty($nestedPairs[1])) {
                             for ($j = 0; $j < count($nestedPairs[1]); $j++) {
                                 $nestedArray[$nestedPairs[1][$j]] = $nestedPairs[2][$j];
                             }
+                            $value = $nestedArray;
                         }
-                        $value = $nestedArray;
                     }
                     
                     $data[$key] = $value;
@@ -333,18 +412,18 @@ class ScionCommand extends Command
     {
         // Handle nested components (e.g., cypress.hero)
         $parts = explode('.', $componentName);
+        
+        // Get the template name and base component name
+        $templateName = $parts[0];
         $baseComponentName = end($parts); // Get the base name (e.g., 'hero' from 'cypress.hero')
         
         // First try to find the component in various possible locations
         $sourcePaths = [
             // Try the package's templates directory first
             __DIR__ . '/../../templates/components/' . $baseComponentName . '.blade.php',
-            // Try nested paths in package
-            __DIR__ . '/../../templates/components/' . implode('/', $parts) . '.blade.php',
             // Try the source project's components directory (if available)
             dirname(dirname(dirname(__DIR__))) . '/resources/views/bonsai/components/' . $baseComponentName . '.blade.php',
             dirname(dirname(dirname(__DIR__))) . '/resources/views/components/' . $baseComponentName . '.blade.php',
-            dirname(dirname(dirname(__DIR__))) . '/resources/views/bonsai/components/' . implode('/', $parts) . '.blade.php',
         ];
 
         $sourceFile = null;
@@ -361,19 +440,14 @@ class ScionCommand extends Command
             return;
         }
 
-        // Create nested directory structure if needed
-        if (count($parts) > 1) {
-            $nestedDir = $targetDir;
-            if (!is_dir($nestedDir)) {
-                mkdir($nestedDir, 0755, true);
-                $output->writeln("<info>Created nested directory: {$nestedDir}</info>");
-            }
-            $targetFile = $nestedDir . '/' . $baseComponentName . '.blade.php';
-        } else {
-            $targetFile = $targetDir . '/' . $baseComponentName . '.blade.php';
+        // Create target directory if needed
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+            $output->writeln("<info>Created directory: {$targetDir}</info>");
         }
 
+        $targetFile = $targetDir . '/' . $baseComponentName . '.blade.php';
         copy($sourceFile, $targetFile);
-        $output->writeln("<info>Copied component {$componentName} to {$targetFile}</info>");
+        $output->writeln("<info>Copied component {$baseComponentName} to {$targetFile}</info>");
     }
 } 

@@ -2,9 +2,10 @@ sections:
   home_hero:
     component: cypress.hero
     data:
-      title: 'Bonsai CLI'
+      title: 'Bonsai CLI: Roots Build Tool'
       subtitle: 'Generate a beautful Roots project in minutes'
       description: 'A WordPress CLI tool for generating and managing reusable components, layouts, and sections in Roots-based projects'
+      imagePaths: {  }
       buttonText: 'Learn More'
       buttonLink: '#installation'
       secondaryText: Github
@@ -20,7 +21,7 @@ sections:
       navLinks: { url: /docs, label: Documentation }
       url: '#pricing'
       label: Pricing
-      featureItems: { icon: heroicon-o-command-line, title: 'Component Generation', description: 'Generate reusable components with a single command.' }
+      featureItems: [{ icon: heroicon-o-command-line, title: 'Component Generation', description: 'Generate reusable components with a single command.' }]
       icon: heroicon-o-template
       title: 'Template System'
       description: 'Pre-built templates for rapid WordPress development.'
@@ -29,7 +30,7 @@ sections:
     data:
       items: { id: widget-1, title: 'Template System', icon: heroicon-o-template, link: 'https://github.com/jackalopelabs/bonsai-cli' }
       description: 'Comprehensive documentation and configuration guides:'
-      listItems: { number: '1', itemName: 'Installation & Setup', text: 'Quick installation via Composer and initial project setup' }
+      listItems: [{ number: '1', itemName: 'Installation & Setup', text: 'Quick installation via Composer and initial project setup' }]
       number: '4'
       itemName: Troubleshooting
       text: 'Common issues, debugging steps, and best practices'
@@ -43,7 +44,7 @@ sections:
       title: 'Choose Your Plan'
       subtitle: 'Limited-time pricing available now'
       description: 'Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel.'
-      pricingBoxes: { icon: heroicon-o-command-line, iconColor: text-gray-400, planType: Bonsai, price: Free }
+      pricingBoxes: [{ icon: heroicon-o-command-line, iconColor: text-gray-400, planType: Bonsai, price: Free }]
       ctaLink: '#buy-sensei'
       ctaText: 'Coming soon'
       ctaColor: 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white'
