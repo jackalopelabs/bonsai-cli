@@ -315,15 +315,24 @@ BLADE;
 </section>
 BLADE;
         } else {
-            // Check if this is a template-specific component
-            $componentPath = resource_path("views/{$template}/components/{$componentType}.blade.php");
-            $componentPrefix = file_exists($componentPath) ? "{$template}::" : "bonsai::";
-            
-            $template .= <<<BLADE
+            // Parse component type to check for template prefix (e.g., cypress.hero)
+            $parts = explode('.', $componentType);
+            if (count($parts) > 1) {
+                // Template-specific component (e.g., cypress.hero -> <x-cypress::hero>)
+                $componentName = end($parts);
+                $template .= <<<BLADE
 <div class="{{ \$class }}">
-    <x-{$componentPrefix}{$componentType} :data="\${$dataVarName}" />
+    <x-{$template}::{$componentName} :data="\${$dataVarName}" />
 </div>
 BLADE;
+            } else {
+                // Core bonsai component
+                $template .= <<<BLADE
+<div class="{{ \$class }}">
+    <x-bonsai::{$componentType} :data="\${$dataVarName}" />
+</div>
+BLADE;
+            }
         }
 
         return $template;
