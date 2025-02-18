@@ -171,17 +171,23 @@ BLADE;
             $templateParts = explode('.', $componentType);
             $template = $templateParts[0];
             
-            // Map component types to directory names
-            $dirType = match(explode('_', $section)[0]) {
-                'home' => 'hero',
-                'services' => 'card',
-                'features' => 'widget',
-                'site' => 'header',
-                default => $template
-            };
+            // Extract section type from name
+            $type = explode('_', $section)[0];
             
-            // Create the full section path
-            $sectionPath = $dirType === 'pricing' ? 'pricing' : "{$dirType}/{$section}";
+            // Special case for pricing section - place directly in sections directory
+            if ($type === 'pricing') {
+                $sectionPath = 'pricing';
+            } else {
+                // Map component types to directory names for other sections
+                $dirType = match($type) {
+                    'home' => 'hero',
+                    'services' => 'card',
+                    'features' => 'widget',
+                    'site' => 'header',
+                    default => $template
+                };
+                $sectionPath = "{$dirType}/{$section}";
+            }
             
             $fullPath = resource_path("views/bonsai/sections/{$sectionPath}.blade.php");
             if (!$this->files->exists(dirname($fullPath))) {
@@ -399,20 +405,19 @@ BLADE;
             $parts = explode('_', $section);
             $type = $parts[0];
             
+            // Special case for pricing section
+            if ($type === 'pricing') {
+                return "@include('bonsai.sections.pricing')";
+            }
+            
             // Map section types to their component directories
             $componentType = match($type) {
                 'home' => 'hero',
                 'services' => 'card',
                 'features' => 'widget',
                 'site' => 'header',
-                'pricing' => 'pricing-box',
                 default => $type
             };
-            
-            // For pricing sections, we want to include it directly
-            if ($type === 'pricing') {
-                return "@include('bonsai.sections.pricing')";
-            }
             
             return "@include('bonsai.sections.{$componentType}.{$section}')";
         }, $sections);
