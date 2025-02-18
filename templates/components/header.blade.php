@@ -9,9 +9,7 @@
     'iconClasses' => '',
     'chevronClasses' => '',
     'buttonText' => '',
-    'buttonPrefix' => '',
-    'showDarkModeToggle' => false,
-    'darkModeToggleClass' => ''
+    'buttonPrefix' => ''
 ])
 
 <header class="{{ $containerClasses }}">
@@ -41,10 +39,6 @@
                             @endif
                             {{ $buttonText }}
                         </a>
-                    @endif
-
-                    @if($showDarkModeToggle)
-                        <x-dark-mode-toggle class="{{ $darkModeToggleClass }}" />
                     @endif
                 </div>
 

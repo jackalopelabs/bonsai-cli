@@ -16,6 +16,18 @@ class BonsaiComponentServiceProvider extends ServiceProvider
     {
         Blade::componentNamespace('Jackalopelabs\\BonsaiCli\\View\\Components', 'bonsai');
 
+        // Register core components
+        $coreComponents = [
+            'accordion',
+            'card',
+            'cta',
+            'header',
+            'hero',
+            'list-item',
+            'pricing-box',
+            'widget'
+        ];
+
         // Register Blade components
         Blade::component('bonsai::components.hero', 'bonsai-hero');
         Blade::component('bonsai::components.header', 'bonsai-header');

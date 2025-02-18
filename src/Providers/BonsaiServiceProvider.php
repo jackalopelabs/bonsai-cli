@@ -192,7 +192,6 @@ class BonsaiServiceProvider extends ServiceProvider
             'accordion',
             'card',
             'cta',
-            'dark-mode-toggle',
             'header',
             'hero',
             'list-item',
