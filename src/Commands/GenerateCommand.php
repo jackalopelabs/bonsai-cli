@@ -219,15 +219,15 @@ BLADE;
         <div class="mx-auto px-4 text-center">
             <div class="inline-flex items-center gap-2 rounded-md bg-white text-sm px-3 py-1 text-center mb-4">
                 <x-heroicon-s-calendar-days class="h-6 w-6" />
-                <span class="text-gray-400">{{ \${$dataVarName}['subtitle'] ?? 'Limited-time pricing available now' }}</span>
+                <span class="text-gray-400">@{{ isset(\${$dataVarName}['subtitle']) ? \${$dataVarName}['subtitle'] : 'Limited-time pricing available now' }}</span>
             </div>
-            <h2 class="text-5xl font-bold text-gray-900 mb-4 pt-4">{{ \${$dataVarName}['title'] ?? 'Choose Your Plan' }}</h2>
-            <p class="text-gray-500 mb-8">{{ \${$dataVarName}['description'] ?? 'Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel.' }}</p>
+            <h2 class="text-5xl font-bold text-gray-900 mb-4 pt-4">@{{ isset(\${$dataVarName}['title']) ? \${$dataVarName}['title'] : 'Choose Your Plan' }}</h2>
+            <p class="text-gray-500 mb-8">@{{ isset(\${$dataVarName}['description']) ? \${$dataVarName}['description'] : 'Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel.' }}</p>
         </div>
     </div>
 
     @php
-    \$boxes = \${$dataVarName}['pricingBoxes'] ?? [];
+    \$boxes = isset(\${$dataVarName}['pricingBoxes']) ? \${$dataVarName}['pricingBoxes'] : [];
     @endphp
 
     <div class="mx-auto px-4 sm:px-6 lg:px-8">
@@ -373,8 +373,8 @@ BLADE;
         }, $sections);
 
         return <<<BLADE
-{{--
-    Template Name: {$config['name'] ?? ucfirst($template)}
+{{-- 
+    Template Name: @{{ \$config['name'] ?? ucfirst(\$template) }}
 --}}
 @extends('bonsai.layouts.{$template}')
 
