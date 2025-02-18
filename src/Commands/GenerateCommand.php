@@ -386,7 +386,20 @@ BLADE;
     {
         $sections = $config['sections'] ?? [];
         $sectionIncludes = array_map(function($section) {
-            return "@include('bonsai.sections.{$section}')";
+            // Extract the component type and section name
+            $parts = explode('_', $section);
+            $type = $parts[0];
+            
+            // Map section types to their component directories
+            $componentType = match($type) {
+                'home' => 'hero',
+                'services' => 'card',
+                'features' => 'widget',
+                'site' => 'header',
+                default => $type
+            };
+            
+            return "@include('bonsai.sections.{$componentType}/{$section}')";
         }, $sections);
 
         return <<<BLADE
