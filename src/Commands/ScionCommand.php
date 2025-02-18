@@ -311,17 +311,19 @@ class ScionCommand extends Command
 
     private function copyComponentToTemplate(string $componentName, string $targetDir, OutputInterface $output): void
     {
-        // Handle cypress-specific components
-        if (strpos($componentName, 'cypress.') === 0) {
-            $componentName = str_replace('cypress.', '', $componentName);
-        }
-
+        // Handle nested components (e.g., cypress.hero)
+        $parts = explode('.', $componentName);
+        $componentPath = implode('/', $parts);
+        
         // First try to find the component in various possible locations
         $sourcePaths = [
-            __DIR__ . '/../../templates/components/cypress/' . $componentName . '.blade.php',
-            __DIR__ . '/../../templates/components/' . $componentName . '.blade.php',
-            __DIR__ . '/../../resources/views/components/' . $componentName . '.blade.php',
-            __DIR__ . '/../../resources/views/bonsai/components/' . $componentName . '.blade.php',
+            __DIR__ . '/../../templates/components/' . $componentPath . '.blade.php',
+            __DIR__ . '/../../resources/views/components/' . $componentPath . '.blade.php',
+            __DIR__ . '/../../resources/views/bonsai/components/' . $componentPath . '.blade.php',
+            // Fallback to non-nested paths
+            __DIR__ . '/../../templates/components/' . end($parts) . '.blade.php',
+            __DIR__ . '/../../resources/views/components/' . end($parts) . '.blade.php',
+            __DIR__ . '/../../resources/views/bonsai/components/' . end($parts) . '.blade.php',
         ];
 
         $sourceFile = null;
@@ -333,13 +335,23 @@ class ScionCommand extends Command
         }
 
         if (!$sourceFile) {
-            $output->writeln("<error>Component not found: {$componentName} (searched in standard locations)</error>");
+            $output->writeln("<error>Component not found: {$componentName} (searched in: " . implode(', ', $sourcePaths) . ")</error>");
             return;
         }
 
-        // Copy the component to the template-specific directory
-        $targetFile = $targetDir . '/' . basename($sourceFile);
+        // Create nested directory structure if needed
+        if (count($parts) > 1) {
+            $nestedDir = $targetDir . '/' . implode('/', array_slice($parts, 0, -1));
+            if (!is_dir($nestedDir)) {
+                mkdir($nestedDir, 0755, true);
+                $output->writeln("<info>Created nested directory: {$nestedDir}</info>");
+            }
+            $targetFile = $nestedDir . '/' . end($parts) . '.blade.php';
+        } else {
+            $targetFile = $targetDir . '/' . $componentName . '.blade.php';
+        }
+
         copy($sourceFile, $targetFile);
-        $output->writeln("<info>Copied component {$componentName} to template directory</info>");
+        $output->writeln("<info>Copied component {$componentName} to {$targetFile}</info>");
     }
 } 
