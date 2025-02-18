@@ -98,6 +98,8 @@ class ScionCommand extends Command
                     'data' => $primaryComponent['data'],
                 ];
 
+                // Copy the component to the template directory
+                $this->copyComponentToTemplate($componentName, $componentDir, $output);
                 $output->writeln("<info>Using component {$componentName} for section {$sectionKey}</info>");
             }
         }
@@ -129,6 +131,7 @@ class ScionCommand extends Command
         file_put_contents($targetPath, $yamlContent);
 
         $output->writeln("<info>Configuration saved to: {$targetPath}</info>");
+        $output->writeln("<info>Components copied to: {$componentDir}</info>");
         $output->writeln("<info>Now run 'wp acorn bonsai:generate {$templateName}' in your Roots project to generate the landing page.</info>");
 
         return Command::SUCCESS;
@@ -330,23 +333,25 @@ class ScionCommand extends Command
     {
         // Handle nested components (e.g., cypress.hero)
         $parts = explode('.', $componentName);
-        $componentPath = implode('/', $parts);
+        $baseComponentName = end($parts); // Get the base name (e.g., 'hero' from 'cypress.hero')
         
         // First try to find the component in various possible locations
         $sourcePaths = [
-            __DIR__ . '/../../templates/components/' . $componentPath . '.blade.php',
-            __DIR__ . '/../../resources/views/components/' . $componentPath . '.blade.php',
-            __DIR__ . '/../../resources/views/bonsai/components/' . $componentPath . '.blade.php',
-            // Fallback to non-nested paths
-            __DIR__ . '/../../templates/components/' . end($parts) . '.blade.php',
-            __DIR__ . '/../../resources/views/components/' . end($parts) . '.blade.php',
-            __DIR__ . '/../../resources/views/bonsai/components/' . end($parts) . '.blade.php',
+            // Try the source project's components directory
+            resource_path('views/bonsai/components/' . $baseComponentName . '.blade.php'),
+            resource_path('views/components/' . $baseComponentName . '.blade.php'),
+            // Try the package's templates directory
+            __DIR__ . '/../../templates/components/' . $baseComponentName . '.blade.php',
+            // Try nested paths
+            resource_path('views/bonsai/components/' . implode('/', $parts) . '.blade.php'),
+            __DIR__ . '/../../templates/components/' . implode('/', $parts) . '.blade.php',
         ];
 
         $sourceFile = null;
         foreach ($sourcePaths as $path) {
             if (file_exists($path)) {
                 $sourceFile = $path;
+                $output->writeln("<info>Found source component at: {$path}</info>");
                 break;
             }
         }
@@ -358,14 +363,14 @@ class ScionCommand extends Command
 
         // Create nested directory structure if needed
         if (count($parts) > 1) {
-            $nestedDir = $targetDir . '/' . implode('/', array_slice($parts, 0, -1));
+            $nestedDir = $targetDir;
             if (!is_dir($nestedDir)) {
                 mkdir($nestedDir, 0755, true);
                 $output->writeln("<info>Created nested directory: {$nestedDir}</info>");
             }
-            $targetFile = $nestedDir . '/' . end($parts) . '.blade.php';
+            $targetFile = $nestedDir . '/' . $baseComponentName . '.blade.php';
         } else {
-            $targetFile = $targetDir . '/' . $componentName . '.blade.php';
+            $targetFile = $targetDir . '/' . $baseComponentName . '.blade.php';
         }
 
         copy($sourceFile, $targetFile);
