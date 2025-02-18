@@ -104,9 +104,10 @@ class GenerateCommand extends Command
             if ($componentName === 'card') {
                 $this->copyComponentIcon('flowchart');
             } else if ($componentName === 'widget') {
-                $this->copyTemplateComponent('accordion');
-                $this->copyTemplateComponent('cta');
-                $this->copyTemplateComponent('list-item');
+                // For widget dependencies, we want them in the core bonsai components
+                $this->copyBonsaiComponent('accordion');
+                $this->copyBonsaiComponent('cta');
+                $this->copyBonsaiComponent('list-item');
             }
         }
     }
@@ -152,13 +153,53 @@ class GenerateCommand extends Command
                 
                 $targetPath = "{$targetDir}/{$componentName}.blade.php";
                 $this->files->copy($path, $targetPath);
+                
+                // Also register the component in the service provider
+                $this->registerBonsaiComponent($componentName);
                 return true;
             }
         }
 
         // If no template found, create a basic one in bonsai components
         $this->createBasicComponent($componentName);
+        $this->registerBonsaiComponent($componentName);
         return true;
+    }
+
+    protected function registerBonsaiComponent($componentName)
+    {
+        // This ensures the component is registered with the bonsai:: namespace
+        $providerPath = app_path('Providers/ViewServiceProvider.php');
+        if (!file_exists($providerPath)) {
+            return;
+        }
+
+        $content = file_get_contents($providerPath);
+        $componentLine = "Blade::component('bonsai.components.{$componentName}', 'bonsai::{$componentName}');";
+        
+        if (strpos($content, $componentLine) === false) {
+            // Find the boot method
+            if (preg_match('/public function boot\(\)\s*{/', $content, $matches, PREG_OFFSET_CAPTURE)) {
+                $position = $matches[0][1] + strlen($matches[0][0]);
+                $content = substr_replace($content, "\n        " . $componentLine, $position, 0);
+                file_put_contents($providerPath, $content);
+            }
+        }
+    }
+
+    protected function createBasicComponent($name)
+    {
+        $targetPath = resource_path("views/bonsai/components/{$name}.blade.php");
+        $content = <<<BLADE
+<div class="component-{$name}">
+    <div class="p-4">
+        <h2>{{ \$title ?? 'Default Title' }}</h2>
+        {{ \$slot }}
+    </div>
+</div>
+BLADE;
+
+        $this->files->put($targetPath, $content);
     }
 
     protected function generateSections($sections)
