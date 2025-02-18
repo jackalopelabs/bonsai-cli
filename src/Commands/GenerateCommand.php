@@ -367,19 +367,19 @@ BLADE;
 
     protected function generateTemplateContent($template, $layout, $config)
     {
-        $sections = $layout['sections'] ?? [];
-        $sectionIncludes = array_map(function($section) use ($template) {
-            return "@include('bonsai.sections.{$template}.{$section}')";
+        $sections = $config['sections'] ?? [];
+        $sectionIncludes = array_map(function($section) {
+            return "@include('bonsai.sections.{$section}')";
         }, $sections);
 
         return <<<BLADE
 {{-- 
-    Template Name: @{{ \$config['name'] ?? ucfirst(\$template) }}
+    Template Name: {{ \$config['name'] ?? ucfirst(\$template) }}
 --}}
 @extends('bonsai.layouts.{$template}')
 
 @section('content')
-    {$this->indent(implode("\n", $sectionIncludes), 4)}
+{$this->indent(implode("\n", $sectionIncludes), 4)}
 @endsection
 BLADE;
     }
