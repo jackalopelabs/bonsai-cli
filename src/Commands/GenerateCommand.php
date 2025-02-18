@@ -166,17 +166,11 @@ BLADE;
     {
         foreach ($sections as $section => $config) {
             $componentType = $config['component'] ?? $section;
-            
-            // Get the template name from the component type (e.g., 'cypress' from 'cypress.hero')
-            $templateParts = explode('.', $componentType);
-            $template = $templateParts[0];
-            
-            // Extract section type from name
             $type = explode('_', $section)[0];
             
             // Special case for pricing section - place directly in sections directory
             if ($type === 'pricing') {
-                $sectionPath = 'pricing';
+                $fullPath = resource_path("views/bonsai/sections/pricing.blade.php");
             } else {
                 // Map component types to directory names for other sections
                 $dirType = match($type) {
@@ -184,12 +178,12 @@ BLADE;
                     'services' => 'card',
                     'features' => 'widget',
                     'site' => 'header',
-                    default => $template
+                    default => $type
                 };
-                $sectionPath = "{$dirType}/{$section}";
+                
+                $fullPath = resource_path("views/bonsai/sections/{$dirType}/{$section}.blade.php");
             }
             
-            $fullPath = resource_path("views/bonsai/sections/{$sectionPath}.blade.php");
             if (!$this->files->exists(dirname($fullPath))) {
                 $this->files->makeDirectory(dirname($fullPath), 0755, true);
             }
@@ -197,7 +191,7 @@ BLADE;
             $sectionContent = $this->generateSectionContent($section, $componentType, $config['data'] ?? []);
             $this->files->put($fullPath, $sectionContent);
             
-            $this->info("Generated section: {$sectionPath}");
+            $this->info("Generated section: " . basename(dirname($fullPath)) . '/' . basename($fullPath));
         }
     }
 
