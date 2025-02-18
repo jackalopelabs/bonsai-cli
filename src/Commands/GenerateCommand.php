@@ -166,14 +166,23 @@ BLADE;
     {
         foreach ($sections as $section => $config) {
             $componentType = $config['component'] ?? $section;
-
-            $sectionPath = resource_path("views/bonsai/sections/{$section}.blade.php");
-            if (!$this->files->exists(dirname($sectionPath))) {
-                $this->files->makeDirectory(dirname($sectionPath), 0755, true);
+            
+            // Get the template name from the component type (e.g., 'cypress' from 'cypress.hero')
+            $templateParts = explode('.', $componentType);
+            $template = $templateParts[0];
+            
+            // Create the full section path
+            $sectionPath = "{$template}/{$section}";
+            
+            $fullPath = resource_path("views/bonsai/sections/{$sectionPath}.blade.php");
+            if (!$this->files->exists(dirname($fullPath))) {
+                $this->files->makeDirectory(dirname($fullPath), 0755, true);
             }
 
             $sectionContent = $this->generateSectionContent($section, $componentType, $config['data'] ?? []);
-            $this->files->put($sectionPath, $sectionContent);
+            $this->files->put($fullPath, $sectionContent);
+            
+            $this->info("Generated section: {$sectionPath}");
         }
     }
 
@@ -358,23 +367,19 @@ BLADE;
 
     protected function generateTemplateContent($template, $layout, $config)
     {
-        $layoutSections = $this->getLayoutSections($layout);
-        $contentSections = array_filter($layoutSections, fn($section) => $section !== 'site_header');
-
-        $sectionIncludes = collect($contentSections)
-            ->map(fn($section) => "@include('bonsai.sections.{$section}')")
-            ->implode("\n    ");
-
-        $templateName = ucfirst($template);
+        $sections = $layout['sections'] ?? [];
+        $sectionIncludes = array_map(function($section) use ($template) {
+            return "@include('bonsai.sections.{$template}.{$section}')";
+        }, $sections);
 
         return <<<BLADE
 {{--
-    Template Name: {$templateName} Template
+    Template Name: {$config['name'] ?? ucfirst($template)}
 --}}
-@extends('bonsai.layouts.{$layout}')
+@extends('bonsai.layouts.{$template}')
 
 @section('content')
-    {$sectionIncludes}
+    {$this->indent(implode("\n", $sectionIncludes), 4)}
 @endsection
 BLADE;
     }
