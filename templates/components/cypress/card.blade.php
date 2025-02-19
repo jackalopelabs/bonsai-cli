@@ -51,9 +51,10 @@
             <!-- Image or Icon Column -->
             <div class="{{ $imageColumnClasses }}">
                 {{-- @if ($image)
-                    <x-dynamic-component :component="$image" class="w-full" />
+                    <!-- Option A: Using Blade Component -->
+                    <x-bonsai::cypress.dynamic-component :component="$image" class="w-full" />
                 @else
-                    <x-bonsai::cypress.icons.flowchart class="w-full" />
+                    @include('bonsai.components.icons.flowchart', ['attributes' => 'class="w-full"'])
                 @endif --}}
             </div>
 

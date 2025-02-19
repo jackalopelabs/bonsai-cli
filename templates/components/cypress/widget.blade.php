@@ -21,7 +21,7 @@
         <!-- Sidebar -->
         <div class="md:w-1/3 mb-4 md:mb-0">
             @foreach ($items as $item)
-                <x-bonsai::cypress.accordion :data="['item' => $item]" />
+                <x-bonsai::cypress.bonsai::accordion :data="['item' => $item]" />
             @endforeach
         </div>
 
@@ -33,7 +33,7 @@
                         $ctaData = $item['cta'];
                         $ctaData['globalStyles'] = $data['ctaStyles'] ?? [];
                     @endphp
-                    <x-bonsai::cypress.cta :data="$ctaData" />
+                    <x-bonsai::cypress.bonsai::cta :data="$ctaData" />
 
                     @if(isset($item['description']))
                         <p class="{{ $descriptionClasses }}">
@@ -47,7 +47,7 @@
                                 @php
                                     $listItem['globalStyles'] = $data['listItemStyles'] ?? [];
                                 @endphp
-                                <x-bonsai::cypress.list-item :data="$listItem" />
+                                <x-bonsai::cypress.bonsai::list-item :data="$listItem" />
                             @endforeach
                         </div>
                     @endif
