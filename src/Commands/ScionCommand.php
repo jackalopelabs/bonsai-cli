@@ -12,6 +12,8 @@ use Symfony\Component\Yaml\Yaml;
 
 class ScionCommand extends Command
 {
+    private $input;
+
     protected function configure()
     {
         $this
@@ -23,6 +25,8 @@ class ScionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->input = $input;  // Store input for use in other methods
+        
         // Retrieve the source file path
         $source = $input->getOption('source');
         if (!$source || !file_exists($source)) {
@@ -59,7 +63,6 @@ class ScionCommand extends Command
         }
 
         // For each include, analyze the section and extract its components
-        $helper = $this->getHelper('question');
         $sections = [];
         
         foreach ($includes as $include) {
@@ -72,10 +75,8 @@ class ScionCommand extends Command
 
             // Extract the last part of the include path as the default key
             $parts = explode('.', $include);
-            $defaultKey = end($parts);
-            
-            $sectionKeyQuestion = new Question("Enter section key for include '{$include}' [{$defaultKey}]: ", $defaultKey);
-            $sectionKey = $helper->ask($input, $output, $sectionKeyQuestion);
+            $sectionKey = end($parts);  // Automatically use the default key
+            $output->writeln("<info>Using section key: {$sectionKey}</info>");
 
             // Analyze section file to find component usage
             $componentInfo = $this->analyzeSectionComponents($sectionPath, $output);
@@ -87,11 +88,7 @@ class ScionCommand extends Command
             // Get the primary component and its data
             $primaryComponent = $this->getPrimaryComponent($componentInfo);
             if ($primaryComponent) {
-                // Clean up the component name to ensure single dot
                 $componentName = $primaryComponent['name'];
-                $parts = explode('.', $componentName);
-                $baseComponent = end($parts);
-                $componentName = $templateName . '.' . $baseComponent;
                 
                 $sections[$sectionKey] = [
                     'component' => $componentName,
@@ -99,16 +96,13 @@ class ScionCommand extends Command
                 ];
 
                 // Copy the component to the template directory
-                $this->copyComponentToTemplate($componentName, $componentDir, $output);
+                $this->copyComponentToTemplate($source, $componentName, $output);
                 $output->writeln("<info>Using component {$componentName} for section {$sectionKey}</info>");
             }
         }
 
-        // Ask the user for layout order
-        $defaultOrder = implode(',', array_keys($sections));
-        $orderQuestion = new Question("Enter comma-separated section keys for layout order [{$defaultOrder}]: ", $defaultOrder);
-        $orderInput = $helper->ask($input, $output, $orderQuestion);
-        $layoutSections = array_map('trim', explode(',', $orderInput));
+        // Use all section keys in order for layout
+        $layoutSections = array_keys($sections);
 
         // Build the configuration array
         $config = [
@@ -203,6 +197,8 @@ class ScionCommand extends Command
 
     private function analyzeSectionComponents(string $sectionPath, OutputInterface $output): array
     {
+        $output->writeln("<info>Analyzing section: {$sectionPath}</info>");
+        
         if (!file_exists($sectionPath)) {
             $output->writeln("<comment>Warning: Section file not found at {$sectionPath}, trying alternate locations...</comment>");
             
@@ -227,11 +223,15 @@ class ScionCommand extends Command
         }
 
         $content = file_get_contents($sectionPath);
+        $output->writeln("<info>Section content:</info>");
+        $output->writeln($content);
+        
         $components = [];
 
         // Extract template name from include path for template-specific sections
         if (preg_match('|bonsai\.sections\.([^\.]+)\.|', $sectionPath, $matches)) {
             $templateName = $matches[1];  // e.g., 'cypress' from bonsai.sections.cypress.home_hero
+            $output->writeln("<info>Found template name from section path: {$templateName}</info>");
         } else {
             // Fallback to extracting from file path
             preg_match('|/([^/]+)/sections/|', $sectionPath, $matches);
@@ -242,6 +242,7 @@ class ScionCommand extends Command
                 preg_match('|/bonsai/sections/([^/]+)/|', $sectionPath, $matches);
                 $templateName = $matches[1] ?? null;
             }
+            $output->writeln("<info>Found template name from file path: {$templateName}</info>");
         }
 
         // Helper function to clean component names while preserving template namespace
@@ -262,20 +263,26 @@ class ScionCommand extends Command
         };
 
         // Look for x-bonsai:: components first (highest priority)
-        preg_match_all("/<x-bonsai::([^\\s>]+)/", $content, $matches);
+        preg_match_all("/<x-bonsai::([^\\s>]+)(?:\\s+[^>]*)?>/", $content, $matches);
         if (!empty($matches[1])) {
+            $output->writeln("<info>Found x-bonsai components in content:</info>");
             foreach ($matches[1] as $component) {
+                $output->writeln(" - Raw component: {$component}");
                 if (!$this->shouldSkipComponent($component)) {
-                    $componentName = $cleanComponentName($component);
+                    $componentName = $component;  // This will preserve "cypress.hero" exactly as it appears
                     $components[$componentName] = [
                         'type' => 'x-bonsai',
                         'name' => $componentName,
                         'data' => $this->extractComponentData($content),
                         'priority' => 1,
                     ];
-                    $output->writeln("<info>Found component: {$componentName}</info>");
+                    $output->writeln("<info>Added component: {$componentName}</info>");
+                } else {
+                    $output->writeln("<comment>Skipping component: {$component}</comment>");
                 }
             }
+        } else {
+            $output->writeln("<comment>No x-bonsai components found in content</comment>");
         }
 
         // Look for x-component tags (medium priority)
@@ -410,35 +417,54 @@ class ScionCommand extends Command
         return $data;
     }
 
-    private function copyComponentToTemplate(string $componentName, string $targetDir, OutputInterface $output): void
+    private function copyComponentToTemplate(string $sourcePath, string $componentName, OutputInterface $output): void
     {
+        $output->writeln("\n<info>Starting component copy process for: {$componentName}</info>");
+        
         // Handle nested components (e.g., cypress.hero)
         $parts = explode('.', $componentName);
+        $output->writeln("<info>Component parts: " . implode(', ', $parts) . "</info>");
         
         // Get the template name and base component name
         $templateName = $parts[0];
         $baseComponentName = end($parts); // Get the base name (e.g., 'hero' from 'cypress.hero')
+        $output->writeln("<info>Template name: {$templateName}</info>");
+        $output->writeln("<info>Base component name: {$baseComponentName}</info>");
         
-        // First try to find the component in various possible locations
+        // Get the source project root from the template path provided to the command
+        $sourceProjectRoot = dirname(dirname(dirname(dirname($sourcePath)))); // Get to the project root (4 levels up from template file)
+        
+        // Debug output
+        $output->writeln("<info>Source file path: {$sourcePath}</info>");
+        $output->writeln("<info>Source project root: {$sourceProjectRoot}</info>");
+        
+        // First check for component in source project's bonsai components directory
         $sourcePaths = [
-            // Try template-specific components first
-            dirname(dirname(dirname(__DIR__))) . "/resources/views/{$templateName}/components/{$baseComponentName}.blade.php",
-            dirname(dirname(dirname(__DIR__))) . "/resources/views/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
-            // Then try the package's templates directory
-            __DIR__ . "/../../templates/components/{$templateName}/{$baseComponentName}.blade.php",
-            __DIR__ . "/../../templates/{$templateName}/components/{$baseComponentName}.blade.php",
-            // Finally try the default component locations
+            "{$sourceProjectRoot}/views/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
+            "{$sourceProjectRoot}/views/bonsai/components/{$baseComponentName}.blade.php",
+            // Then check other possible locations
+            "{$sourceProjectRoot}/views/{$templateName}/components/{$baseComponentName}.blade.php",
+            "{$sourceProjectRoot}/views/components/{$templateName}/{$baseComponentName}.blade.php",
+            // Finally check the default templates
             __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php",
-            dirname(dirname(dirname(__DIR__))) . "/resources/views/bonsai/components/{$baseComponentName}.blade.php",
-            dirname(dirname(dirname(__DIR__))) . "/resources/views/components/{$baseComponentName}.blade.php",
         ];
+
+        $output->writeln("<info>Searching in the following paths:</info>");
+        foreach ($sourcePaths as $index => $path) {
+            $output->writeln("<info>" . ($index + 1) . ". {$path}</info>");
+        }
 
         $sourceFile = null;
         foreach ($sourcePaths as $path) {
+            $output->writeln("\n<info>Checking path: {$path}</info>");
             if (file_exists($path)) {
                 $sourceFile = $path;
-                $output->writeln("<info>Found source component at: {$path}</info>");
+                $output->writeln("<info>✓ Found source component at: {$path}</info>");
+                $output->writeln("<info>Component content:</info>");
+                $output->writeln(file_get_contents($path));
                 break;
+            } else {
+                $output->writeln("<comment>✗ Not found at: {$path}</comment>");
             }
         }
 
@@ -448,14 +474,16 @@ class ScionCommand extends Command
         }
 
         // Create template-specific target directory if needed
-        // Note: We're now using just targetDir since it already includes the template name
+        $targetDir = __DIR__ . '/../../templates/components/cypress';
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
-            $output->writeln("<info>Created template directory: {$targetDir}</info>");
         }
 
-        $targetFile = $targetDir . '/' . $baseComponentName . '.blade.php';
-        copy($sourceFile, $targetFile);
-        $output->writeln("<info>Copied component {$baseComponentName} to {$targetFile}</info>");
+        // Copy the component to the target directory
+        $targetPath = $targetDir . '/' . $baseComponentName . '.blade.php';
+        copy($sourceFile, $targetPath);
+        $output->writeln("<info>Copied component to: {$targetPath}</info>");
+        $output->writeln("<info>Final component content:</info>");
+        $output->writeln(file_get_contents($targetPath));
     }
 } 
