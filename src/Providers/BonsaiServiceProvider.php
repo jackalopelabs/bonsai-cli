@@ -198,8 +198,7 @@ class BonsaiServiceProvider extends ServiceProvider
 
     protected function registerCoreComponents()
     {
-        // Register an anonymous namespace for bonsai components
-        Blade::anonymousComponentNamespace('bonsai.components', 'bonsai');
+        $this->log('Registering core Bonsai components...');
 
         // Register core components
         $coreComponents = [
@@ -214,68 +213,57 @@ class BonsaiServiceProvider extends ServiceProvider
         ];
 
         foreach ($coreComponents as $componentName) {
+            // Register in bonsai namespace only
             Blade::component("bonsai.components.{$componentName}", "bonsai::{$componentName}");
             $this->log("Registered component: {$componentName} as <x-bonsai::{$componentName}>");
         }
 
         // Register nested components in bonsai (e.g., icons)
         $componentsPath = resource_path('views/bonsai/components');
-        $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
-        foreach ($nestedDirs as $dir) {
-            $dirName = basename($dir);
-            $nestedFiles = glob($dir . '/*.blade.php');
-            foreach ($nestedFiles as $nestedFile) {
-                $nestedComponentName = basename($nestedFile, '.blade.php');
-                $fullName = "{$dirName}.{$nestedComponentName}";
-                Blade::component("bonsai.components.{$fullName}", "bonsai::{$fullName}");
-                $this->log("Registered nested component: {$fullName} as <x-bonsai::{$fullName}>");
+        if (is_dir($componentsPath)) {
+            $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
+            foreach ($nestedDirs as $dir) {
+                $dirName = basename($dir);
+                // Skip template-specific directories
+                if ($dirName === 'cypress' || $dirName === 'jackalope') {
+                    continue;
+                }
+                $nestedFiles = glob($dir . '/*.blade.php');
+                foreach ($nestedFiles as $nestedFile) {
+                    $nestedComponentName = basename($nestedFile, '.blade.php');
+                    $fullName = "{$dirName}.{$nestedComponentName}";
+                    Blade::component("bonsai.components.{$fullName}", "bonsai::{$fullName}");
+                    $this->log("Registered nested component: {$fullName} as <x-bonsai::{$fullName}>");
+                }
             }
         }
     }
 
     protected function registerTemplateComponents()
     {
+        $this->log('Registering template-specific components...');
+
         // Get all template directories
         $viewsPath = resource_path('views');
-        $templateDirs = glob($viewsPath . '/*', GLOB_ONLYDIR);
+        $templateDirs = glob($viewsPath . '/bonsai/components/*', GLOB_ONLYDIR);
 
         foreach ($templateDirs as $templateDir) {
             $templateName = basename($templateDir);
             
-            // Skip the bonsai directory as it's handled separately
-            if ($templateName === 'bonsai') {
+            // Skip non-template directories
+            if (in_array($templateName, ['icons', 'utils'])) {
                 continue;
             }
 
-            // Register template namespace
-            $this->app['view']->addNamespace($templateName, $templateDir);
+            $this->log("Processing template: {$templateName}");
 
-            // Register components in template/components directory
-            $componentsPath = "{$templateDir}/components";
-            if (is_dir($componentsPath)) {
-                // Register an anonymous namespace for template components
-                Blade::anonymousComponentNamespace("{$templateName}.components", $templateName);
-
-                // Register direct components
-                $componentFiles = glob($componentsPath . '/*.blade.php');
-                foreach ($componentFiles as $file) {
-                    $componentName = basename($file, '.blade.php');
-                    Blade::component("{$templateName}.components.{$componentName}", "{$templateName}::{$componentName}");
-                    $this->log("Registered template component: {$componentName} as <x-{$templateName}::{$componentName}>");
-                }
-
-                // Register nested components
-                $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
-                foreach ($nestedDirs as $dir) {
-                    $dirName = basename($dir);
-                    $nestedFiles = glob($dir . '/*.blade.php');
-                    foreach ($nestedFiles as $nestedFile) {
-                        $nestedComponentName = basename($nestedFile, '.blade.php');
-                        $fullName = "{$dirName}.{$nestedComponentName}";
-                        Blade::component("{$templateName}.components.{$fullName}", "{$templateName}::{$fullName}");
-                        $this->log("Registered nested template component: {$fullName} as <x-{$templateName}::{$fullName}>");
-                    }
-                }
+            // Register components in template directory
+            $componentFiles = glob($templateDir . '/*.blade.php');
+            foreach ($componentFiles as $file) {
+                $componentName = basename($file, '.blade.php');
+                // Register with template namespace
+                Blade::component("bonsai.components.{$templateName}.{$componentName}", "bonsai::{$templateName}.{$componentName}");
+                $this->log("Registered template component: {$componentName} as <x-bonsai::{$templateName}.{$componentName}>");
             }
         }
     }

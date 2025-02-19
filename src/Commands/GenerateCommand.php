@@ -149,17 +149,17 @@ class GenerateCommand extends Command
 
     protected function registerBonsaiTemplateComponent($template, $componentName)
     {
-        // This ensures the component is registered with the bonsai:: namespace
+        // Register in ViewServiceProvider
         $providerPath = app_path('Providers/ViewServiceProvider.php');
         if (!file_exists($providerPath)) {
             return;
         }
 
         $content = file_get_contents($providerPath);
+        // Use the correct namespace format for template components
         $componentLine = "Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$template}.{$componentName}');";
         
         if (strpos($content, $componentLine) === false) {
-            // Find the boot method
             if (preg_match('/public function boot\(\)\s*{/', $content, $matches, PREG_OFFSET_CAPTURE)) {
                 $position = $matches[0][1] + strlen($matches[0][0]);
                 $content = substr_replace($content, "\n        " . $componentLine, $position, 0);
@@ -180,63 +180,39 @@ class GenerateCommand extends Command
             if (file_exists($path)) {
                 $template = $this->argument('template');
                 
-                // First copy to bonsai components directory
-                $bonsaiDir = resource_path("views/bonsai/components");
-                if (!$this->files->exists($bonsaiDir)) {
-                    $this->files->makeDirectory($bonsaiDir, 0755, true);
-                }
-                
-                $bonsaiPath = "{$bonsaiDir}/{$componentName}.blade.php";
-                $this->files->copy($path, $bonsaiPath);
-                
-                // Then copy to template-specific directory
+                // Create template-specific directory
                 $templateDir = resource_path("views/bonsai/components/{$template}");
                 if (!$this->files->exists($templateDir)) {
                     $this->files->makeDirectory($templateDir, 0755, true);
                 }
                 
+                // Copy directly to template-specific directory
                 $templatePath = "{$templateDir}/{$componentName}.blade.php";
                 $this->files->copy($path, $templatePath);
                 
-                // Register both the base and template-specific components
-                $this->registerBonsaiComponent($componentName);
+                // Register only the template-specific component
                 $this->registerBonsaiTemplateComponent($template, $componentName);
                 
                 return true;
             }
         }
 
-        // If no template found, create a basic one in both locations
-        $this->createBasicComponent($componentName);
+        // If no template found, create a basic one in the template directory
+        $this->createBasicComponent($componentName, $this->argument('template'));
         return true;
     }
 
-    protected function registerBonsaiComponent($componentName)
+    protected function createBasicComponent($name, $template = null)
     {
-        // This ensures the component is registered with the bonsai:: namespace
-        $providerPath = app_path('Providers/ViewServiceProvider.php');
-        if (!file_exists($providerPath)) {
-            return;
-        }
+        $targetPath = $template 
+            ? resource_path("views/bonsai/components/{$template}/{$name}.blade.php")
+            : resource_path("views/bonsai/components/{$name}.blade.php");
 
-        $content = file_get_contents($providerPath);
-        $componentLine = "Blade::component('bonsai.components.{$componentName}', 'bonsai::{$componentName}');";
-        
-        if (strpos($content, $componentLine) === false) {
-            // Find the boot method
-            if (preg_match('/public function boot\(\)\s*{/', $content, $matches, PREG_OFFSET_CAPTURE)) {
-                $position = $matches[0][1] + strlen($matches[0][0]);
-                $content = substr_replace($content, "\n        " . $componentLine, $position, 0);
-                file_put_contents($providerPath, $content);
-            }
-        }
-    }
+        // Ensure the directory exists
+        $this->files->makeDirectory(dirname($targetPath), 0755, true, true);
 
-    protected function createBasicComponent($name)
-    {
-        $targetPath = resource_path("views/bonsai/components/{$name}.blade.php");
         $content = <<<BLADE
-<div class="component-{$name}">
+<div {{ \$attributes->merge(['class' => "component-{$name}"]) }}>
     <div class="p-4">
         <h2>{{ \$title ?? 'Default Title' }}</h2>
         {{ \$slot }}

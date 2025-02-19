@@ -274,6 +274,7 @@ class SectionCommand extends Command
     protected function generateBladeTemplate($name, $componentName, $data)
     {
         $dataVarName = Str::camel($name) . 'Data';
+        $template = $this->option('template') ?? 'bonsai';
 
         // Build the PHP array for data
         $dataLines = [];
@@ -297,7 +298,7 @@ BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
         $template .= "<div class=\"{{ \$class }}\">\n";
-        $template .= "    <x-bonsai::{$componentName} :data=\"\${$dataVarName}\" />\n";
+        $template .= "    <x-bonsai::{$template}.{$componentName} :data=\"\${$dataVarName}\" />\n";
         $template .= "</div>\n";
 
         return $template;
