@@ -502,7 +502,6 @@ BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
 
-        // Always use template namespace for components
         $template .= <<<BLADE
 <div class="{{ \$class }}">
     <x-bonsai::{$template}.{$componentType} :data="\${$dataVarName}" />
