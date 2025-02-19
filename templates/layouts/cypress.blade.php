@@ -26,7 +26,7 @@
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
-            @include('bonsai.sections.site_header')
+            @include('bonsai.cypress.sections.site_header')
             <main id="main" class="max-w-5xl mx-auto">
                 <div class="{{ $containerInnerClasses }}">
                     @yield('content')

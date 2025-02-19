@@ -388,79 +388,90 @@ class ScionCommand extends Command
         
         // Handle nested components (e.g., cypress.hero)
         $parts = explode('.', $componentName);
-        $output->writeln("<info>Component parts: " . implode(', ', $parts) . "</info>");
-        
-        // Get the template name from the command argument
         $templateName = $this->input->getArgument('templateName');
-        $baseComponentName = end($parts); // Get the base name (e.g., 'hero' from 'cypress.hero')
-        $output->writeln("<info>Template name: {$templateName}</info>");
-        $output->writeln("<info>Base component name: {$baseComponentName}</info>");
+        $baseComponentName = end($parts);
         
-        // Get the source project root from the template path provided to the command
-        $sourceProjectRoot = dirname(dirname(dirname($sourcePath))); // Get to the project root (3 levels up from template file)
+        $projectRoot = dirname(dirname(dirname($sourcePath)));
         
-        // Debug output
-        $output->writeln("<info>Source file path: {$sourcePath}</info>");
-        $output->writeln("<info>Source project root: {$sourceProjectRoot}</info>");
-        
-        // Prioritize bonsai namespace paths
+        // Enhanced component path detection
         $sourcePaths = [
-            // Primary: Template-specific components in bonsai namespace
-            "{$sourceProjectRoot}/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
-            // Secondary: Shared components in bonsai namespace
-            "{$sourceProjectRoot}/bonsai/components/{$baseComponentName}.blade.php",
-            // Fallback paths
-            "{$sourceProjectRoot}/{$templateName}/components/{$baseComponentName}.blade.php",
-            "{$sourceProjectRoot}/components/{$templateName}/{$baseComponentName}.blade.php",
-            // Last resort: default templates
+            // Bonsai namespace paths (preferred)
+            "{$projectRoot}/resources/views/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
+            "{$projectRoot}/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
+            "{$projectRoot}/resources/views/bonsai/components/{$baseComponentName}.blade.php",
+            // Template-specific paths
+            "{$projectRoot}/resources/views/{$templateName}/components/{$baseComponentName}.blade.php",
+            "{$projectRoot}/{$templateName}/components/{$baseComponentName}.blade.php",
+            // Legacy paths
+            "{$projectRoot}/components/{$baseComponentName}.blade.php",
+            // Package defaults
             __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php",
         ];
 
-        $output->writeln("<info>Searching in the following paths:</info>");
-        foreach ($sourcePaths as $index => $path) {
-            $output->writeln("<info>" . ($index + 1) . ". {$path}</info>");
+        $output->writeln("<info>Searching for component in:</info>");
+        foreach ($sourcePaths as $path) {
+            $output->writeln("- {$path}");
         }
 
         $sourceFile = null;
         foreach ($sourcePaths as $path) {
-            $output->writeln("\n<info>Checking path: {$path}</info>");
             if (file_exists($path)) {
                 $sourceFile = $path;
                 $output->writeln("<info>✓ Found source component at: {$path}</info>");
-                $output->writeln("<info>Component content:</info>");
-                $output->writeln(file_get_contents($path));
                 break;
-            } else {
-                $output->writeln("<comment>✗ Not found at: {$path}</comment>");
             }
         }
 
         if (!$sourceFile) {
-            $output->writeln("<error>Component not found: {$componentName} (searched in: " . implode(', ', $sourcePaths) . ")</error>");
+            $output->writeln("<error>Component not found: {$componentName}</error>");
             return;
         }
 
-        // Create both the project's resources directory and the package's templates directory
-        $projectTargetDir = "{$sourceProjectRoot}/bonsai/components/{$templateName}";
+        // Create target directories with proper namespacing
+        $projectTargetDir = "{$projectRoot}/resources/views/bonsai/components/{$templateName}";
         $packageTargetDir = __DIR__ . "/../../templates/components/{$templateName}";
         
-        // Create directories if they don't exist
         foreach ([$projectTargetDir, $packageTargetDir] as $dir) {
             if (!is_dir($dir)) {
                 mkdir($dir, 0755, true);
+                $output->writeln("<info>Created directory: {$dir}</info>");
             }
         }
 
-        // Copy to both locations
+        // Copy and process the component
         $projectTargetPath = "{$projectTargetDir}/{$baseComponentName}.blade.php";
         $packageTargetPath = "{$packageTargetDir}/{$baseComponentName}.blade.php";
-        
-        copy($sourceFile, $projectTargetPath);
-        copy($sourceFile, $packageTargetPath);
-        
-        $output->writeln("<info>Copied component to: {$projectTargetPath}</info>");
-        $output->writeln("<info>Final component content:</info>");
-        $output->writeln(file_get_contents($projectTargetPath));
+
+        // Read and process the component content
+        $componentContent = file_get_contents($sourceFile);
+        $componentContent = $this->updateComponentNamespaces($componentContent, $templateName);
+
+        // Write the processed content
+        file_put_contents($projectTargetPath, $componentContent);
+        file_put_contents($packageTargetPath, $componentContent);
+
+        $output->writeln("<info>✓ Copied and processed component to:</info>");
+        $output->writeln("  - {$projectTargetPath}");
+        $output->writeln("  - {$packageTargetPath}");
+    }
+
+    private function updateComponentNamespaces(string $content, string $templateName): string
+    {
+        // Update component references to use bonsai namespace
+        $content = preg_replace(
+            "/<x-([^:\"'\s]+)/",
+            "<x-bonsai::{$templateName}.$1",
+            $content
+        );
+
+        // Don't modify heroicon components
+        $content = preg_replace(
+            "/<x-bonsai::{$templateName}\.heroicon-/",
+            "<x-heroicon-",
+            $content
+        );
+
+        return $content;
     }
 
     protected function generateSectionContent($template, $section, $componentType, $data)
@@ -517,50 +528,72 @@ BLADE;
 
     private function detectAndCopyLayout(string $sourcePath, string $templateName, OutputInterface $output): void
     {
+        $output->writeln("\n<info>Starting layout detection for template: {$templateName}</info>");
         $sourceDir = dirname(dirname(dirname($sourcePath)));
         $content = file_get_contents($sourcePath);
 
-        // Try to find the layout file
+        // Enhanced layout path detection
         $layoutPaths = [
+            // Bonsai namespace paths (preferred)
             "{$sourceDir}/resources/views/bonsai/layouts/{$templateName}.blade.php",
             "{$sourceDir}/bonsai/layouts/{$templateName}.blade.php",
+            // Template-specific paths
+            "{$sourceDir}/resources/views/{$templateName}/layouts/{$templateName}.blade.php",
             "{$sourceDir}/{$templateName}/layouts/{$templateName}.blade.php",
+            // Legacy paths
             "{$sourceDir}/layouts/{$templateName}.blade.php",
+            "{$sourceDir}/resources/views/layouts/{$templateName}.blade.php"
         ];
+
+        $output->writeln("<info>Searching for layout in following paths:</info>");
+        foreach ($layoutPaths as $path) {
+            $output->writeln("- {$path}");
+        }
 
         $foundLayoutPath = null;
         foreach ($layoutPaths as $layoutPath) {
             if (file_exists($layoutPath)) {
                 $foundLayoutPath = $layoutPath;
+                $output->writeln("<info>✓ Found layout at: {$layoutPath}</info>");
                 break;
             }
         }
 
         if ($foundLayoutPath) {
-            // Create the target directories
-            $projectLayoutDir = dirname(dirname(dirname($sourcePath))) . "/resources/views/bonsai/layouts";
+            // Create the target directories with proper namespacing
+            $projectLayoutDir = "{$sourceDir}/resources/views/bonsai/layouts";
             $packageLayoutDir = __DIR__ . "/../../templates/layouts";
 
             foreach ([$projectLayoutDir, $packageLayoutDir] as $dir) {
                 if (!is_dir($dir)) {
                     mkdir($dir, 0755, true);
+                    $output->writeln("<info>Created directory: {$dir}</info>");
                 }
             }
 
-            // Copy the layout file to both locations
+            // Copy and update the layout file
             $projectLayoutPath = "{$projectLayoutDir}/{$templateName}.blade.php";
             $packageLayoutPath = "{$packageLayoutDir}/{$templateName}.blade.php";
 
-            copy($foundLayoutPath, $projectLayoutPath);
-            copy($foundLayoutPath, $packageLayoutPath);
-
-            $output->writeln("<info>Copied layout from: {$foundLayoutPath}</info>");
-            $output->writeln("<info>To project: {$projectLayoutPath}</info>");
-            $output->writeln("<info>To package: {$packageLayoutPath}</info>");
-
-            // Extract layout settings from the file
+            // Read and process the layout content
             $layoutContent = file_get_contents($foundLayoutPath);
+            
+            // Update namespace references
+            $layoutContent = $this->updateLayoutNamespaces($layoutContent, $templateName);
+
+            // Write the processed content
+            file_put_contents($projectLayoutPath, $layoutContent);
+            file_put_contents($packageLayoutPath, $layoutContent);
+
+            $output->writeln("<info>✓ Copied and processed layout to:</info>");
+            $output->writeln("  - {$projectLayoutPath}");
+            $output->writeln("  - {$packageLayoutPath}");
+
+            // Extract and process layout settings
             $layoutSettings = $this->extractLayoutSettings($layoutContent);
+            
+            // Copy layout assets with improved asset detection
+            $this->copyLayoutAssets($foundLayoutPath, $templateName, $output);
 
             // Update the config array with the extracted settings
             $config = [
@@ -571,16 +604,53 @@ BLADE;
                 ]
             ];
 
-            // Save the updated configuration
+            // Save the configuration
+            $configDir = __DIR__ . '/../../config/bonsai/templates';
+            if (!is_dir($configDir)) {
+                mkdir($configDir, 0755, true);
+            }
+            
             $yamlContent = Yaml::dump($config, 4, 2);
-            $targetPath = __DIR__ . '/../../config/bonsai/templates/' . $templateName . '.yml';
+            $targetPath = "{$configDir}/{$templateName}.yml";
             file_put_contents($targetPath, $yamlContent);
-
-            // Also copy any required assets
-            $this->copyLayoutAssets($foundLayoutPath, $templateName, $output);
+            
+            $output->writeln("<info>✓ Generated configuration at: {$targetPath}</info>");
         } else {
             $output->writeln("<comment>No custom layout found for {$templateName}, will use default.</comment>");
         }
+    }
+
+    private function updateLayoutNamespaces(string $content, string $templateName): string
+    {
+        // Update @extends directives
+        $content = preg_replace(
+            "/@extends\(['\"]([^'\"]*)(layouts\.{$templateName})['\"]\\)/",
+            "@extends('bonsai.layouts.{$templateName}')",
+            $content
+        );
+
+        // Update @include directives for sections
+        $content = preg_replace(
+            "/@include\(['\"]([^'\"]*)(sections\.[^'\"]+)['\"]\\)/",
+            "@include('bonsai.{$templateName}.$2')",
+            $content
+        );
+
+        // Update component references
+        $content = preg_replace(
+            "/<x-([^:\"'\s]+)/",
+            "<x-bonsai::{$templateName}.$1",
+            $content
+        );
+
+        // Don't modify heroicon components
+        $content = preg_replace(
+            "/<x-bonsai::{$templateName}\.heroicon-/",
+            "<x-heroicon-",
+            $content
+        );
+
+        return $content;
     }
 
     private function extractLayoutSettings(string $layoutContent): array
@@ -645,29 +715,148 @@ BLADE;
     private function copyLayoutAssets(string $layoutPath, string $templateName, OutputInterface $output): void
     {
         $content = file_get_contents($layoutPath);
+        $output->writeln("<info>Analyzing layout file for assets: {$layoutPath}</info>");
         
-        // Extract asset paths from the layout file
-        preg_match_all("/asset\(['\"]([^'\"]+)['\"]\)/", $content, $matches);
-        $assetPaths = $matches[1] ?? [];
+        // Enhanced regex patterns for image detection
+        $patterns = [
+            // Asset helper pattern
+            "/asset\(['\"]([^'\"]+)['\"]\)/",
+            // Direct image paths
+            "/['\"]([^'\"]*\.(?:png|jpg|jpeg|gif|svg|webp))['\"]/"
+        ];
+
+        $assetPaths = [];
+        foreach ($patterns as $pattern) {
+            preg_match_all($pattern, $content, $matches);
+            if (!empty($matches[1])) {
+                $assetPaths = array_merge($assetPaths, $matches[1]);
+            }
+        }
+
+        // Remove duplicates and filter out external URLs
+        $assetPaths = array_unique(array_filter($assetPaths, function($path) {
+            return !preg_match('/^(https?:)?\/\//', $path);
+        }));
 
         if (!empty($assetPaths)) {
+            $output->writeln("<info>Found " . count($assetPaths) . " asset references</info>");
+            
             // Create assets directory in the package
             $packageAssetsDir = __DIR__ . "/../../templates/assets/{$templateName}";
             if (!is_dir($packageAssetsDir)) {
                 mkdir($packageAssetsDir, 0755, true);
+                $output->writeln("<info>Created assets directory: {$packageAssetsDir}</info>");
             }
 
+            // Get the correct project root from the source option
+            $sourcePath = $this->input->getOption('source');
+            $projectRoot = dirname(dirname(dirname($sourcePath)));
+            
+            // Multiple source paths to look for assets
+            $sourcePaths = [
+                "{$projectRoot}/resources/images",                // Primary: Resources images
+                "{$projectRoot}/public/images",                   // Public images dir
+                "{$projectRoot}/public",                         // Public root
+                "{$projectRoot}/assets/images",                  // Assets images
+                dirname($layoutPath) . "/images",                // Layout-relative images
+                "{$projectRoot}/images",                        // Root images
+                // Add the correct path that matches the user's structure
+                "/Users/masonlawlor/Sites/bonsai.so/resources/images"  // Explicit path
+            ];
+
             foreach ($assetPaths as $assetPath) {
-                // Try to find the asset in the project's public directory
-                $sourceAssetPath = dirname(dirname(dirname($layoutPath))) . "/public/{$assetPath}";
-                if (file_exists($sourceAssetPath)) {
-                    $targetAssetPath = "{$packageAssetsDir}/" . basename($assetPath);
-                    copy($sourceAssetPath, $targetAssetPath);
-                    $output->writeln("<info>Copied asset: {$assetPath} to package templates</info>");
-                } else {
-                    $output->writeln("<comment>Asset not found: {$assetPath}</comment>");
+                $output->writeln("<info>Looking for asset: {$assetPath}</info>");
+                $found = false;
+
+                // Clean the asset path
+                $assetPath = ltrim($assetPath, '/');
+                $filename = basename($assetPath);
+                
+                foreach ($sourcePaths as $sourcePath) {
+                    // Try both with full path and just filename
+                    $paths = [
+                        $sourcePath . '/' . $assetPath,
+                        $sourcePath . '/' . $filename
+                    ];
+                    
+                    foreach ($paths as $fullSourcePath) {
+                        $output->writeln("<comment>Checking: {$fullSourcePath}</comment>");
+                        
+                        if (file_exists($fullSourcePath)) {
+                            $targetAssetPath = "{$packageAssetsDir}/" . $filename;
+                            try {
+                                if (copy($fullSourcePath, $targetAssetPath)) {
+                                    $output->writeln("<info>✓ Successfully copied: {$filename}</info>");
+                                    $found = true;
+                                    break 2;
+                                } else {
+                                    $output->writeln("<e>Failed to copy: {$filename}</e>");
+                                }
+                            } catch (\Exception $e) {
+                                $output->writeln("<e>Error copying {$filename}: {$e->getMessage()}</e>");
+                            }
+                        }
+                    }
+                }
+
+                if (!$found) {
+                    $output->writeln("<comment>! Asset not found in any source path: {$filename}</comment>");
                 }
             }
+        } else {
+            $output->writeln("<comment>No assets found in layout file</comment>");
+        }
+
+        // Handle widget-specific image paths
+        $this->copyWidgetAssets($layoutPath, $templateName, $output);
+    }
+
+    private function copyWidgetAssets(string $layoutPath, string $templateName, OutputInterface $output): void
+    {
+        $projectRoot = dirname(dirname(dirname($layoutPath)));
+        $widgetPaths = [
+            "{$projectRoot}/resources/views/bonsai/components/widget",
+            "{$projectRoot}/resources/views/components/widget",
+            "{$projectRoot}/views/components/widget"
+        ];
+
+        foreach ($widgetPaths as $widgetPath) {
+            if (is_dir($widgetPath)) {
+                $output->writeln("<info>Checking widget directory: {$widgetPath}</info>");
+                
+                $files = glob("{$widgetPath}/*.blade.php");
+                foreach ($files as $file) {
+                    $content = file_get_contents($file);
+                    if (preg_match_all("/['\"]([^'\"]*\.(?:png|jpg|jpeg|gif|svg|webp))['\"]/",$content, $matches)) {
+                        foreach ($matches[1] as $imagePath) {
+                            $this->copyAssetFromPath($imagePath, $templateName, $output);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function copyAssetFromPath(string $assetPath, string $templateName, OutputInterface $output): void
+    {
+        $packageAssetsDir = __DIR__ . "/../../templates/assets/{$templateName}";
+        
+        // Ensure directory exists
+        if (!is_dir($packageAssetsDir)) {
+            mkdir($packageAssetsDir, 0755, true);
+        }
+
+        $targetPath = "{$packageAssetsDir}/" . basename($assetPath);
+        if (file_exists($assetPath)) {
+            try {
+                if (copy($assetPath, $targetPath)) {
+                    $output->writeln("<info>✓ Copied widget asset: {$assetPath}</info>");
+                }
+            } catch (\Exception $e) {
+                $output->writeln("<error>Failed to copy widget asset {$assetPath}: {$e->getMessage()}</error>");
+            }
+        } else {
+            $output->writeln("<comment>Widget asset not found: {$assetPath}</comment>");
         }
     }
 
@@ -750,5 +939,111 @@ BLADE;
 
             $this->files->put($layoutPath, $layoutContent);
         }
+    }
+
+    protected function getComponentSearchPaths(string $projectRoot, string $component, string $templateName): array
+    {
+        return [
+            "{$projectRoot}/resources/views/bonsai/components/{$templateName}/{$component}.blade.php",
+            "{$projectRoot}/resources/views/bonsai/components/{$component}.blade.php",
+            "{$projectRoot}/resources/views/cypress/components/{$component}.blade.php",
+            "{$projectRoot}/resources/views/components/{$component}.blade.php",
+            "{$this->getTemplatesPath()}/components/{$component}.blade.php",
+        ];
+    }
+
+    protected function getAssetSearchPaths(string $projectRoot, string $assetPath): array
+    {
+        $assetName = basename($assetPath);
+        $assetDir = dirname($assetPath);
+        
+        return [
+            // Direct project paths
+            "{$projectRoot}/resources/images/{$assetName}",
+            "{$projectRoot}/resources/images/{$assetPath}",
+            // Public paths
+            "{$projectRoot}/public/images/{$assetName}",
+            "{$projectRoot}/public/images/{$assetPath}",
+            "{$projectRoot}/public/{$assetName}",
+            // Asset paths
+            "{$projectRoot}/assets/images/{$assetName}",
+            "{$projectRoot}/assets/images/{$assetPath}",
+            // Root paths
+            "{$projectRoot}/images/{$assetName}",
+            "{$projectRoot}/images/{$assetPath}"
+        ];
+    }
+
+    protected function copyComponent(string $component, string $templateName, OutputInterface $output): bool
+    {
+        $projectRoot = $this->getProjectRoot();
+        $searchPaths = $this->getComponentSearchPaths($projectRoot, $component, $templateName);
+        
+        $output->writeln("Starting component copy process for: {$component}");
+        $output->writeln("Searching for component in:");
+        foreach ($searchPaths as $path) {
+            $output->writeln("- {$path}");
+        }
+
+        $sourceComponentPath = null;
+        foreach ($searchPaths as $path) {
+            if (file_exists($path)) {
+                $sourceComponentPath = $path;
+                break;
+            }
+        }
+
+        if (!$sourceComponentPath) {
+            $output->writeln("<error>Component not found in any search path: {$component}</error>");
+            return false;
+        }
+
+        $output->writeln("✓ Found source component at: {$sourceComponentPath}");
+
+        // Copy to project components directory
+        $destComponentPath = "{$projectRoot}/resources/views/bonsai/components/{$templateName}/{$component}.blade.php";
+        $this->ensureDirectoryExists(dirname($destComponentPath));
+        copy($sourceComponentPath, $destComponentPath);
+
+        // Copy to templates directory
+        $templatesComponentPath = "{$this->getTemplatesPath()}/components/{$templateName}/{$component}.blade.php";
+        $this->ensureDirectoryExists(dirname($templatesComponentPath));
+        copy($sourceComponentPath, $templatesComponentPath);
+
+        $output->writeln("✓ Copied and processed component to:");
+        $output->writeln("  - {$destComponentPath}");
+        $output->writeln("  - {$templatesComponentPath}");
+
+        return true;
+    }
+
+    protected function copyAsset(string $assetPath, OutputInterface $output): bool
+    {
+        $projectRoot = $this->getProjectRoot();
+        $searchPaths = $this->getAssetSearchPaths($projectRoot, $assetPath);
+        
+        $output->writeln("Looking for asset: {$assetPath}");
+        foreach ($searchPaths as $path) {
+            $output->writeln("Checking: {$path}");
+            if (file_exists($path)) {
+                // Create target directory if it doesn't exist
+                $destDir = dirname("{$this->getTemplatesPath()}/assets/{$assetPath}");
+                if (!is_dir($destDir)) {
+                    mkdir($destDir, 0755, true);
+                }
+                
+                // Copy the asset
+                $destPath = "{$this->getTemplatesPath()}/assets/{$assetPath}";
+                if (copy($path, $destPath)) {
+                    $output->writeln("✓ Copied asset to: {$destPath}");
+                    return true;
+                } else {
+                    $output->writeln("! Failed to copy asset to: {$destPath}");
+                }
+            }
+        }
+
+        $output->writeln("! Asset not found in any source path: " . basename($assetPath));
+        return false;
     }
 } 
