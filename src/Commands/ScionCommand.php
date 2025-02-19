@@ -535,26 +535,10 @@ class ScionCommand extends Command
 
     private function updateComponentNamespaces(string $content, string $templateName): string
     {
-        // First, uncomment any commented dynamic components
-        $content = preg_replace(
-            "/{{--\s*<x-dynamic-component([^}]+)}}\s*--}}/",
-            "<x-dynamic-component$1",
-            $content
-        );
-
         // Don't modify dynamic components at all
-        $content = preg_replace_callback(
-            "/<x-bonsai::{$templateName}\.dynamic-component/",
-            function($matches) {
-                return "<x-dynamic-component";
-            },
-            $content
-        );
-
-        // Update regular component references to use bonsai namespace
         $content = preg_replace(
-            "/<x-(?!dynamic-component|heroicon-)([^:\"'\s]+)/",
-            "<x-bonsai::{$templateName}.$1",
+            "/<x-bonsai::{$templateName}\.dynamic-component/",
+            "<x-dynamic-component",
             $content
         );
 
@@ -562,6 +546,13 @@ class ScionCommand extends Command
         $content = preg_replace(
             "/<x-bonsai::{$templateName}\.heroicon-/",
             "<x-heroicon-",
+            $content
+        );
+
+        // Update regular component references to use bonsai namespace
+        $content = preg_replace(
+            "/<x-(?!dynamic-component|heroicon-)([^:\"'\s]+)/",
+            "<x-bonsai::{$templateName}.$1",
             $content
         );
 

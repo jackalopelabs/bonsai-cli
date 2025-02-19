@@ -243,6 +243,10 @@ class BonsaiServiceProvider extends ServiceProvider
     {
         $this->log('Registering template-specific components...');
 
+        // Register dynamic-component for all templates
+        Blade::component('dynamic-component', 'dynamic-component');
+        $this->log("Registered dynamic component as <x-dynamic-component>");
+
         // Get all template directories
         $viewsPath = resource_path('views');
         $templateDirs = glob($viewsPath . '/bonsai/components/*', GLOB_ONLYDIR);
