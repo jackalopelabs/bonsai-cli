@@ -182,7 +182,7 @@ class BonsaiServiceProvider extends ServiceProvider
 
     protected function registerBladeComponents()
     {
-        $this->log('registerBladeComponents called in BonsaiServiceProvider');
+        $this->log('🔍 Starting template-specific component registration...');
 
         // Register core Bonsai components
         $this->registerCoreComponents();
@@ -241,46 +241,80 @@ class BonsaiServiceProvider extends ServiceProvider
 
     protected function registerTemplateComponents()
     {
-        $this->log('Registering template-specific components...');
+        $this->log('🔍 Starting template-specific component registration...');
 
         // Register dynamic-component for all templates
-        Blade::component('bonsai::components.dynamic-component', 'dynamic-component');
-        $this->log("Registered dynamic component as <x-dynamic-component>");
+        try {
+            Blade::component('dynamic-component', 'dynamic-component');
+            $this->log("✓ Registered global dynamic-component as <x-dynamic-component>");
+        } catch (\Exception $e) {
+            $this->log("❌ Failed to register global dynamic-component: " . $e->getMessage());
+        }
 
         // Ensure the dynamic component view exists
         $dynamicComponentPath = resource_path('views/bonsai/components/dynamic-component.blade.php');
+        $this->log("Checking for dynamic component view at: {$dynamicComponentPath}");
+        
         if (!file_exists($dynamicComponentPath)) {
-            if (!is_dir(dirname($dynamicComponentPath))) {
-                mkdir(dirname($dynamicComponentPath), 0755, true);
+            try {
+                if (!is_dir(dirname($dynamicComponentPath))) {
+                    mkdir(dirname($dynamicComponentPath), 0755, true);
+                    $this->log("✓ Created directory: " . dirname($dynamicComponentPath));
+                }
+                
+                $content = '@props([\'component\'])
+<x-dynamic-component :component="$component" {{ $attributes }} />';
+                
+                file_put_contents($dynamicComponentPath, $content);
+                $this->log("✓ Created dynamic component view at: {$dynamicComponentPath}");
+            } catch (\Exception $e) {
+                $this->log("❌ Failed to create dynamic component view: " . $e->getMessage());
             }
-            file_put_contents($dynamicComponentPath, '@props([\'component\'])
-<x-dynamic-component :component="$component" {{ $attributes }} />');
-            $this->log("Created dynamic component view at: {$dynamicComponentPath}");
+        } else {
+            $this->log("✓ Dynamic component view already exists");
         }
 
         // Get all template directories
         $viewsPath = resource_path('views');
+        $this->log("Scanning for template directories in: {$viewsPath}/bonsai/components/*");
+        
         $templateDirs = glob($viewsPath . '/bonsai/components/*', GLOB_ONLYDIR);
-
+        
         foreach ($templateDirs as $templateDir) {
             $templateName = basename($templateDir);
             
             // Skip non-template directories
             if (in_array($templateName, ['icons', 'utils'])) {
+                $this->log("⏭️ Skipping utility directory: {$templateName}");
                 continue;
             }
 
-            $this->log("Processing template: {$templateName}");
+            $this->log("📦 Processing template: {$templateName}");
 
             // Register components in template directory
             $componentFiles = glob($templateDir . '/*.blade.php');
+            $this->log("Found " . count($componentFiles) . " component files in {$templateName}");
+            
             foreach ($componentFiles as $file) {
                 $componentName = basename($file, '.blade.php');
-                // Register with template namespace
-                Blade::component("bonsai.components.{$templateName}.{$componentName}", "bonsai::{$templateName}.{$componentName}");
-                $this->log("Registered template component: {$componentName} as <x-bonsai::{$templateName}.{$componentName}>");
+                try {
+                    // Register with template namespace
+                    $alias = "bonsai::{$templateName}.{$componentName}";
+                    $path = "bonsai.components.{$templateName}.{$componentName}";
+                    
+                    Blade::component($path, $alias);
+                    $this->log("✓ Registered template component: {$componentName} as <x-{$alias}>");
+                    
+                    // Also register without namespace for backward compatibility
+                    Blade::component($path, "{$templateName}.{$componentName}");
+                    $this->log("✓ Also registered as <x-{$templateName}.{$componentName}> for compatibility");
+                } catch (\Exception $e) {
+                    $this->log("❌ Failed to register component {$componentName}: " . $e->getMessage());
+                }
             }
         }
+        
+        $this->log("🏁 Completed template-specific component registration");
     }
 
     protected function registerHeroicons()

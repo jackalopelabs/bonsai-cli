@@ -82,10 +82,18 @@ class GenerateCommand extends Command
 
     protected function generateComponents($components, $hasHeroicons = false)
     {
+        $this->info("🔄 Starting component generation process...");
         putenv("BONSAI_HAS_HEROICONS=" . ($hasHeroicons ? "true" : "false"));
         $template = $this->argument('template');
+        
+        $this->info("📦 Template: {$template}");
+        $this->info("🦸 Heroicons enabled: " . ($hasHeroicons ? "yes" : "no"));
+
+        // First ensure dynamic component exists
+        $this->ensureDynamicComponentExists();
 
         if (isset($components[0])) {
+            $this->info("Processing array-style component list");
             $components = array_filter($components, function($c) {
                 return in_array($c, [
                     'hero','header','card','widget','accordion',
@@ -95,26 +103,64 @@ class GenerateCommand extends Command
             $components = array_combine($components, array_fill(0, count($components), []));
         }
 
+        $this->info("Found " . count($components) . " components to process");
+
         foreach ($components as $component => $config) {
             $componentName = is_array($config) ? $component : $config;
+            $this->info("🔨 Processing component: {$componentName}");
             
             // First try to copy from template-specific components
             if (!$this->copyTemplateComponent($componentName)) {
+                $this->info("⚠️ No template-specific component found, trying core components...");
                 // If not found, fall back to core Bonsai components and register in template namespace
                 if ($this->copyBonsaiComponent($componentName)) {
+                    $this->info("✓ Copied from core components");
                     // Register the component in the template namespace
                     $this->registerBonsaiTemplateComponent($template, $componentName);
+                    $this->info("✓ Registered in template namespace");
+                } else {
+                    $this->warn("❌ Component not found in core components either");
                 }
             }
 
+            // Handle dependencies
             if ($componentName === 'card') {
+                $this->info("📦 Installing card dependencies...");
                 $this->copyComponentIcon('flowchart');
             } else if ($componentName === 'widget') {
+                $this->info("📦 Installing widget dependencies...");
                 // For widget dependencies, we want them in the core bonsai components
                 $this->copyBonsaiComponent('accordion');
                 $this->copyBonsaiComponent('cta');
                 $this->copyBonsaiComponent('list-item');
             }
+        }
+        
+        $this->info("🏁 Component generation complete");
+    }
+
+    protected function ensureDynamicComponentExists()
+    {
+        $this->info("🔍 Checking dynamic component setup...");
+        
+        $dynamicComponentPath = resource_path('views/bonsai/components/dynamic-component.blade.php');
+        $this->info("Checking path: {$dynamicComponentPath}");
+        
+        if (!file_exists($dynamicComponentPath)) {
+            $this->info("Creating dynamic component...");
+            
+            if (!is_dir(dirname($dynamicComponentPath))) {
+                mkdir(dirname($dynamicComponentPath), 0755, true);
+                $this->info("Created directory structure");
+            }
+            
+            $content = '@props([\'component\'])
+<x-dynamic-component :component="$component" {{ $attributes }} />';
+            
+            file_put_contents($dynamicComponentPath, $content);
+            $this->info("✓ Created dynamic component view");
+        } else {
+            $this->info("✓ Dynamic component already exists");
         }
     }
 
