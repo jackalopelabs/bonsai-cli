@@ -542,18 +542,18 @@ class ScionCommand extends Command
             $content
         );
 
-        // Don't modify dynamic components, but ensure they're active
+        // Don't modify dynamic components at all
         $content = preg_replace_callback(
-            "/{{--\s*(<x-dynamic-component\s+:component=\"[^\"]+\"[^}]*>)\s*--}}/",
+            "/<x-bonsai::{$templateName}\.dynamic-component/",
             function($matches) {
-                return $matches[1];
+                return "<x-dynamic-component";
             },
             $content
         );
 
         // Update regular component references to use bonsai namespace
         $content = preg_replace(
-            "/<x-([^:\"'\s]+)/",
+            "/<x-(?!dynamic-component|heroicon-)([^:\"'\s]+)/",
             "<x-bonsai::{$templateName}.$1",
             $content
         );
