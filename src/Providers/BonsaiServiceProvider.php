@@ -245,10 +245,15 @@ class BonsaiServiceProvider extends ServiceProvider
 
         // Register dynamic-component for all templates
         try {
+            // Register with full view path
+            Blade::component('bonsai.components.dynamic-component', 'dynamic-component');
+            $this->log("✓ Registered global dynamic-component with full path");
+            
+            // Also register without namespace for backward compatibility
             Blade::component('dynamic-component', 'dynamic-component');
-            $this->log("✓ Registered global dynamic-component as <x-dynamic-component>");
+            $this->log("✓ Also registered without namespace for compatibility");
         } catch (\Exception $e) {
-            $this->log("❌ Failed to register global dynamic-component: " . $e->getMessage());
+            $this->log("❌ Failed to register dynamic-component: " . $e->getMessage());
         }
 
         // Ensure the dynamic component view exists
