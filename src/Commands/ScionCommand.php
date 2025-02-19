@@ -405,7 +405,7 @@ class ScionCommand extends Command
         return $data;
     }
 
-    private function copyComponentToTemplate(string $sourcePath, string $componentName, OutputInterface $output): void
+    protected function copyComponentToTemplate(string $sourcePath, string $componentName, OutputInterface $output): void
     {
         $output->writeln("\n<info>Starting component copy process for: {$componentName}</info>");
         
@@ -413,14 +413,14 @@ class ScionCommand extends Command
         $parts = explode('.', $componentName);
         $output->writeln("<info>Component parts: " . implode(', ', $parts) . "</info>");
         
-        // Get the template name and base component name
-        $templateName = $parts[0];
+        // Get the template name from the command argument
+        $templateName = $this->input->getArgument('templateName');
         $baseComponentName = end($parts); // Get the base name (e.g., 'hero' from 'cypress.hero')
         $output->writeln("<info>Template name: {$templateName}</info>");
         $output->writeln("<info>Base component name: {$baseComponentName}</info>");
         
         // Get the source project root from the template path provided to the command
-        $sourceProjectRoot = dirname(dirname(dirname(dirname($sourcePath)))); // Get to the project root (4 levels up from template file)
+        $sourceProjectRoot = dirname(dirname(dirname($sourcePath))); // Get to the project root (3 levels up from template file)
         
         // Debug output
         $output->writeln("<info>Source file path: {$sourcePath}</info>");
@@ -429,12 +429,12 @@ class ScionCommand extends Command
         // Prioritize bonsai namespace paths
         $sourcePaths = [
             // Primary: Template-specific components in bonsai namespace
-            "{$sourceProjectRoot}/views/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
+            "{$sourceProjectRoot}/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
             // Secondary: Shared components in bonsai namespace
-            "{$sourceProjectRoot}/views/bonsai/components/{$baseComponentName}.blade.php",
+            "{$sourceProjectRoot}/bonsai/components/{$baseComponentName}.blade.php",
             // Fallback paths
-            "{$sourceProjectRoot}/views/{$templateName}/components/{$baseComponentName}.blade.php",
-            "{$sourceProjectRoot}/views/components/{$templateName}/{$baseComponentName}.blade.php",
+            "{$sourceProjectRoot}/{$templateName}/components/{$baseComponentName}.blade.php",
+            "{$sourceProjectRoot}/components/{$templateName}/{$baseComponentName}.blade.php",
             // Last resort: default templates
             __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php",
         ];
@@ -463,18 +463,27 @@ class ScionCommand extends Command
             return;
         }
 
-        // Create bonsai namespace target directory
-        $targetDir = __DIR__ . '/../../templates/components/cypress';
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0755, true);
+        // Create both the project's resources directory and the package's templates directory
+        $projectTargetDir = "{$sourceProjectRoot}/bonsai/components/{$templateName}";
+        $packageTargetDir = __DIR__ . "/../../templates/components/{$templateName}";
+        
+        // Create directories if they don't exist
+        foreach ([$projectTargetDir, $packageTargetDir] as $dir) {
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
         }
 
-        // Copy the component to the target directory
-        $targetPath = $targetDir . '/' . $baseComponentName . '.blade.php';
-        copy($sourceFile, $targetPath);
-        $output->writeln("<info>Copied component to: {$targetPath}</info>");
+        // Copy to both locations
+        $projectTargetPath = "{$projectTargetDir}/{$baseComponentName}.blade.php";
+        $packageTargetPath = "{$packageTargetDir}/{$baseComponentName}.blade.php";
+        
+        copy($sourceFile, $projectTargetPath);
+        copy($sourceFile, $packageTargetPath);
+        
+        $output->writeln("<info>Copied component to: {$projectTargetPath}</info>");
         $output->writeln("<info>Final component content:</info>");
-        $output->writeln(file_get_contents($targetPath));
+        $output->writeln(file_get_contents($projectTargetPath));
     }
 
     protected function generateSectionContent($template, $section, $componentType, $data)

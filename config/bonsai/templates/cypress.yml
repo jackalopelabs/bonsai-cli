@@ -1,6 +1,6 @@
 sections:
   home_hero:
-    component: hero
+    component: .hero
     data:
       title: 'Bonsai CLI: Roots Build Tool'
       subtitle: 'Generate a beautful Roots project in minutes'
@@ -14,7 +14,7 @@ sections:
       secondaryIcon: true
       iconMappings: { dropdownIcon: heroicon-s-chevron-down, buttonLinkIcon: heroicon-s-play, secondaryIcon: heroicon-s-arrow-right }
   services_card:
-    component: card
+    component: .card
     data:
       sectionId: services
       sectionTitle: Features
@@ -26,7 +26,7 @@ sections:
       title: 'Template System'
       description: 'Pre-built templates for rapid WordPress development.'
   features_widget:
-    component: widget
+    component: .widget
     data:
       items: { id: widget-1, title: 'Template System', icon: heroicon-o-template, link: 'https://github.com/jackalopelabs/bonsai-cli' }
       description: 'Comprehensive documentation and configuration guides:'
@@ -39,7 +39,7 @@ sections:
       icon: heroicon-o-book-open
       cta: { title: Documentation, link: 'https://github.com/jackalopelabs/bonsai-cli' }
   pricing:
-    component: pricing-box
+    component: .pricing-box
     data:
       title: 'Choose Your Plan'
       subtitle: 'Limited-time pricing available now'
