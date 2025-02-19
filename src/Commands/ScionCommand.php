@@ -393,19 +393,16 @@ class ScionCommand extends Command
         
         $projectRoot = dirname(dirname(dirname($sourcePath)));
         
-        // Enhanced component path detection
+        // Enhanced component path detection with correct order
         $sourcePaths = [
-            // Bonsai namespace paths (preferred)
+            // First check template-specific components
             "{$projectRoot}/resources/views/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
-            "{$projectRoot}/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
-            "{$projectRoot}/resources/views/bonsai/components/{$baseComponentName}.blade.php",
-            // Template-specific paths
+            // Then check template root components
             "{$projectRoot}/resources/views/{$templateName}/components/{$baseComponentName}.blade.php",
-            "{$projectRoot}/{$templateName}/components/{$baseComponentName}.blade.php",
-            // Legacy paths
-            "{$projectRoot}/components/{$baseComponentName}.blade.php",
-            // Package defaults
-            __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php",
+            // Then check bonsai core components
+            "{$projectRoot}/resources/views/bonsai/components/{$baseComponentName}.blade.php",
+            // Finally check package defaults
+            __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php"
         ];
 
         $output->writeln("<info>Searching for component in:</info>");
@@ -453,11 +450,108 @@ class ScionCommand extends Command
         $output->writeln("<info>✓ Copied and processed component to:</info>");
         $output->writeln("  - {$projectTargetPath}");
         $output->writeln("  - {$packageTargetPath}");
+
+        // Copy any dependencies (icons, etc.)
+        $this->copyComponentDependencies($projectRoot, $templateName, $baseComponentName, $output);
+    }
+
+    private function copyComponentDependencies(string $projectRoot, string $templateName, string $componentName, OutputInterface $output): void
+    {
+        // Map of components to their dependencies
+        $dependencies = [
+            'card' => [
+                'icons/flowchart',
+                'dynamic-components' => [
+                    'image' => true  // Indicates this component uses dynamic image components
+                ]
+            ],
+            'hero' => [
+                'icons/github',
+                'dynamic-components' => [
+                    'dropdownIcon' => true,
+                    'buttonLinkIcon' => true,
+                    'secondaryIcon' => true
+                ]
+            ],
+            'pricing-box' => [
+                'dynamic-components' => [
+                    'icon' => true,
+                    'iconBtn' => true
+                ]
+            ]
+        ];
+
+        if (!isset($dependencies[$componentName])) {
+            return;
+        }
+
+        foreach ($dependencies[$componentName] as $key => $dependency) {
+            if ($key === 'dynamic-components') {
+                // Handle dynamic component configuration
+                continue; // Dynamic components don't need to be copied, just configured
+            }
+
+            $iconPaths = [
+                "{$projectRoot}/resources/views/bonsai/components/{$dependency}.blade.php",
+                "{$projectRoot}/resources/views/components/{$dependency}.blade.php",
+                __DIR__ . "/../../templates/components/{$dependency}.blade.php"
+            ];
+
+            $sourceIcon = null;
+            foreach ($iconPaths as $path) {
+                if (file_exists($path)) {
+                    $sourceIcon = $path;
+                    break;
+                }
+            }
+
+            if ($sourceIcon) {
+                // Create icon directories
+                $projectIconDir = "{$projectRoot}/resources/views/bonsai/{$templateName}/components/" . dirname($dependency);
+                $packageIconDir = __DIR__ . "/../../templates/components/{$templateName}/" . dirname($dependency);
+
+                foreach ([$projectIconDir, $packageIconDir] as $dir) {
+                    if (!is_dir($dir)) {
+                        mkdir($dir, 0755, true);
+                        $output->writeln("<info>Created dependency directory: {$dir}</info>");
+                    }
+                }
+
+                // Copy the dependency
+                $projectPath = "{$projectIconDir}/" . basename($dependency) . ".blade.php";
+                $packagePath = "{$packageIconDir}/" . basename($dependency) . ".blade.php";
+
+                copy($sourceIcon, $projectPath);
+                copy($sourceIcon, $packagePath);
+
+                $output->writeln("<info>✓ Copied dependency {$dependency} to:</info>");
+                $output->writeln("  - {$projectPath}");
+                $output->writeln("  - {$packagePath}");
+            } else {
+                $output->writeln("<comment>! Dependency {$dependency} not found in any source path</comment>");
+            }
+        }
     }
 
     private function updateComponentNamespaces(string $content, string $templateName): string
     {
-        // Update component references to use bonsai namespace
+        // First, uncomment any commented dynamic components
+        $content = preg_replace(
+            "/{{--\s*<x-dynamic-component([^}]+)}}\s*--}}/",
+            "<x-dynamic-component$1",
+            $content
+        );
+
+        // Don't modify dynamic components, but ensure they're active
+        $content = preg_replace_callback(
+            "/{{--\s*(<x-dynamic-component\s+:component=\"[^\"]+\"[^}]*>)\s*--}}/",
+            function($matches) {
+                return $matches[1];
+            },
+            $content
+        );
+
+        // Update regular component references to use bonsai namespace
         $content = preg_replace(
             "/<x-([^:\"'\s]+)/",
             "<x-bonsai::{$templateName}.$1",
@@ -471,6 +565,13 @@ class ScionCommand extends Command
             $content
         );
 
+        // Update @include directives for bonsai components
+        $content = preg_replace(
+            "/@include\(['\"]bonsai\.components\./",
+            "@include('bonsai.{$templateName}.components.",
+            $content
+        );
+
         return $content;
     }
 
@@ -480,7 +581,11 @@ class ScionCommand extends Command
 
         $dataLines = [];
         foreach ($data as $key => $value) {
-            if (is_array($value)) {
+            if ($key === 'iconMappings') {
+                // Special handling for icon mappings
+                $arrayStr = $this->arrayToPhpString($value, 1);
+                $dataLines[] = "    'iconMappings' => {$arrayStr},";
+            } else if (is_array($value)) {
                 $arrayStr = $this->arrayToPhpString($value, 1);
                 $dataLines[] = "    '{$key}' => {$arrayStr},";
             } else {
