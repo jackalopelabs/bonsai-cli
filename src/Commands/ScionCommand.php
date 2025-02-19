@@ -537,14 +537,14 @@ class ScionCommand extends Command
     {
         // Don't modify dynamic components at all
         $content = preg_replace(
-            "/<x-bonsai::{$templateName}\.dynamic-component/",
+            "/<x-dynamic-component/",
             "<x-dynamic-component",
             $content
         );
 
         // Don't modify heroicon components
         $content = preg_replace(
-            "/<x-bonsai::{$templateName}\.heroicon-/",
+            "/<x-heroicon-/",
             "<x-heroicon-",
             $content
         );
