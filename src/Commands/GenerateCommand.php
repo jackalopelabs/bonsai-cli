@@ -267,25 +267,22 @@ BLADE;
             }
         }
 
-        $template = <<<BLADE
+        // Build the section content with proper component reference
+        return <<<BLADE
 @props([
     'class' => ''
 ])
 
 @php
 \${$dataVarName} = [
-BLADE;
+{$this->indent(implode("\n", $dataLines), 0)}
+];
+@endphp
 
-        $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
-
-        // Use proper template namespace for components
-        $template .= <<<BLADE
 <div class="{{ \$class }}">
     <x-bonsai::{$template}.{$componentType} :data="\${$dataVarName}" />
 </div>
 BLADE;
-
-        return $template;
     }
 
     protected function arrayToPhpString($array, $depth = 0)

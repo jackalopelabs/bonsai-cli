@@ -491,23 +491,41 @@ class ScionCommand extends Command
             }
         }
 
-        $template = <<<BLADE
+        // Build the section content with proper component reference
+        return <<<BLADE
 @props([
     'class' => ''
 ])
 
 @php
 \${$dataVarName} = [
-BLADE;
+{$this->indent(implode("\n", $dataLines), 0)}
+];
+@endphp
 
-        $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
-
-        $template .= <<<BLADE
 <div class="{{ \$class }}">
     <x-bonsai::{$template}.{$componentType} :data="\${$dataVarName}" />
 </div>
 BLADE;
+    }
 
-        return $template;
+    private function indent($string, $level)
+    {
+        $indent = str_repeat('    ', $level);
+        return $indent . str_replace("\n", "\n" . $indent, $string);
+    }
+
+    private function arrayToPhpString($array, $level)
+    {
+        $indent = str_repeat('    ', $level);
+        $lines = [];
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $lines[] = "{$indent}'{$key}' => " . $this->arrayToPhpString($value, $level + 1);
+            } else {
+                $lines[] = "{$indent}'{$key}' => " . var_export($value, true);
+            }
+        }
+        return "[\n" . implode(",\n", $lines) . "\n" . $indent . "]";
     }
 } 
