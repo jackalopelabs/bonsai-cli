@@ -97,8 +97,11 @@ class GenerateCommand extends Command
             
             // First try to copy from template-specific components
             if (!$this->copyTemplateComponent($componentName)) {
-                // If not found, fall back to core Bonsai components
-                $this->copyBonsaiComponent($componentName);
+                // If not found, fall back to core Bonsai components and register in template namespace
+                if ($this->copyBonsaiComponent($componentName)) {
+                    // Register the component in the template namespace
+                    $this->registerBonsaiTemplateComponent($template, $componentName);
+                }
             }
 
             if ($componentName === 'card') {
@@ -175,23 +178,36 @@ class GenerateCommand extends Command
 
         foreach ($possiblePaths as $path) {
             if (file_exists($path)) {
-                $targetDir = resource_path("views/bonsai/components");
-                if (!$this->files->exists($targetDir)) {
-                    $this->files->makeDirectory($targetDir, 0755, true);
+                $template = $this->argument('template');
+                
+                // First copy to bonsai components directory
+                $bonsaiDir = resource_path("views/bonsai/components");
+                if (!$this->files->exists($bonsaiDir)) {
+                    $this->files->makeDirectory($bonsaiDir, 0755, true);
                 }
                 
-                $targetPath = "{$targetDir}/{$componentName}.blade.php";
-                $this->files->copy($path, $targetPath);
+                $bonsaiPath = "{$bonsaiDir}/{$componentName}.blade.php";
+                $this->files->copy($path, $bonsaiPath);
                 
-                // Also register the component in the service provider
+                // Then copy to template-specific directory
+                $templateDir = resource_path("views/bonsai/components/{$template}");
+                if (!$this->files->exists($templateDir)) {
+                    $this->files->makeDirectory($templateDir, 0755, true);
+                }
+                
+                $templatePath = "{$templateDir}/{$componentName}.blade.php";
+                $this->files->copy($path, $templatePath);
+                
+                // Register both the base and template-specific components
                 $this->registerBonsaiComponent($componentName);
+                $this->registerBonsaiTemplateComponent($template, $componentName);
+                
                 return true;
             }
         }
 
-        // If no template found, create a basic one in bonsai components
+        // If no template found, create a basic one in both locations
         $this->createBasicComponent($componentName);
-        $this->registerBonsaiComponent($componentName);
         return true;
     }
 
