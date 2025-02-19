@@ -234,8 +234,8 @@ BLADE;
             $componentType = $config['component'] ?? $section;
             $type = explode('_', $section)[0];
             
-            // Generate the section in the template's directory structure
-            $fullPath = resource_path("views/{$template}/sections/{$section}.blade.php");
+            // Generate the section in the bonsai template's directory structure
+            $fullPath = resource_path("views/bonsai/{$template}/sections/{$section}.blade.php");
             
             if (!$this->files->exists(dirname($fullPath))) {
                 $this->files->makeDirectory(dirname($fullPath), 0755, true);
@@ -244,7 +244,7 @@ BLADE;
             $sectionContent = $this->generateSectionContent($template, $section, $componentType, $config['data'] ?? []);
             $this->files->put($fullPath, $sectionContent);
             
-            $this->info("Generated section: {$template}/sections/{$section}");
+            $this->info("Generated section: bonsai/{$template}/sections/{$section}");
         }
     }
 
@@ -316,7 +316,7 @@ BLADE;
             $this->info("✓ Found existing bonsai layout, using it as source");
             
             // Create template-specific directory if it doesn't exist
-            $templateLayoutDir = resource_path("views/{$template}/layouts");
+            $templateLayoutDir = resource_path("views/bonsai/{$template}/layouts");
             if (!$this->files->exists($templateLayoutDir)) {
                 $this->files->makeDirectory($templateLayoutDir, 0755, true);
             }
@@ -337,7 +337,7 @@ BLADE;
         $this->info("ℹ No existing bonsai layout found, generating default layout");
         
         foreach ($layouts as $layout => $layoutConfig) {
-            $layoutPath = resource_path("views/{$template}/layouts/{$layout}.blade.php");
+            $layoutPath = resource_path("views/bonsai/{$template}/layouts/{$layout}.blade.php");
             if (!$this->files->exists(dirname($layoutPath))) {
                 $this->files->makeDirectory(dirname($layoutPath), 0755, true);
             }
@@ -424,7 +424,7 @@ BLADE;
 
     protected function generateSiteHeader($template)
     {
-        $headerPath = resource_path("views/{$template}/sections/site_header.blade.php");
+        $headerPath = resource_path("views/bonsai/{$template}/sections/site_header.blade.php");
         
         if (!$this->files->exists(dirname($headerPath))) {
             $this->files->makeDirectory(dirname($headerPath), 0755, true);
@@ -564,13 +564,13 @@ BLADE;
     {
         $sections = $config['sections'] ?? [];
         $sectionIncludes = array_map(function($section) use ($template) {
-            return "@include('{$template}.sections.{$section}')";
+            return "@include('bonsai.{$template}.sections.{$section}')";
         }, $sections);
 
         // Check if we should use bonsai namespace for layout
         $layoutNamespace = file_exists(resource_path("views/bonsai/layouts/{$layout}.blade.php")) 
             ? 'bonsai.layouts' 
-            : "{$template}.layouts";
+            : "bonsai.{$template}.layouts";
 
         return <<<BLADE
 {{-- 
