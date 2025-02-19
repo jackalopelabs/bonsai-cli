@@ -45,8 +45,9 @@ class ScionCommand extends Command
             $output->writeln("<info>Created component directory: {$componentDir}</info>");
         }
 
-        // Read the template file
+        // Read the template file and detect layout
         $content = file_get_contents($source);
+        $this->detectAndCopyLayout($source, $templateName, $output);
 
         // Extract all Blade @include directives
         preg_match_all("/@include\(['\"]([^'\"]+)['\"]\)/", $content, $matches);
@@ -109,6 +110,21 @@ class ScionCommand extends Command
             'sections' => $sections,
             'layout'   => [
                 'sections' => $layoutSections,
+                'settings' => [
+                    'body' => [
+                        'class' => 'transition-colors duration-200 p-0 m-0 bg-transparent'
+                    ],
+                    'html' => [
+                        'class' => 'dark relative h-screen',
+                        'x-data' => "{ darkMode: localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true' }",
+                        'x-init' => "$watch('darkMode', val => localStorage.setItem('darkMode', val))",
+                        'x-bind:class' => "{ 'dark': darkMode }"
+                    ],
+                    'background' => [
+                        'light' => 'images/bonsai_hero_03.png',
+                        'dark' => 'images/bonsai_hero_01.png'
+                    ]
+                ]
             ],
         ];
 
@@ -536,5 +552,83 @@ BLADE;
             }
         }
         return "[\n" . implode(",\n", $lines) . "\n" . $indent . "]";
+    }
+
+    private function detectAndCopyLayout(string $sourcePath, string $templateName, OutputInterface $output): void
+    {
+        $sourceDir = dirname(dirname(dirname($sourcePath)));
+        $content = file_get_contents($sourcePath);
+
+        // Try to find the layout file
+        $layoutPaths = [
+            "{$sourceDir}/bonsai/layouts/{$templateName}.blade.php",
+            "{$sourceDir}/{$templateName}/layouts/{$templateName}.blade.php",
+            "{$sourceDir}/layouts/{$templateName}.blade.php",
+        ];
+
+        $foundLayoutPath = null;
+        foreach ($layoutPaths as $layoutPath) {
+            if (file_exists($layoutPath)) {
+                $foundLayoutPath = $layoutPath;
+                break;
+            }
+        }
+
+        if ($foundLayoutPath) {
+            // Create the target directories
+            $projectLayoutDir = dirname(dirname(dirname($sourcePath))) . "/bonsai/layouts";
+            $packageLayoutDir = __DIR__ . "/../../templates/layouts";
+
+            foreach ([$projectLayoutDir, $packageLayoutDir] as $dir) {
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+            }
+
+            // Copy the layout file to both locations
+            $projectLayoutPath = "{$projectLayoutDir}/{$templateName}.blade.php";
+            $packageLayoutPath = "{$packageLayoutDir}/{$templateName}.blade.php";
+
+            copy($foundLayoutPath, $projectLayoutPath);
+            copy($foundLayoutPath, $packageLayoutPath);
+
+            $output->writeln("<info>Copied layout from: {$foundLayoutPath}</info>");
+            $output->writeln("<info>To project: {$projectLayoutPath}</info>");
+            $output->writeln("<info>To package: {$packageLayoutPath}</info>");
+
+            // Also copy any required assets
+            $this->copyLayoutAssets($foundLayoutPath, $templateName, $output);
+        } else {
+            $output->writeln("<comment>No custom layout found for {$templateName}, will use default.</comment>");
+        }
+    }
+
+    private function copyLayoutAssets(string $layoutPath, string $templateName, OutputInterface $output): void
+    {
+        $content = file_get_contents($layoutPath);
+        
+        // Extract asset paths from the layout file
+        preg_match_all("/asset\(['\"]([^'\"]+)['\"]\)/", $content, $matches);
+        $assetPaths = $matches[1] ?? [];
+
+        if (!empty($assetPaths)) {
+            // Create assets directory in the package
+            $packageAssetsDir = __DIR__ . "/../../templates/assets/{$templateName}";
+            if (!is_dir($packageAssetsDir)) {
+                mkdir($packageAssetsDir, 0755, true);
+            }
+
+            foreach ($assetPaths as $assetPath) {
+                // Try to find the asset in the project's public directory
+                $sourceAssetPath = dirname(dirname(dirname($layoutPath))) . "/public/{$assetPath}";
+                if (file_exists($sourceAssetPath)) {
+                    $targetAssetPath = "{$packageAssetsDir}/" . basename($assetPath);
+                    copy($sourceAssetPath, $targetAssetPath);
+                    $output->writeln("<info>Copied asset: {$assetPath} to package templates</info>");
+                } else {
+                    $output->writeln("<comment>Asset not found: {$assetPath}</comment>");
+                }
+            }
+        }
     }
 } 
