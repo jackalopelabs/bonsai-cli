@@ -398,8 +398,8 @@ BLADE;
     protected function copyLayoutBackgroundImages($template)
     {
         $sourceImages = [
-            __DIR__ . '/../../templates/assets/images/bonsai_hero_01.png',
-            __DIR__ . '/../../templates/assets/images/bonsai_hero_03.png'
+            __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_01.png",
+            __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_03.png"
         ];
         
         // Create public images directory if it doesn't exist
