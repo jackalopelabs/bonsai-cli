@@ -326,10 +326,31 @@ BLADE;
     {
         $template = $this->argument('template');
         $config = $this->loadConfig($this->getConfigPath($template));
-        $themeSettings = $config['theme'] ?? [
-            'body' => ['class' => 'bg-gray-100']
-        ];
+        
+        $this->info("🔍 Checking for existing layout in bonsai namespace...");
+        
+        // First check if a bonsai-namespaced layout exists
+        $bonsaiLayoutPath = resource_path("views/bonsai/layouts/{$template}.blade.php");
+        $this->info("Checking bonsai layout path: {$bonsaiLayoutPath}");
+        
+        if (file_exists($bonsaiLayoutPath)) {
+            $this->info("✓ Found existing bonsai layout, using it as source");
+            
+            // Create template-specific directory if it doesn't exist
+            $templateLayoutDir = resource_path("views/{$template}/layouts");
+            if (!$this->files->exists($templateLayoutDir)) {
+                $this->files->makeDirectory($templateLayoutDir, 0755, true);
+            }
+            
+            // Copy the bonsai layout to the template directory
+            $templateLayoutPath = "{$templateLayoutDir}/{$template}.blade.php";
+            $this->files->copy($bonsaiLayoutPath, $templateLayoutPath);
+            $this->info("✓ Copied layout to: {$templateLayoutPath}");
+            return;
+        }
 
+        $this->info("ℹ No existing bonsai layout found, generating default layout");
+        
         foreach ($layouts as $layout => $layoutConfig) {
             $layoutPath = resource_path("views/{$template}/layouts/{$layout}.blade.php");
             if (!$this->files->exists(dirname($layoutPath))) {
@@ -426,14 +447,19 @@ BLADE;
     {
         $sections = $config['sections'] ?? [];
         $sectionIncludes = array_map(function($section) use ($template) {
-            return "@include('{$template}.sections.{$section}')";
+            return "@include('bonsai.sections.{$section}')";
         }, $sections);
+
+        // Check if we should use bonsai namespace for layout
+        $layoutNamespace = file_exists(resource_path("views/bonsai/layouts/{$layout}.blade.php")) 
+            ? 'bonsai.layouts' 
+            : "{$template}.layouts";
 
         return <<<BLADE
 {{-- 
     Template Name: {{ \$config['name'] ?? ucfirst(\$template) }}
 --}}
-@extends('{$template}.layouts.{$layout}')
+@extends('{$layoutNamespace}.{$layout}')
 
 @section('content')
 {$this->indent(implode("\n", $sectionIncludes), 4)}
