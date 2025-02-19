@@ -243,9 +243,38 @@ class BonsaiServiceProvider extends ServiceProvider
     {
         $this->log('🔍 Starting template-specific component registration...');
 
+        // Log view paths
+        $viewPaths = config('view.paths', []);
+        $this->log("📂 View paths configured in Laravel:");
+        foreach ($viewPaths as $path) {
+            $this->log("  - {$path}");
+        }
+
+        // Log namespaces
+        $this->log("🏷️ Checking view namespaces:");
+        $this->log("  - 'bonsai' namespace points to: " . resource_path('views/bonsai'));
+
         try {
+            // First check if dynamic component class exists
+            $dynamicComponentClass = "App\\View\\Components\\DynamicComponent";
+            if (class_exists($dynamicComponentClass)) {
+                $this->log("✓ Found dynamic component class: {$dynamicComponentClass}");
+            } else {
+                $this->log("⚠️ No dynamic component class found at {$dynamicComponentClass}");
+            }
+
             // Register with full view path
-            Blade::component('bonsai.components.dynamic-component', 'dynamic-component');
+            $viewPath = 'bonsai.components.dynamic-component';
+            $this->log("🔍 Attempting to register dynamic component with view path: {$viewPath}");
+            
+            // Check if view exists
+            if (view()->exists($viewPath)) {
+                $this->log("✓ View exists at path: {$viewPath}");
+            } else {
+                $this->log("⚠️ View not found at path: {$viewPath}");
+            }
+
+            Blade::component($viewPath, 'dynamic-component');
             $this->log("✓ Registered global dynamic-component with full path");
             
             // Also register without namespace for backward compatibility
@@ -253,11 +282,12 @@ class BonsaiServiceProvider extends ServiceProvider
             $this->log("✓ Also registered without namespace for compatibility");
         } catch (\Exception $e) {
             $this->log("❌ Failed to register dynamic-component: " . $e->getMessage());
+            $this->log("Stack trace: " . $e->getTraceAsString());
         }
 
         // Ensure the dynamic component view exists
         $dynamicComponentPath = resource_path('views/bonsai/components/dynamic-component.blade.php');
-        $this->log("Checking for dynamic component view at: {$dynamicComponentPath}");
+        $this->log("🔍 Checking for dynamic component view at: {$dynamicComponentPath}");
         
         if (!file_exists($dynamicComponentPath)) {
             try {
@@ -271,18 +301,27 @@ class BonsaiServiceProvider extends ServiceProvider
                 
                 file_put_contents($dynamicComponentPath, $content);
                 $this->log("✓ Created dynamic component view at: {$dynamicComponentPath}");
+                
+                // Verify file was created and is readable
+                if (file_exists($dynamicComponentPath)) {
+                    $this->log("✓ File exists and has content: " . file_get_contents($dynamicComponentPath));
+                } else {
+                    $this->log("❌ Failed to verify file creation");
+                }
             } catch (\Exception $e) {
                 $this->log("❌ Failed to create dynamic component view: " . $e->getMessage());
+                $this->log("Stack trace: " . $e->getTraceAsString());
             }
         } else {
-            $this->log("✓ Dynamic component view already exists");
+            $this->log("✓ Dynamic component view exists with content: " . file_get_contents($dynamicComponentPath));
         }
 
         // Get all template directories
         $viewsPath = resource_path('views');
-        $this->log("Scanning for template directories in: {$viewsPath}/bonsai/components/*");
+        $this->log("📂 Scanning for template directories in: {$viewsPath}/bonsai/components/*");
         
         $templateDirs = glob($viewsPath . '/bonsai/components/*', GLOB_ONLYDIR);
+        $this->log("Found " . count($templateDirs) . " template directories");
         
         foreach ($templateDirs as $templateDir) {
             $templateName = basename($templateDir);
@@ -306,6 +345,13 @@ class BonsaiServiceProvider extends ServiceProvider
                     $alias = "bonsai::{$templateName}.{$componentName}";
                     $path = "bonsai.components.{$templateName}.{$componentName}";
                     
+                    // Check if view exists
+                    if (view()->exists($path)) {
+                        $this->log("✓ View exists for component: {$path}");
+                    } else {
+                        $this->log("⚠️ View not found for component: {$path}");
+                    }
+                    
                     Blade::component($path, $alias);
                     $this->log("✓ Registered template component: {$componentName} as <x-{$alias}>");
                     
@@ -314,6 +360,7 @@ class BonsaiServiceProvider extends ServiceProvider
                     $this->log("✓ Also registered as <x-{$templateName}.{$componentName}> for compatibility");
                 } catch (\Exception $e) {
                     $this->log("❌ Failed to register component {$componentName}: " . $e->getMessage());
+                    $this->log("Stack trace: " . $e->getTraceAsString());
                 }
             }
         }
