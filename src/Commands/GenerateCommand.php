@@ -402,16 +402,16 @@ BLADE;
             __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_03.png"
         ];
         
-        // Create public images directory if it doesn't exist
-        $publicImagesDir = public_path('images');
-        if (!$this->files->exists($publicImagesDir)) {
-            $this->files->makeDirectory($publicImagesDir, 0755, true);
+        // Create resources/images directory if it doesn't exist
+        $imagesDir = resource_path('images');
+        if (!$this->files->exists($imagesDir)) {
+            $this->files->makeDirectory($imagesDir, 0755, true);
         }
         
         foreach ($sourceImages as $sourcePath) {
             if (file_exists($sourcePath)) {
                 $filename = basename($sourcePath);
-                $targetPath = "{$publicImagesDir}/{$filename}";
+                $targetPath = "{$imagesDir}/{$filename}";
                 
                 // Copy the image
                 $this->files->copy($sourcePath, $targetPath);
@@ -710,14 +710,14 @@ BLADE;
     protected function copyTemplateAssets($template)
     {
         $sourceDir = $this->getPackageRoot() . "/templates/assets/{$template}";
-        $targetDir = public_path('images');
+        $targetDir = resource_path('images');
 
         if (!$this->files->isDirectory($sourceDir)) {
             $this->warn("! No assets found for template: {$template}");
             return;
         }
 
-        // Create images directory if it doesn't exist
+        // Create resources/images directory if it doesn't exist
         if (!$this->files->isDirectory($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
         }
