@@ -62,13 +62,13 @@ layout:
     - features_widget
     - pricing
   settings:
-    body:
-      class: 'transition-colors duration-200 p-0 m-0 bg-transparent'
     html:
-      class: 'dark relative h-screen'
-      x-data: "{ darkMode: localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true' }"
-      x-init: "('darkMode', val => localStorage.setItem('darkMode', val))"
-      'x-bind:class': "{ 'dark': darkMode }"
-    background:
-      light: images/bonsai_hero_03.png
-      dark: images/bonsai_hero_01.png
+      attributes: { language_attributes: true, class: no-js, x-data: "{ darkMode: localStorage.getItem('darkMode') === 'true' }", x-init: "darkMode = localStorage.getItem('darkMode') === 'true'; ('darkMode', value => localStorage.setItem('darkMode', value))", 'x-bind:class': "{ 'dark': darkMode }" }
+    head:
+      meta: {  }
+      includes: {  }
+    body:
+      attributes: { class: 'font-sans antialiased bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-midnight-950 dark:to-midnight-900 min-h-screen transition-colors duration-300' }
+      background: { light: { image: images/bonsai_hero_03.png, classes: 'absolute inset-0 w-full h-full object-cover opacity-50 dark:hidden' }, dark: { image: images/bonsai_hero_01.png, classes: 'absolute inset-0 w-full h-full object-cover opacity-50 hidden dark:block' } }
+      structure: { app: { class: 'relative z-10', skip_link: { text: 'Skip to content', target: '#main' }, header: { include: bonsai.sections.site_header }, main: { id: main, class: 'max-w-5xl mx-auto', content_wrapper: { class: '{{ $containerInnerClasses }}' } }, footer: { include: bonsai.components.footer } } }
+      includes: {  }
