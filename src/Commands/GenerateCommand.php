@@ -346,6 +346,9 @@ BLADE;
             $templateLayoutPath = "{$templateLayoutDir}/{$template}.blade.php";
             $this->files->copy($bonsaiLayoutPath, $templateLayoutPath);
             $this->info("✓ Copied layout to: {$templateLayoutPath}");
+            
+            // Generate the site header section if it doesn't exist
+            $this->generateSiteHeader($template);
             return;
         }
 
@@ -389,6 +392,96 @@ BLADE;
 BLADE;
 
             $this->files->put($layoutPath, $layoutContent);
+            
+            // Generate the site header section if it doesn't exist
+            $this->generateSiteHeader($template);
+        }
+    }
+
+    protected function generateSiteHeader($template)
+    {
+        $headerPath = resource_path("views/{$template}/sections/site_header.blade.php");
+        
+        if (!$this->files->exists(dirname($headerPath))) {
+            $this->files->makeDirectory(dirname($headerPath), 0755, true);
+        }
+        
+        if (!$this->files->exists($headerPath)) {
+            $headerContent = <<<BLADE
+@props([
+    'class' => ''
+])
+
+@php
+\$site_headerData = [
+    'logo' => [
+        'src' => get_theme_file_uri('resources/images/logo.svg'),
+        'alt' => get_bloginfo('name'),
+        'width' => 120,
+        'height' => 40
+    ],
+    'navigation' => [
+        ['label' => 'Features', 'url' => '#features'],
+        ['label' => 'Pricing', 'url' => '#pricing'],
+        ['label' => 'Documentation', 'url' => '#docs'],
+    ],
+    'cta' => [
+        'label' => 'Get Started',
+        'url' => '#get-started',
+        'class' => 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white px-4 py-2 rounded-full'
+    ]
+];
+@endphp
+
+<header class="fixed top-0 left-0 right-0 z-50 bg-white bg-opacity-50 backdrop-blur-lg shadow-sm dark:bg-gray-900 dark:bg-opacity-50">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-16">
+            <a href="{{ home_url('/') }}" class="flex items-center">
+                @if(\$site_headerData['logo']['src'])
+                    <img src="{{ \$site_headerData['logo']['src'] }}" 
+                         alt="{{ \$site_headerData['logo']['alt'] }}"
+                         width="{{ \$site_headerData['logo']['width'] }}"
+                         height="{{ \$site_headerData['logo']['height'] }}"
+                         class="h-8 w-auto">
+                @else
+                    <span class="text-xl font-bold">{{ get_bloginfo('name') }}</span>
+                @endif
+            </a>
+            
+            <nav class="hidden md:flex space-x-8">
+                @foreach(\$site_headerData['navigation'] as \$item)
+                    <a href="{{ \$item['url'] }}" 
+                       class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+                        {{ \$item['label'] }}
+                    </a>
+                @endforeach
+            </nav>
+            
+            @if(isset(\$site_headerData['cta']))
+                <a href="{{ \$site_headerData['cta']['url'] }}" 
+                   class="{{ \$site_headerData['cta']['class'] }}">
+                    {{ \$site_headerData['cta']['label'] }}
+                </a>
+            @endif
+            
+            <button x-data
+                    @click="darkMode = !darkMode"
+                    class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <span class="sr-only">Toggle dark mode</span>
+                <svg class="w-6 h-6 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <svg class="w-6 h-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</header>
+BLADE;
+            
+            $this->files->put($headerPath, $headerContent);
+            $this->info("✓ Generated site header at: {$headerPath}");
         }
     }
 
@@ -447,7 +540,7 @@ BLADE;
     {
         $sections = $config['sections'] ?? [];
         $sectionIncludes = array_map(function($section) use ($template) {
-            return "@include('bonsai.sections.{$section}')";
+            return "@include('{$template}.sections.{$section}')";
         }, $sections);
 
         // Check if we should use bonsai namespace for layout
