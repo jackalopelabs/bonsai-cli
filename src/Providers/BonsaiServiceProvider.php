@@ -243,7 +243,6 @@ class BonsaiServiceProvider extends ServiceProvider
     {
         $this->log('🔍 Starting template-specific component registration...');
 
-        // Register dynamic-component for all templates
         try {
             // Register with full view path
             Blade::component('bonsai.components.dynamic-component', 'dynamic-component');
