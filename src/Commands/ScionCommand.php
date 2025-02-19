@@ -244,19 +244,21 @@ class ScionCommand extends Command
             }
         }
 
-        // Helper function to clean component names
+        // Helper function to clean component names while preserving template namespace
         $cleanComponentName = function($component) use ($templateName) {
-            // First remove any existing template prefixes and bonsai prefixes
-            $baseComponent = preg_replace("/^{$templateName}\.+|^bonsai::\.+|^bonsai\.+/", '', $component);
-            // Remove any remaining dots
-            $baseComponent = preg_replace("/\.+/", '', $baseComponent);
-            // Remove any remaining template prefix if it exists
-            $baseComponent = preg_replace("/^{$templateName}/", '', $baseComponent);
-            // Clean up any remaining whitespace
-            $baseComponent = trim($baseComponent);
+            // Handle x-bonsai:: components with template namespace (e.g., x-bonsai::cypress.hero)
+            if (preg_match('/^bonsai::([\w-]+)\.([\w-]+)$/', $component, $matches)) {
+                return $matches[1] . '.' . $matches[2]; // Return as "cypress.hero"
+            }
             
-            // Return clean component name with single dot
-            return rtrim($templateName . '.' . $baseComponent, '.');
+            // Handle direct template components (e.g., x-cypress.hero)
+            if (preg_match('/^' . preg_quote($templateName, '/') . '\.([\w-]+)$/', $component, $matches)) {
+                return $templateName . '.' . $matches[1];
+            }
+            
+            // For other components, ensure template namespace
+            $baseComponent = trim(preg_replace("/^(bonsai::|bonsai\.|{$templateName}\.)/", '', $component));
+            return $templateName . '.' . $baseComponent;
         };
 
         // Look for x-bonsai:: components first (highest priority)
@@ -419,11 +421,16 @@ class ScionCommand extends Command
         
         // First try to find the component in various possible locations
         $sourcePaths = [
-            // Try the package's templates directory first
-            __DIR__ . '/../../templates/components/' . $baseComponentName . '.blade.php',
-            // Try the source project's components directory (if available)
-            dirname(dirname(dirname(__DIR__))) . '/resources/views/bonsai/components/' . $baseComponentName . '.blade.php',
-            dirname(dirname(dirname(__DIR__))) . '/resources/views/components/' . $baseComponentName . '.blade.php',
+            // Try template-specific components first
+            dirname(dirname(dirname(__DIR__))) . "/resources/views/{$templateName}/components/{$baseComponentName}.blade.php",
+            dirname(dirname(dirname(__DIR__))) . "/resources/views/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
+            // Then try the package's templates directory
+            __DIR__ . "/../../templates/components/{$templateName}/{$baseComponentName}.blade.php",
+            __DIR__ . "/../../templates/{$templateName}/components/{$baseComponentName}.blade.php",
+            // Finally try the default component locations
+            __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php",
+            dirname(dirname(dirname(__DIR__))) . "/resources/views/bonsai/components/{$baseComponentName}.blade.php",
+            dirname(dirname(dirname(__DIR__))) . "/resources/views/components/{$baseComponentName}.blade.php",
         ];
 
         $sourceFile = null;
@@ -440,10 +447,11 @@ class ScionCommand extends Command
             return;
         }
 
-        // Create target directory if needed
+        // Create template-specific target directory if needed
+        // Note: We're now using just targetDir since it already includes the template name
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
-            $output->writeln("<info>Created directory: {$targetDir}</info>");
+            $output->writeln("<info>Created template directory: {$targetDir}</info>");
         }
 
         $targetFile = $targetDir . '/' . $baseComponentName . '.blade.php';
