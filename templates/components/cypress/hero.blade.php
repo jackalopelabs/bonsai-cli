@@ -26,7 +26,7 @@
             <div class="bg-white bg-opacity-50 px-3 py-1 text-sm inline-block">
                 {{ $product }} 
                 @if($dropdownIcon)
-                    <x-bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.dynamic-component :component="$iconMappings['dropdownIcon']" class="w-4 h-4 ml-2 inline-block align-middle" />
+                    <x-dynamic-component :component="$iconMappings['dropdownIcon']" class="w-4 h-4 ml-2 inline-block align-middle" />
                 @endif
             </div>
         @endif
@@ -54,7 +54,7 @@
                 <a href="{{ $buttonLink }}" class="bg-gradient-to-r from-teal-500 to-indigo-500 text-white text-xl py-2 px-5 rounded-full inline-flex items-center justify-center shadow-lg">
                     {{ $buttonText }}
                     @if($buttonLinkIcon)
-                        <x-bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.dynamic-component :component="$iconMappings['buttonLinkIcon']" class="text-white w-6 h-6 ml-2 inline-block align-middle" />
+                        <x-dynamic-component :component="$iconMappings['buttonLinkIcon']" class="text-white w-6 h-6 ml-2 inline-block align-middle" />
                     @endif
                 </a>
             @endif
@@ -63,7 +63,7 @@
                 <a href="{{ $secondaryLink }}" target="_blank" class="text-sm bg-transparent px-4 py-1 backdrop-blur-md shadow-lg rounded-lg inline-flex items-center justify-center dark:border border-0 dark:border-gray-100 text-gray-900 dark:text-white group">
                     {{ $secondaryText }}
                     @if($secondaryIcon)
-                        <x-bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::cypress.bonsai::icons.github class="w-4 h-4 ml-2 inline-block align-middle fill-gray-900 dark:fill-white" />
+                        <x-bonsai::cypress.icons.github class="w-4 h-4 ml-2 inline-block align-middle fill-gray-900 dark:fill-white" />
                     @endif
                 </a>
             @endif
