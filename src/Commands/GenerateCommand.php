@@ -278,65 +278,12 @@ BLADE;
 
         $template .= implode("\n", $dataLines) . "\n];\n@endphp\n\n";
 
-        // If component is pricing-box, output the multi-box snippet
-        if ($componentType === 'pricing-box') {
-            $template .= <<<BLADE
-<section class="py-24" id="plans">
-    <div class="py-12">
-        <div class="mx-auto px-4 text-center">
-            <div class="inline-flex items-center gap-2 rounded-md bg-white text-sm px-3 py-1 text-center mb-4">
-                <x-heroicon-s-calendar-days class="h-6 w-6" />
-                <span class="text-gray-400">@{{ isset(\${$dataVarName}['subtitle']) ? \${$dataVarName}['subtitle'] : 'Limited-time pricing available now' }}</span>
-            </div>
-            <h2 class="text-5xl font-bold text-gray-900 mb-4 pt-4">@{{ isset(\${$dataVarName}['title']) ? \${$dataVarName}['title'] : 'Choose Your Plan' }}</h2>
-            <p class="text-gray-500 mb-8">@{{ isset(\${$dataVarName}['description']) ? \${$dataVarName}['description'] : 'Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel.' }}</p>
-        </div>
-    </div>
-
-    @php
-    \$boxes = isset(\${$dataVarName}['pricingBoxes']) ? \${$dataVarName}['pricingBoxes'] : [];
-    @endphp
-
-    <div class="mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col md:flex-row justify-center items-start space-y-8 md:space-y-0 md:space-x-8">
-            @foreach (\$boxes as \$box)
-                <x-bonsai::pricing-box 
-                    :icon="\$box['icon']"
-                    :iconColor="\$box['iconColor']"
-                    :planType="\$box['planType']"
-                    :price="\$box['price']"
-                    :features="\$box['features']"
-                    :ctaLink="\$box['ctaLink']"
-                    :ctaText="\$box['ctaText']"
-                    :ctaColor="\$box['ctaColor']"
-                    :iconBtn="\$box['iconBtn']"
-                    :iconBtnColor="\$box['iconBtnColor']"
-                />
-            @endforeach
-        </div>
-    </div>
-</section>
-BLADE;
-        } else {
-            // Parse component type to check for template prefix (e.g., cypress.hero)
-            $parts = explode('.', $componentType);
-            if (count($parts) > 1) {
-                // Template-specific component (e.g., cypress.hero -> <x-cypress::hero>)
-                $componentName = end($parts);
-                $template .= <<<BLADE
+        // Always use template namespace for components
+        $template .= <<<BLADE
 <div class="{{ \$class }}">
-    <x-{$template}::{$componentName} :data="\${$dataVarName}" />
+    <x-bonsai::{$template}.{$componentType} :data="\${$dataVarName}" />
 </div>
 BLADE;
-            } else {
-                // Core bonsai component
-                $template .= <<<BLADE
-<div class="{{ \$class }}">
-    <x-bonsai::{$componentType} :data="\${$dataVarName}" />
-</div>
-BLADE;
-            }
-        }
 
         return $template;
     }
