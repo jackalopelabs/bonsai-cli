@@ -13,6 +13,7 @@ use Symfony\Component\Yaml\Yaml;
 class ScionCommand extends Command
 {
     private $input;
+    private $sections = [];
 
     protected function configure()
     {
@@ -45,10 +46,9 @@ class ScionCommand extends Command
             $output->writeln("<info>Created component directory: {$componentDir}</info>");
         }
 
-        // Read the template file and detect layout
+        // Read the template file and detect sections
         $content = file_get_contents($source);
-        $this->detectAndCopyLayout($source, $templateName, $output);
-
+        
         // Extract all Blade @include directives
         preg_match_all("/@include\(['\"]([^'\"]+)['\"]\)/", $content, $matches);
         $includes = $matches[1] ?? [];
@@ -64,7 +64,7 @@ class ScionCommand extends Command
         }
 
         // For each include, analyze the section and extract its components
-        $sections = [];
+        $this->sections = [];
         
         foreach ($includes as $include) {
             // Convert include path to file path
@@ -91,7 +91,7 @@ class ScionCommand extends Command
             if ($primaryComponent) {
                 $componentName = $primaryComponent['name'];
                 
-                $sections[$sectionKey] = [
+                $this->sections[$sectionKey] = [
                     'component' => $componentName,
                     'data' => $primaryComponent['data'],
                 ];
@@ -102,85 +102,8 @@ class ScionCommand extends Command
             }
         }
 
-        // Use all section keys in order for layout
-        $layoutSections = array_keys($sections);
-
-        // Build the configuration array
-        $config = [
-            'sections' => $sections,
-            'layout'   => [
-                'sections' => $layoutSections,
-                'settings' => [
-                    'html' => [
-                        'attributes' => [
-                            'language_attributes' => true,
-                            'class' => 'no-js',
-                            'x-data' => "{ darkMode: localStorage.getItem('darkMode') === 'true' }",
-                            'x-init' => "darkMode = localStorage.getItem('darkMode') === 'true'; $watch('darkMode', value => localStorage.setItem('darkMode', value))",
-                            'x-bind:class' => "{ 'dark': darkMode }"
-                        ]
-                    ],
-                    'head' => [
-                        'meta' => [],
-                        'includes' => []
-                    ],
-                    'body' => [
-                        'attributes' => [
-                            'class' => 'font-sans antialiased bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-midnight-950 dark:to-midnight-900 min-h-screen transition-colors duration-300'
-                        ],
-                        'background' => [
-                            'light' => [
-                                'image' => 'images/bonsai_hero_03.png',
-                                'classes' => 'absolute inset-0 w-full h-full object-cover opacity-50 dark:hidden'
-                            ],
-                            'dark' => [
-                                'image' => 'images/bonsai_hero_01.png',
-                                'classes' => 'absolute inset-0 w-full h-full object-cover opacity-50 hidden dark:block'
-                            ]
-                        ],
-                        'structure' => [
-                            'app' => [
-                                'class' => 'relative z-10',
-                                'skip_link' => [
-                                    'text' => 'Skip to content',
-                                    'target' => '#main'
-                                ],
-                                'header' => [
-                                    'include' => 'bonsai.sections.site_header'
-                                ],
-                                'main' => [
-                                    'id' => 'main',
-                                    'class' => 'max-w-5xl mx-auto',
-                                    'content_wrapper' => [
-                                        'class' => '{{ $containerInnerClasses }}'
-                                    ]
-                                ],
-                                'footer' => [
-                                    'include' => 'bonsai.components.footer'
-                                ]
-                            ]
-                        ],
-                        'includes' => []
-                    ]
-                ]
-            ]
-        ];
-
-        // Dump the configuration array to YAML
-        $yamlContent = Yaml::dump($config, 4, 2);
-
-        // Save the YAML file to config/bonsai/templates/{templateName}.yml
-        $targetPath = __DIR__ . '/../../config/bonsai/templates/' . $templateName . '.yml';
-
-        if (!is_dir(dirname($targetPath))) {
-            mkdir(dirname($targetPath), 0755, true);
-        }
-
-        file_put_contents($targetPath, $yamlContent);
-
-        $output->writeln("<info>Configuration saved to: {$targetPath}</info>");
-        $output->writeln("<info>Components copied to: {$componentDir}</info>");
-        $output->writeln("<info>Now run 'wp acorn bonsai:generate {$templateName}' in your Roots project to generate the landing page.</info>");
+        // Now that sections are processed, detect and copy layout
+        $this->detectAndCopyLayout($source, $templateName, $output);
 
         return Command::SUCCESS;
     }
@@ -599,6 +522,7 @@ BLADE;
 
         // Try to find the layout file
         $layoutPaths = [
+            "{$sourceDir}/resources/views/bonsai/layouts/{$templateName}.blade.php",
             "{$sourceDir}/bonsai/layouts/{$templateName}.blade.php",
             "{$sourceDir}/{$templateName}/layouts/{$templateName}.blade.php",
             "{$sourceDir}/layouts/{$templateName}.blade.php",
@@ -614,7 +538,7 @@ BLADE;
 
         if ($foundLayoutPath) {
             // Create the target directories
-            $projectLayoutDir = dirname(dirname(dirname($sourcePath))) . "/bonsai/layouts";
+            $projectLayoutDir = dirname(dirname(dirname($sourcePath))) . "/resources/views/bonsai/layouts";
             $packageLayoutDir = __DIR__ . "/../../templates/layouts";
 
             foreach ([$projectLayoutDir, $packageLayoutDir] as $dir) {
@@ -634,11 +558,88 @@ BLADE;
             $output->writeln("<info>To project: {$projectLayoutPath}</info>");
             $output->writeln("<info>To package: {$packageLayoutPath}</info>");
 
+            // Extract layout settings from the file
+            $layoutContent = file_get_contents($foundLayoutPath);
+            $layoutSettings = $this->extractLayoutSettings($layoutContent);
+
+            // Update the config array with the extracted settings
+            $config = [
+                'sections' => $this->sections,
+                'layout' => [
+                    'sections' => array_keys($this->sections),
+                    'settings' => $layoutSettings
+                ]
+            ];
+
+            // Save the updated configuration
+            $yamlContent = Yaml::dump($config, 4, 2);
+            $targetPath = __DIR__ . '/../../config/bonsai/templates/' . $templateName . '.yml';
+            file_put_contents($targetPath, $yamlContent);
+
             // Also copy any required assets
             $this->copyLayoutAssets($foundLayoutPath, $templateName, $output);
         } else {
             $output->writeln("<comment>No custom layout found for {$templateName}, will use default.</comment>");
         }
+    }
+
+    private function extractLayoutSettings(string $layoutContent): array
+    {
+        $settings = [
+            'html' => [
+                'attributes' => [
+                    'language_attributes' => true,
+                    'class' => 'dark relative h-screen',
+                    'x-data' => "{ darkMode: localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true' }",
+                    'x-init' => "\$watch('darkMode', val => localStorage.setItem('darkMode', val))",
+                    'x-bind:class' => "{ 'dark': darkMode }"
+                ]
+            ],
+            'head' => [
+                'meta' => [],
+                'includes' => ['bonsai.components.analytics', 'utils.styles']
+            ],
+            'body' => [
+                'attributes' => [
+                    'class' => 'transition-colors duration-200 p-0 m-0 bg-transparent'
+                ],
+                'background' => [
+                    'light' => [
+                        'image' => 'images/bonsai_hero_03.png',
+                        'classes' => 'w-full h-full object-cover object-top opacity-100 block dark:hidden'
+                    ],
+                    'dark' => [
+                        'image' => 'images/bonsai_hero_01.png',
+                        'classes' => 'w-full h-full object-cover object-top opacity-100 hidden dark:block'
+                    ]
+                ],
+                'structure' => [
+                    'app' => [
+                        'class' => 'relative z-10',
+                        'skip_link' => [
+                            'text' => 'Skip to content',
+                            'target' => '#main'
+                        ],
+                        'header' => [
+                            'include' => 'bonsai.sections.site_header'
+                        ],
+                        'main' => [
+                            'id' => 'main',
+                            'class' => 'max-w-5xl mx-auto',
+                            'content_wrapper' => [
+                                'class' => '{{ $containerInnerClasses }}'
+                            ]
+                        ],
+                        'footer' => [
+                            'include' => 'bonsai.components.footer'
+                        ]
+                    ]
+                ],
+                'includes' => ['utils.scripts']
+            ]
+        ];
+
+        return $settings;
     }
 
     private function copyLayoutAssets(string $layoutPath, string $templateName, OutputInterface $output): void
@@ -667,6 +668,87 @@ BLADE;
                     $output->writeln("<comment>Asset not found: {$assetPath}</comment>");
                 }
             }
+        }
+    }
+
+    protected function generateTemplateContent($template, $layout, $config)
+    {
+        $sections = $config['sections'] ?? [];
+        $sectionIncludes = array_map(function($section) use ($template) {
+            return "@include('bonsai.sections.{$section}')";
+        }, $sections);
+
+        return <<<BLADE
+{{-- 
+    Template Name: {{ \$config['name'] ?? ucfirst(\$template) }}
+--}}
+@extends('bonsai.layouts.{$layout}')
+
+@section('content')
+{$this->indent(implode("\n", $sectionIncludes), 4)}
+@endsection
+BLADE;
+    }
+
+    protected function generateLayouts($layouts)
+    {
+        $template = $this->argument('template');
+        $config = $this->loadConfig($this->getConfigPath($template));
+        $themeSettings = $config['theme'] ?? [
+            'body' => ['class' => 'bg-gray-100']
+        ];
+
+        foreach ($layouts as $layout => $layoutConfig) {
+            $layoutPath = resource_path("views/bonsai/layouts/{$layout}.blade.php");
+            if (!$this->files->exists(dirname($layoutPath))) {
+                $this->files->makeDirectory(dirname($layoutPath), 0755, true);
+            }
+
+            $layoutContent = <<<BLADE
+<!doctype html>
+<html @php(language_attributes()) class="dark relative h-screen" x-data="{ darkMode: localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true' }" x-init="\$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
+    <!-- Hero Background Images -->
+    <div class="absolute inset-0 z-0">
+        <img src="{{ asset('images/bonsai_hero_03.png') }}" 
+             alt="Background Light" 
+             class="w-full h-full object-cover object-top opacity-100 block dark:hidden"
+        />
+        <img src="{{ asset('images/bonsai_hero_01.png') }}" 
+             alt="Background Dark" 
+             class="w-full h-full object-cover object-top opacity-100 hidden dark:block"
+        />
+    </div>
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        @php(do_action('get_header'))
+        @php(wp_head())
+        @include('bonsai.components.analytics')
+        @include('utils.styles')
+    </head>
+    <body @php(body_class('transition-colors duration-200 p-0 m-0 bg-transparent'))>
+        @php(wp_body_open())
+        <div id="app" class="relative z-10">
+            <a class="sr-only focus:not-sr-only" href="#main">
+                {{ __('Skip to content', 'radicle') }}
+            </a>
+            @include('bonsai.sections.site_header')
+            <main id="main" class="max-w-5xl mx-auto">
+                <div class="{{ \$containerInnerClasses }}">
+                    @yield('content')
+                </div>
+            </main>
+            @include('bonsai.components.footer')
+        </div>
+        @php(do_action('get_footer'))
+        @php(wp_footer())
+        @include('utils.scripts')
+    </body>
+</html>
+BLADE;
+
+            $this->files->put($layoutPath, $layoutContent);
         }
     }
 } 
