@@ -116,15 +116,18 @@ class GenerateCommand extends Command
     {
         $template = $this->argument('template');
         $possiblePaths = [
+            // Primary: Template-specific components in bonsai namespace
+            base_path("resources/views/bonsai/components/{$template}/{$componentName}.blade.php"),
+            __DIR__ . "/../../templates/components/{$template}/{$componentName}.blade.php",
+            // Secondary: Legacy template paths
             base_path("templates/{$template}/components/{$componentName}.blade.php"),
-            __DIR__ . "/../../templates/{$template}/components/{$componentName}.blade.php",
             base_path("resources/views/{$template}/components/{$componentName}.blade.php")
         ];
 
         foreach ($possiblePaths as $path) {
             if (file_exists($path)) {
-                // Create template-specific component directory
-                $targetDir = resource_path("views/{$template}/components");
+                // Create bonsai template-specific component directory
+                $targetDir = resource_path("views/bonsai/components/{$template}");
                 if (!$this->files->exists($targetDir)) {
                     $this->files->makeDirectory($targetDir, 0755, true);
                 }
@@ -132,8 +135,8 @@ class GenerateCommand extends Command
                 $targetPath = "{$targetDir}/{$componentName}.blade.php";
                 $this->files->copy($path, $targetPath);
                 
-                // Register the component with the template namespace
-                $this->registerTemplateComponent($template, $componentName);
+                // Register the component with the bonsai namespace
+                $this->registerBonsaiTemplateComponent($template, $componentName);
                 return true;
             }
         }
@@ -141,16 +144,16 @@ class GenerateCommand extends Command
         return false;
     }
 
-    protected function registerTemplateComponent($template, $componentName)
+    protected function registerBonsaiTemplateComponent($template, $componentName)
     {
-        // This ensures the component is registered with the template namespace
+        // This ensures the component is registered with the bonsai:: namespace
         $providerPath = app_path('Providers/ViewServiceProvider.php');
         if (!file_exists($providerPath)) {
             return;
         }
 
         $content = file_get_contents($providerPath);
-        $componentLine = "Blade::component('{$template}.components.{$componentName}', '{$template}::{$componentName}');";
+        $componentLine = "Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$template}.{$componentName}');";
         
         if (strpos($content, $componentLine) === false) {
             // Find the boot method

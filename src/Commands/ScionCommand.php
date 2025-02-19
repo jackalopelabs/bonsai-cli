@@ -438,14 +438,16 @@ class ScionCommand extends Command
         $output->writeln("<info>Source file path: {$sourcePath}</info>");
         $output->writeln("<info>Source project root: {$sourceProjectRoot}</info>");
         
-        // First check for component in source project's bonsai components directory
+        // Prioritize bonsai namespace paths
         $sourcePaths = [
+            // Primary: Template-specific components in bonsai namespace
             "{$sourceProjectRoot}/views/bonsai/components/{$templateName}/{$baseComponentName}.blade.php",
+            // Secondary: Shared components in bonsai namespace
             "{$sourceProjectRoot}/views/bonsai/components/{$baseComponentName}.blade.php",
-            // Then check other possible locations
+            // Fallback paths
             "{$sourceProjectRoot}/views/{$templateName}/components/{$baseComponentName}.blade.php",
             "{$sourceProjectRoot}/views/components/{$templateName}/{$baseComponentName}.blade.php",
-            // Finally check the default templates
+            // Last resort: default templates
             __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php",
         ];
 
@@ -473,7 +475,7 @@ class ScionCommand extends Command
             return;
         }
 
-        // Create template-specific target directory if needed
+        // Create bonsai namespace target directory
         $targetDir = __DIR__ . '/../../templates/components/cypress';
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
