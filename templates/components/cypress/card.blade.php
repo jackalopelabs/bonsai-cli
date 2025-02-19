@@ -50,11 +50,11 @@
         <div class="{{ $cardContainerClasses }}">
             <!-- Image or Icon Column -->
             <div class="{{ $imageColumnClasses }}">
-                @if ($image)
+                {{-- @if ($image)
                     <x-dynamic-component :component="$image" class="w-full" />
                 @else
                     <x-bonsai::cypress.icons.flowchart class="w-full" />
-                @endif
+                @endif --}}
             </div>
 
             <!-- Features Column -->
