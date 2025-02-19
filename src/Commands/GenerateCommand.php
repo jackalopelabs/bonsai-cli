@@ -33,6 +33,9 @@ class GenerateCommand extends Command
         $config = $this->loadConfig($configPath);
         $hasHeroicons = $this->checkHeroiconsSetup();
 
+        // Copy template assets first
+        $this->copyTemplateAssets($template);
+
         $this->generateComponents($config['components'] ?? [], $hasHeroicons);
         $this->generateSections($config['sections'] ?? []);
         $this->generateLayouts($config['layouts'] ?? []);
@@ -702,5 +705,38 @@ BLADE;
             return str_repeat(' ', $spaces) . $line;
         }, $lines);
         return implode("\n", $indented);
+    }
+
+    protected function copyTemplateAssets($template)
+    {
+        $sourceDir = $this->getPackageRoot() . "/templates/assets/{$template}";
+        $targetDir = public_path('images');
+
+        if (!$this->files->isDirectory($sourceDir)) {
+            $this->warn("! No assets found for template: {$template}");
+            return;
+        }
+
+        // Create images directory if it doesn't exist
+        if (!$this->files->isDirectory($targetDir)) {
+            $this->files->makeDirectory($targetDir, 0755, true);
+        }
+
+        // Copy all files from the template assets directory
+        foreach ($this->files->files($sourceDir) as $file) {
+            $filename = $file->getFilename();
+            $targetPath = $targetDir . '/' . $filename;
+            
+            if ($this->files->copy($file->getPathname(), $targetPath)) {
+                $this->info("✓ Copied asset: {$filename}");
+            } else {
+                $this->warn("! Failed to copy asset: {$filename}");
+            }
+        }
+    }
+
+    protected function getPackageRoot()
+    {
+        return dirname(dirname(__DIR__));
     }
 }
