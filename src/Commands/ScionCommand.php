@@ -577,8 +577,8 @@ class ScionCommand extends Command
 
         // Update @include directives for components
         $content = preg_replace(
-            "/@include\(['\"]bonsai\.components\.([^'\"]+)['\"](?:\s*,\s*\[(.*?)\])?\)/",
-            "@include('bonsai.components.{$templateName}.$1'$2)",
+            "/@include\(['\"]bonsai\.components\.([^'\"]+)['\"](?:\s*,\s*(\[.*?\]))?\)/",
+            "@include('bonsai.components.{$templateName}.$1', $2)",
             $content
         );
 

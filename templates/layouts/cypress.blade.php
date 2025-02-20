@@ -1,5 +1,5 @@
 <!doctype html>
-<html @php(language_attributes()) class="dark relative h-screen" x-data="{ darkMode: localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true' }" x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
+<html @php(language_attributes()) class="dark relative h-screen" x-data="{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }" x-init="$watch("darkMode", val => localStorage.setItem("darkMode", val))" :class="{ "dark": darkMode }">
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
         <img src="{{ asset('images/bonsai_hero_03.png') }}" 
@@ -20,19 +20,23 @@
         @include('bonsai.components.analytics')
         @include('utils.styles')
     </head>
+
     <body @php(body_class('transition-colors duration-200 p-0 m-0 bg-transparent'))>
         @php(wp_body_open())
         <div id="app" class="relative z-10">
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
-            @include('bonsai.cypress.sections.site_header')
+
+            @includeIf('bonsai.sections.site_header')
+
             <main id="main" class="max-w-5xl mx-auto">
-                <div class="{{ $containerInnerClasses }}">
+                <div class="{{ $containerInnerClasses ?? 'px-6' }}">
                     @yield('content')
                 </div>
             </main>
-            @include('bonsai.components.footer')
+
+            @includeIf('bonsai.sections.footer')
         </div>
 
         @php(do_action('get_footer'))
