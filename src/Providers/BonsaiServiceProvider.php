@@ -213,28 +213,11 @@ class BonsaiServiceProvider extends ServiceProvider
         ];
 
         foreach ($coreComponents as $componentName) {
-            // Register in bonsai namespace only
-            Blade::component("bonsai.components.{$componentName}", "bonsai::{$componentName}");
-            $this->log("Registered component: {$componentName} as <x-bonsai::{$componentName}>");
-        }
-
-        // Register nested components in bonsai (e.g., icons)
-        $componentsPath = resource_path('views/bonsai/components');
-        if (is_dir($componentsPath)) {
-            $nestedDirs = glob($componentsPath . '/*', GLOB_ONLYDIR);
-            foreach ($nestedDirs as $dir) {
-                $dirName = basename($dir);
-                // Skip template-specific directories
-                if ($dirName === 'cypress' || $dirName === 'jackalope') {
-                    continue;
-                }
-                $nestedFiles = glob($dir . '/*.blade.php');
-                foreach ($nestedFiles as $nestedFile) {
-                    $nestedComponentName = basename($nestedFile, '.blade.php');
-                    $fullName = "{$dirName}.{$nestedComponentName}";
-                    Blade::component("bonsai.components.{$fullName}", "bonsai::{$fullName}");
-                    $this->log("Registered nested component: {$fullName} as <x-bonsai::{$fullName}>");
-                }
+            // Register in bonsai namespace only if component exists
+            $componentPath = resource_path("views/bonsai/components/{$componentName}.blade.php");
+            if (file_exists($componentPath)) {
+                Blade::component("bonsai.components.{$componentName}", "bonsai::{$componentName}");
+                $this->log("✓ Registered core component: {$componentName} as <x-bonsai::{$componentName}>");
             }
         }
     }
@@ -269,15 +252,16 @@ class BonsaiServiceProvider extends ServiceProvider
                 $componentName = basename($file, '.blade.php');
                 try {
                     // Register with template namespace
-                    $alias = "bonsai::{$templateName}.{$componentName}";
+                    $templateAlias = "bonsai::{$templateName}.{$componentName}";
                     $path = "bonsai.components.{$templateName}.{$componentName}";
                     
-                    Blade::component($path, $alias);
-                    $this->log("✓ Registered template component: {$componentName} as <x-{$alias}>");
+                    Blade::component($path, $templateAlias);
+                    $this->log("✓ Registered template component: {$componentName} as <x-{$templateAlias}>");
                     
-                    // Also register without namespace for backward compatibility
-                    Blade::component($path, "{$templateName}.{$componentName}");
-                    $this->log("✓ Also registered as <x-{$templateName}.{$componentName}> for compatibility");
+                    // Also register without template namespace for backward compatibility
+                    $backwardAlias = "bonsai::{$componentName}";
+                    Blade::component($path, $backwardAlias);
+                    $this->log("✓ Also registered as <x-{$backwardAlias}> for compatibility");
                 } catch (\Exception $e) {
                     $this->log("❌ Failed to register component {$componentName}: " . $e->getMessage());
                 }
@@ -289,19 +273,30 @@ class BonsaiServiceProvider extends ServiceProvider
 
     protected function registerHeroicons()
     {
-        $styles = ['o' => 'outline', 's' => 'solid', 'm' => 'mini'];
+        $this->log('🔍 Starting Heroicon registration...');
         
-        foreach ($styles as $prefix => $style) {
-            $path = __DIR__ . "/../../vendor/blade-ui-kit/blade-heroicons/resources/svg/{$style}/*.svg";
-            $files = glob($path);
+        // Check if icons directory exists
+        $iconsDir = resource_path('views/bonsai/components/icons');
+        if (!is_dir($iconsDir)) {
+            $this->log("Creating icons directory at: {$iconsDir}");
+            mkdir($iconsDir, 0755, true);
+        }
+
+        // Register any existing icon components
+        $iconFiles = glob($iconsDir . '/*.blade.php');
+        foreach ($iconFiles as $file) {
+            $iconName = basename($file, '.blade.php');
+            $alias = "bonsai::icons.{$iconName}";
+            $path = "bonsai.components.icons.{$iconName}";
             
-            foreach ($files as $file) {
-                $baseFilename = basename($file, '.svg');
-                $componentName = "heroicon-{$prefix}-{$baseFilename}";
-                
-                Blade::component("heroicons::{$style}.{$baseFilename}", $componentName);
-                $this->log("Registered Heroicon: {$componentName}");
+            try {
+                Blade::component($path, $alias);
+                $this->log("✓ Registered icon component: {$iconName} as <x-{$alias}>");
+            } catch (\Exception $e) {
+                $this->log("❌ Failed to register icon {$iconName}: " . $e->getMessage());
             }
         }
+
+        $this->log('✓ Completed Heroicon registration');
     }
 }
