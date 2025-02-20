@@ -568,17 +568,24 @@ class ScionCommand extends Command
             $content
         );
 
+        // Don't modify existing bonsai components
+        $content = preg_replace(
+            "/<x-bonsai::([^:\"'\s]+)/",
+            "<x-bonsai::$1",
+            $content
+        );
+
         // Update regular component references to use bonsai namespace
         $content = preg_replace(
-            "/<x-(?!dynamic-component|heroicon-)([^:\"'\s]+)/",
-            "<x-bonsai::{$templateName}.$1",
+            "/<x-(?!dynamic-component|heroicon-|bonsai::)([^:\"'\s]+)/",
+            "<x-bonsai::$1",
             $content
         );
 
         // Update @include directives for bonsai components
         $content = preg_replace(
             "/@include\(['\"]bonsai\.components\./",
-            "@include('bonsai.{$templateName}.components.",
+            "@include('bonsai.components.",
             $content
         );
 

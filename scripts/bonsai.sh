@@ -89,7 +89,7 @@ esac
 # Function to run yarn build
 run_build() {
     echo -e "${GREEN}🏗️  Rebuilding assets locally...${NC}"
-    if ! yarn build; then
+    if ! yarn bud build production; then
         echo -e "${RED}❌ Asset build failed${NC}"
         return 1
     fi
