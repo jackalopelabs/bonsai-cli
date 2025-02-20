@@ -109,7 +109,19 @@ Removes all generated:
 
 # Scion: Reverse Engineer a Template
 
-Scion is a feature of Bonsai‑CLI that allows you to reverse‑engineer an existing Roots project template into a Bonsai‑CLI YAML configuration. This lets you capture your landing page's layout, sections, and component data, and then generate it using Bonsai‑CLI's built‑in generation system.
+Scion is a feature of Bonsai‑CLI that allows you to reverse‑engineer an existing Roots project template into a dynamic Bonsai‑CLI YAML configuration. It now features robust layout detection, support for namespaced components (e.g. `cypress.hero`), improved component data extraction, and automatic Heroicons registration.
+
+Scion analyzes the specified Roots template and detects:
+   - The layout being extended (e.g. `bonsai.layouts.cypress`)
+   - All section includes such as:
+       - `bonsai.sections.cypress.home_hero`
+       - `bonsai.sections.services_card`
+       - `bonsai.sections.features_widget`
+       - `bonsai.sections.pricing`
+       - And global includes from the layout like `bonsai.sections.site_header`
+
+It logs detailed extraction results, allowing you to verify component paths and copied files. You are then prompted for section adjustments and data for each component. Finally, it assembles the collected data into a YAML configuration saved at:
+   `config/bonsai/templates/cypress.yml`
 
 > **Note:** Scion is designed to run from within the Bonsai‑CLI package repository (e.g. `~/sites/bonsai-cli`). It works independently of a full WordPress environment.
 
