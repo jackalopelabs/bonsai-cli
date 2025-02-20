@@ -54,7 +54,7 @@
                     <!-- Option A: Using Blade Component -->
                     {{-- <x-dynamic-component :component="$image" class="w-full" /> --}}
                 @else
-                    @include('bonsai.components.icons.flowchart', ['attributes' => 'class="w-full"'])
+                    @include('bonsai.components.cypress.icons.flowchart''attributes' => 'class="w-full"')
                 @endif
             </div>
 

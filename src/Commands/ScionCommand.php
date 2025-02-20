@@ -554,7 +554,7 @@ class ScionCommand extends Command
 
     private function updateComponentNamespaces(string $content, string $templateName): string
     {
-        // Don't modify dynamic components at all
+        // Don't modify dynamic components
         $content = preg_replace(
             "/<x-dynamic-component/",
             "<x-dynamic-component",
@@ -568,24 +568,17 @@ class ScionCommand extends Command
             $content
         );
 
-        // Don't modify existing bonsai components
-        $content = preg_replace(
-            "/<x-bonsai::([^:\"'\s]+)/",
-            "<x-bonsai::$1",
-            $content
-        );
-
-        // Update regular component references to use bonsai namespace
+        // Update regular component references to use bonsai namespace with template
         $content = preg_replace(
             "/<x-(?!dynamic-component|heroicon-|bonsai::)([^:\"'\s]+)/",
-            "<x-bonsai::$1",
+            "<x-bonsai::{$templateName}.$1",
             $content
         );
 
-        // Update @include directives for bonsai components
+        // Update @include directives for components
         $content = preg_replace(
-            "/@include\(['\"]bonsai\.components\./",
-            "@include('bonsai.components.",
+            "/@include\(['\"]bonsai\.components\.([^'\"]+)['\"](?:\s*,\s*\[(.*?)\])?\)/",
+            "@include('bonsai.components.{$templateName}.$1'$2)",
             $content
         );
 
