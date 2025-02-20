@@ -1,18 +1,30 @@
 @props(['data' => []])
 
 @php
-  $title = $data['title'] ?? '';
-  $link = $data['link'] ?? '#';
-  $imagePath = $data['imagePath'] ?? '';
+    $title = $data['title'] ?? '';
+    $link = $data['link'] ?? '';
+    $imagePath = $data['imagePath'] ?? '';
+    $buttonText = $data['buttonText'] ?? 'Learn More';
+    
+    // Get global styles from parent if available
+    $globalStyles = $data['globalStyles'] ?? [];
+    
+    // Style classes from data with global fallback
+    $containerClasses = $data['containerClasses'] ?? $globalStyles['containerClasses'] ?? '';
+    $imageClasses = $data['imageClasses'] ?? $globalStyles['imageClasses'] ?? '';
+    $contentContainerClasses = $data['contentContainerClasses'] ?? $globalStyles['contentContainerClasses'] ?? '';
+    $titleClasses = $data['titleClasses'] ?? $globalStyles['titleClasses'] ?? '';
+    $buttonClasses = $data['buttonClasses'] ?? $globalStyles['buttonClasses'] ?? '';
+    $buttonIconClasses = $data['buttonIconClasses'] ?? $globalStyles['buttonIconClasses'] ?? '';
 @endphp
 
-<a href="{{ $link }}" target="_blank" class="block">
-    <div class="relative overflow-hidden rounded-xl bg-white dark:bg-midnight-950 bg-opacity-50 dark:bg-opacity-10 shadow-lg hover:shadow-xl transition-shadow duration-200">
-        @if($imagePath)
-            <img src="{{ $imagePath }}" alt="{{ $title }}" class="w-full h-auto object-cover" />
-        @endif
-        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-4">
-            <h3 class="text-white text-lg font-semibold">{{ $title }}</h3>
-        </div>
+<div class="{{ $containerClasses }}">
+    <img src="{{ $imagePath }}" alt="{{ $title }}" class="{{ $imageClasses }}">
+    <div class="{{ $contentContainerClasses }}">
+        <h3 class="{{ $titleClasses }}">{{ $title }}</h3>
+        <a href="{{ $link }}" class="{{ $buttonClasses }}">
+            {{ $buttonText }}
+            <x-heroicon-s-arrow-right class="{{ $buttonIconClasses }}" />
+        </a>
     </div>
-</a> 
+</div> 

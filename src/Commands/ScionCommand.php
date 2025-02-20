@@ -481,7 +481,7 @@ class ScionCommand extends Command
             'card' => [
                 'icons/flowchart',
                 'dynamic-components' => [
-                    'image' => true  // Indicates this component uses dynamic image components
+                    'image' => true
                 ]
             ],
             'hero' => [
@@ -490,6 +490,14 @@ class ScionCommand extends Command
                     'dropdownIcon' => true,
                     'buttonLinkIcon' => true,
                     'secondaryIcon' => true
+                ]
+            ],
+            'widget' => [
+                'accordion',
+                'cta',
+                'list-item',
+                'dynamic-components' => [
+                    'icon' => true
                 ]
             ],
             'pricing-box' => [
@@ -506,42 +514,41 @@ class ScionCommand extends Command
 
         foreach ($dependencies[$componentName] as $key => $dependency) {
             if ($key === 'dynamic-components') {
-                // Handle dynamic component configuration
-                continue; // Dynamic components don't need to be copied, just configured
+                continue;
             }
 
-            $iconPaths = [
+            // Handle both icon and component dependencies
+            $searchPaths = [
                 "{$projectRoot}/resources/views/bonsai/components/{$dependency}.blade.php",
                 "{$projectRoot}/resources/views/components/{$dependency}.blade.php",
                 __DIR__ . "/../../templates/components/{$dependency}.blade.php"
             ];
 
-            $sourceIcon = null;
-            foreach ($iconPaths as $path) {
+            $sourcePath = null;
+            foreach ($searchPaths as $path) {
                 if (file_exists($path)) {
-                    $sourceIcon = $path;
+                    $sourcePath = $path;
                     break;
                 }
             }
 
-            if ($sourceIcon) {
-                // Create icon directories
-                $projectIconDir = "{$projectRoot}/resources/views/bonsai/{$templateName}/components/" . dirname($dependency);
-                $packageIconDir = __DIR__ . "/../../templates/components/{$templateName}/" . dirname($dependency);
+            if ($sourcePath) {
+                // Create target directories
+                $projectTargetDir = "{$projectRoot}/resources/views/bonsai/components/{$templateName}/" . dirname($dependency);
+                $packageTargetDir = __DIR__ . "/../../templates/components/{$templateName}/" . dirname($dependency);
 
-                foreach ([$projectIconDir, $packageIconDir] as $dir) {
+                foreach ([$projectTargetDir, $packageTargetDir] as $dir) {
                     if (!is_dir($dir)) {
                         mkdir($dir, 0755, true);
-                        $output->writeln("<info>Created dependency directory: {$dir}</info>");
                     }
                 }
 
                 // Copy the dependency
-                $projectPath = "{$projectIconDir}/" . basename($dependency) . ".blade.php";
-                $packagePath = "{$packageIconDir}/" . basename($dependency) . ".blade.php";
+                $projectPath = "{$projectTargetDir}/" . basename($dependency) . ".blade.php";
+                $packagePath = "{$packageTargetDir}/" . basename($dependency) . ".blade.php";
 
-                copy($sourceIcon, $projectPath);
-                copy($sourceIcon, $packagePath);
+                copy($sourcePath, $projectPath);
+                copy($sourcePath, $packagePath);
 
                 $output->writeln("<info>✓ Copied dependency {$dependency} to:</info>");
                 $output->writeln("  - {$projectPath}");
