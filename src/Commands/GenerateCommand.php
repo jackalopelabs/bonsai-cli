@@ -89,6 +89,13 @@ class GenerateCommand extends Command
         $this->info("📦 Template: {$template}");
         $this->info("🦸 Heroicons enabled: " . ($hasHeroicons ? "yes" : "no"));
 
+        // Define component dependencies
+        $dependencies = [
+            'widget' => ['accordion', 'cta', 'list-item'],
+            'card' => ['icons.flowchart'],
+            'hero' => ['icons.github'],
+        ];
+
         if (isset($components[0])) {
             $this->info("Processing array-style component list");
             $components = array_filter($components, function($c) {
@@ -102,34 +109,42 @@ class GenerateCommand extends Command
 
         $this->info("Found " . count($components) . " components to process");
 
+        // First pass: Copy main components
         foreach ($components as $component => $config) {
             $componentName = is_array($config) ? $component : $config;
             $this->info("🔨 Processing component: {$componentName}");
             
-            // First try to copy from template-specific components
             if (!$this->copyTemplateComponent($componentName)) {
                 $this->info("⚠️ No template-specific component found, trying core components...");
-                // If not found, fall back to core Bonsai components and register in template namespace
                 if ($this->copyBonsaiComponent($componentName)) {
                     $this->info("✓ Copied from core components");
-                    // Register the component in the template namespace
                     $this->registerBonsaiTemplateComponent($template, $componentName);
                     $this->info("✓ Registered in template namespace");
                 } else {
                     $this->warn("❌ Component not found in core components either");
                 }
             }
+        }
 
-            // Handle dependencies
-            if ($componentName === 'card') {
-                $this->info("📦 Installing card dependencies...");
-                $this->copyComponentIcon('flowchart');
-            } else if ($componentName === 'widget') {
-                $this->info("📦 Installing widget dependencies...");
-                // For widget dependencies, we want them in the core bonsai components
-                $this->copyBonsaiComponent('accordion');
-                $this->copyBonsaiComponent('cta');
-                $this->copyBonsaiComponent('list-item');
+        // Second pass: Process dependencies
+        foreach ($components as $component => $config) {
+            $componentName = is_array($config) ? $component : $config;
+            if (isset($dependencies[$componentName])) {
+                $this->info("📦 Installing {$componentName} dependencies...");
+                foreach ($dependencies[$componentName] as $dep) {
+                    if (str_contains($dep, '.')) {
+                        // Handle nested components like icons
+                        list($folder, $name) = explode('.', $dep);
+                        $this->copyComponentIcon($name);
+                        $this->info("✓ Copied icon dependency: {$name}");
+                    } else {
+                        // Copy and register the dependency in the template namespace
+                        if ($this->copyBonsaiComponent($dep)) {
+                            $this->registerBonsaiTemplateComponent($template, $dep);
+                            $this->info("✓ Copied and registered dependency: {$dep}");
+                        }
+                    }
+                }
             }
         }
         
@@ -204,15 +219,25 @@ class GenerateCommand extends Command
         }
 
         $content = file_get_contents($providerPath);
-        // Use the correct namespace format for template components
-        $componentLine = "Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$template}.{$componentName}');";
         
-        if (strpos($content, $componentLine) === false) {
-            if (preg_match('/public function boot\(\)\s*{/', $content, $matches, PREG_OFFSET_CAPTURE)) {
-                $position = $matches[0][1] + strlen($matches[0][0]);
-                $content = substr_replace($content, "\n        " . $componentLine, $position, 0);
-                file_put_contents($providerPath, $content);
-            }
+        // First, check if component is already registered
+        $existingRegistration = "Blade::component('bonsai.components.{$template}.{$componentName}";
+        if (strpos($content, $existingRegistration) !== false) {
+            $this->info("Component {$componentName} already registered for template {$template}");
+            return;
+        }
+
+        // Register with template namespace
+        $componentLine = "        Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$template}.{$componentName}');\n";
+        
+        // Also register without template namespace for backward compatibility
+        $backwardCompatLine = "        Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$componentName}');\n";
+        
+        if (preg_match('/public function boot\(\)\s*{/', $content, $matches, PREG_OFFSET_CAPTURE)) {
+            $position = $matches[0][1] + strlen($matches[0][0]);
+            $content = substr_replace($content, "\n" . $componentLine . $backwardCompatLine, $position, 0);
+            file_put_contents($providerPath, $content);
+            $this->info("✓ Registered component {$componentName} with both namespaces");
         }
     }
 
