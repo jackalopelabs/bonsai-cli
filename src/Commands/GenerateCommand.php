@@ -265,51 +265,23 @@ class GenerateCommand extends Command
     {
         $this->info("\n=== Registering Component: {$componentName} ===");
         
-        // Register in ViewServiceProvider
-        $providerPath = app_path('Providers/ViewServiceProvider.php');
-        if (!file_exists($providerPath)) {
-            $this->error("❌ ViewServiceProvider not found at: {$providerPath}");
-            return;
-        }
-        $this->info("Found ViewServiceProvider at: {$providerPath}");
-
-        $content = file_get_contents($providerPath);
-        
-        // First, check if component is already registered
-        $existingRegistration = "Blade::component('bonsai.components.{$template}.{$componentName}";
-        if (strpos($content, $existingRegistration) !== false) {
-            $this->info("Component {$componentName} already registered for template {$template}");
-            return;
-        }
-
-        // Register with template namespace
-        $componentLine = "        Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$template}.{$componentName}');\n";
-        $this->info("Adding template namespace registration:\n{$componentLine}");
-        
-        // Also register without template namespace for backward compatibility
-        $backwardCompatLine = "        Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$componentName}');\n";
-        $this->info("Adding backward compatibility registration:\n{$backwardCompatLine}");
-        
-        if (preg_match('/public function boot\(\)\s*{/', $content, $matches, PREG_OFFSET_CAPTURE)) {
-            $position = $matches[0][1] + strlen($matches[0][0]);
-            $content = substr_replace($content, "\n" . $componentLine . $backwardCompatLine, $position, 0);
+        // Instead of modifying ViewServiceProvider, we'll use Blade::component directly
+        try {
+            // Register with template namespace
+            $templatePath = "bonsai.components.{$template}.{$componentName}";
+            $templateAlias = "bonsai::{$template}.{$componentName}";
+            \Illuminate\Support\Facades\Blade::component($templatePath, $templateAlias);
+            $this->info("✓ Registered component with template namespace: <x-{$templateAlias}>");
             
-            // Write the updated content
-            if (file_put_contents($providerPath, $content)) {
-                $this->info("✓ Successfully updated ViewServiceProvider");
-                
-                // Verify the changes
-                $newContent = file_get_contents($providerPath);
-                if (strpos($newContent, $componentLine) !== false && strpos($newContent, $backwardCompatLine) !== false) {
-                    $this->info("✓ Verified both registrations are present in the file");
-                } else {
-                    $this->error("❌ Failed to verify registrations in the file");
-                }
-            } else {
-                $this->error("❌ Failed to write to ViewServiceProvider");
-            }
-        } else {
-            $this->error("❌ Could not find boot method in ViewServiceProvider");
+            // Also register without template namespace for backward compatibility
+            $backwardAlias = "bonsai::{$componentName}";
+            \Illuminate\Support\Facades\Blade::component($templatePath, $backwardAlias);
+            $this->info("✓ Registered component with backward compatibility: <x-{$backwardAlias}>");
+            
+            return true;
+        } catch (\Exception $e) {
+            $this->error("❌ Failed to register component: " . $e->getMessage());
+            return false;
         }
     }
 
