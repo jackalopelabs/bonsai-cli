@@ -39,6 +39,9 @@ class ScionCommand extends Command
         $templateName = $input->getArgument('templateName');
         $output->writeln("<info>Starting extraction for template: {$templateName}</info>");
 
+        // Ensure Heroicons are registered
+        $this->ensureHeroiconsRegistration($output);
+
         // Create component directory
         $componentDir = __DIR__ . '/../../templates/components/' . $templateName;
         if (!is_dir($componentDir)) {
@@ -1157,5 +1160,190 @@ BLADE;
 
         $output->writeln("! Asset not found in any source path: " . basename($assetPath));
         return false;
+    }
+
+    private function ensureHeroiconsRegistration(OutputInterface $output)
+    {
+        $output->writeln("<info>Ensuring Heroicons registration...</info>");
+        
+        // Check if ViewServiceProvider exists
+        $providerPath = app_path('Providers/ViewServiceProvider.php');
+        if (!file_exists($providerPath)) {
+            $output->writeln("<comment>ViewServiceProvider not found. Creating...</comment>");
+            $this->createViewServiceProvider();
+        }
+
+        $content = file_get_contents($providerPath);
+        
+        // Check if Heroicons are already registered
+        if (strpos($content, 'heroicon-') === false) {
+            $output->writeln("<info>Registering Heroicons in ViewServiceProvider...</info>");
+            
+            // Add Heroicons registration
+            $registrationCode = "\n        // Register Heroicons\n";
+            $registrationCode .= "        \$styles = ['o' => 'outline', 's' => 'solid', 'm' => 'mini'];\n";
+            $registrationCode .= "        foreach (\$styles as \$prefix => \$style) {\n";
+            $registrationCode .= "            \$path = base_path('vendor/blade-ui-kit/blade-heroicons/resources/svg/' . \$style);\n";
+            $registrationCode .= "            if (is_dir(\$path)) {\n";
+            $registrationCode .= "                foreach (glob(\$path . '/*.svg') as \$file) {\n";
+            $registrationCode .= "                    \$baseFilename = basename(\$file, '.svg');\n";
+            $registrationCode .= "                    \$componentName = \"heroicon-{\$prefix}-{\$baseFilename}\";\n";
+            $registrationCode .= "                    Blade::component(\"heroicons::{$style}.{\$baseFilename}\", \$componentName);\n";
+            $registrationCode .= "                }\n";
+            $registrationCode .= "            }\n";
+            $registrationCode .= "        }\n";
+
+            // Insert the registration code after the boot method opening
+            if (preg_match('/public function boot\(\)\s*{/', $content, $matches, PREG_OFFSET_CAPTURE)) {
+                $position = $matches[0][1] + strlen($matches[0][0]);
+                $content = substr_replace($content, $registrationCode, $position, 0);
+                file_put_contents($providerPath, $content);
+                $output->writeln("<info>✓ Added Heroicons registration to ViewServiceProvider</info>");
+            }
+        } else {
+            $output->writeln("<info>✓ Heroicons already registered in ViewServiceProvider</info>");
+        }
+    }
+
+    private function createViewServiceProvider()
+    {
+        $providerPath = app_path('Providers/ViewServiceProvider.php');
+        $dir = dirname($providerPath);
+        
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $content = <<<'PHP'
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\ServiceProvider;
+
+class ViewServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        //
+    }
+
+    public function boot()
+    {
+        // Component registrations will be added here
+    }
+}
+PHP;
+
+        file_put_contents($providerPath, $content);
+
+        // Add to config/app.php providers array if it exists
+        $configPath = base_path('config/app.php');
+        if (file_exists($configPath)) {
+            $config = file_get_contents($configPath);
+            if (strpos($config, 'App\\Providers\\ViewServiceProvider::class') === false) {
+                $config = preg_replace(
+                    '/(\'providers\' => \[\s+)/s',
+                    "$1        App\\Providers\\ViewServiceProvider::class,\n",
+                    $config
+                );
+                file_put_contents($configPath, $config);
+            }
+        }
+    }
+
+    protected function copyTemplateComponent($componentName, OutputInterface $output)
+    {
+        $output->writeln("\n🔍 Attempting to copy template component: {$componentName}");
+        
+        // First check for Heroicon dependencies
+        $this->checkAndRegisterHeroiconDependencies($componentName, $output);
+        
+        $template = $this->input->getArgument('templateName');
+        $output->writeln("Template: {$template}");
+        
+        $possiblePaths = [
+            // Primary: Template-specific components in bonsai namespace
+            base_path("resources/views/bonsai/components/{$template}/{$componentName}.blade.php"),
+            __DIR__ . "/../../templates/components/{$template}/{$componentName}.blade.php",
+            // Secondary: Legacy template paths
+            base_path("templates/{$template}/components/{$componentName}.blade.php"),
+            base_path("resources/views/{$template}/components/{$componentName}.blade.php")
+        ];
+
+        $output->writeln("Checking possible source paths:");
+        foreach ($possiblePaths as $path) {
+            $output->writeln("  - {$path}");
+            if (file_exists($path)) {
+                $output->writeln("✓ Found component at: {$path}");
+                
+                // Create bonsai template-specific component directory
+                $targetDir = resource_path("views/bonsai/components/{$template}");
+                $output->writeln("Creating target directory: {$targetDir}");
+                
+                if (!is_dir($targetDir)) {
+                    mkdir($targetDir, 0755, true);
+                    $output->writeln("✓ Created directory");
+                }
+                
+                $targetPath = "{$targetDir}/{$componentName}.blade.php";
+                $output->writeln("Copying to: {$targetPath}");
+                
+                try {
+                    // Read the component content
+                    $content = file_get_contents($path);
+                    
+                    // Check for Heroicon usage and ensure they're registered
+                    if (preg_match_all('/<x-heroicon-[osm]-([^"\s]+)/', $content, $matches)) {
+                        $output->writeln("Found Heroicon dependencies:");
+                        foreach ($matches[1] as $iconName) {
+                            $output->writeln("  - {$iconName}");
+                        }
+                    }
+                    
+                    // Write the component
+                    file_put_contents($targetPath, $content);
+                    $output->writeln("✓ Successfully copied component");
+                    
+                    return true;
+                } catch (\Exception $e) {
+                    $output->writeln("<error>Failed to copy component: " . $e->getMessage() . "</error>");
+                    return false;
+                }
+            }
+        }
+
+        $output->writeln("❌ Component not found in any source path");
+        return false;
+    }
+
+    private function checkAndRegisterHeroiconDependencies($componentName, OutputInterface $output)
+    {
+        // Known components that use Heroicons
+        $heroiconDependencies = [
+            'hero' => [
+                'chevron-down',
+                'shopping-cart',
+                'chevron-right'
+            ],
+            'header' => [
+                'menu',
+                'x-mark'
+            ],
+            // Add more components and their Heroicon dependencies as needed
+        ];
+
+        if (isset($heroiconDependencies[$componentName])) {
+            $output->writeln("<info>Component {$componentName} has Heroicon dependencies</info>");
+            
+            // Ensure ViewServiceProvider exists and has Heroicon registration
+            $this->ensureHeroiconsRegistration($output);
+            
+            // Log the specific icons being used
+            foreach ($heroiconDependencies[$componentName] as $icon) {
+                $output->writeln("  - Registered dependency: {$icon}");
+            }
+        }
     }
 } 

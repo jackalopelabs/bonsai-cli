@@ -94,31 +94,13 @@ class GenerateCommand extends Command
 
         if (isset($components[0])) {
             $this->info("Processing array-style component list");
-            // Map component names to their actual filenames
-            $componentMap = [
-                'header' => 'site-header',  // Map header to site-header
-                'hero' => 'hero',
-                'card' => 'card',
-                'widget' => 'widget',
-                'accordion' => 'accordion',
-                'cta' => 'cta',
-                'list-item' => 'list-item',
-                'pricing-box' => 'pricing-box',
-                'feature-grid' => 'feature-grid'
-            ];
-            
-            $components = array_filter($components, function($c) use ($componentMap) {
-                return array_key_exists($c, $componentMap);
+            $components = array_filter($components, function($c) {
+                return in_array($c, [
+                    'hero','header','card','widget','accordion',
+                    'cta','list-item','pricing-box','feature-grid'
+                ]);
             });
-            
-            // Convert component names to their mapped values
-            $components = array_combine(
-                array_map(function($c) use ($componentMap) {
-                    return $componentMap[$c];
-                }, array_keys($components)),
-                array_fill(0, count($components), [])
-            );
-            $this->info("Mapped components: " . implode(', ', array_keys($components)));
+            $components = array_combine($components, array_fill(0, count($components), []));
         }
 
         $this->info("Found " . count($components) . " components to process");
