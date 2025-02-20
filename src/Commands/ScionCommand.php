@@ -398,7 +398,7 @@ class ScionCommand extends Command
                 $output->writeln("<info>✓ Found component at: $path</info>");
                 
                 // Create target directory
-                $targetDir = $this->getTargetPath("templates/components/{$templateName}");
+                $targetDir = $this->getOutputPath("templates/components/{$templateName}");
                 if (!is_dir($targetDir)) {
                     mkdir($targetDir, 0755, true);
                 }
@@ -414,8 +414,8 @@ class ScionCommand extends Command
         // Check package default paths as fallback
         $output->writeln("\n<info>Checking package default paths:</info>");
         $packagePaths = [
-            $this->getTargetPath("templates/components/{$templateName}/{$componentBaseName}.blade.php"),
-            $this->getTargetPath("templates/components/{$componentBaseName}.blade.php")
+            $this->getOutputPath("templates/components/{$templateName}/{$componentBaseName}.blade.php"),
+            $this->getOutputPath("templates/components/{$componentBaseName}.blade.php")
         ];
         
         foreach ($packagePaths as $path) {
@@ -547,6 +547,11 @@ PHP;
         return $projectRoot . '/resources/' . ltrim($path, '/');
     }
 
+    protected function getOutputPath(string $path): string
+    {
+        return getcwd() . '/' . ltrim($path, '/');
+    }
+
     protected function copyTemplateComponent($componentName, OutputInterface $output)
     {
         $output->writeln("\n🔍 Attempting to copy template component: {$componentName}");
@@ -558,12 +563,13 @@ PHP;
         $output->writeln("Template: {$template}");
         
         $possiblePaths = [
-            // Primary: Template-specific components in bonsai namespace
-            base_path("resources/views/bonsai/components/{$template}/{$componentName}.blade.php"),
+            // Primary: Template-specific components in bonsai namespace (project-based)
+            $this->getResourcePath("views/bonsai/components/{$template}/{$componentName}.blade.php"),
+            // Fallback: Package default component
             __DIR__ . "/../../templates/components/{$template}/{$componentName}.blade.php",
-            // Secondary: Legacy template paths
-            base_path("templates/{$template}/components/{$componentName}.blade.php"),
-            base_path("resources/views/{$template}/components/{$componentName}.blade.php")
+            // Secondary: Legacy template paths (project-based)
+            $this->getResourcePath("templates/{$template}/components/{$componentName}.blade.php"),
+            $this->getResourcePath("views/{$template}/components/{$componentName}.blade.php")
         ];
 
         $output->writeln("Checking possible source paths:");
@@ -573,7 +579,7 @@ PHP;
                 $output->writeln("✓ Found component at: {$path}");
                 
                 // Create bonsai template-specific component directory
-                $targetDir = resource_path("views/bonsai/components/{$template}");
+                $targetDir = $this->getOutputPath("templates/components/{$template}");
                 $output->writeln("Creating target directory: {$targetDir}");
                 
                 if (!is_dir($targetDir)) {
