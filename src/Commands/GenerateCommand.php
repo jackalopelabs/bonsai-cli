@@ -94,13 +94,31 @@ class GenerateCommand extends Command
 
         if (isset($components[0])) {
             $this->info("Processing array-style component list");
-            $components = array_filter($components, function($c) {
-                return in_array($c, [
-                    'hero','header','card','widget','accordion',
-                    'cta','list-item','pricing-box','feature-grid'
-                ]);
+            // Map component names to their actual filenames
+            $componentMap = [
+                'header' => 'site-header',  // Map header to site-header
+                'hero' => 'hero',
+                'card' => 'card',
+                'widget' => 'widget',
+                'accordion' => 'accordion',
+                'cta' => 'cta',
+                'list-item' => 'list-item',
+                'pricing-box' => 'pricing-box',
+                'feature-grid' => 'feature-grid'
+            ];
+            
+            $components = array_filter($components, function($c) use ($componentMap) {
+                return array_key_exists($c, $componentMap);
             });
-            $components = array_combine($components, array_fill(0, count($components), []));
+            
+            // Convert component names to their mapped values
+            $components = array_combine(
+                array_map(function($c) use ($componentMap) {
+                    return $componentMap[$c];
+                }, array_keys($components)),
+                array_fill(0, count($components), [])
+            );
+            $this->info("Mapped components: " . implode(', ', array_keys($components)));
         }
 
         $this->info("Found " . count($components) . " components to process");
@@ -167,6 +185,9 @@ class GenerateCommand extends Command
     protected function copyTemplateComponent($componentName)
     {
         $template = $this->argument('template');
+        $this->info("\n🔍 Attempting to copy template component: {$componentName}");
+        $this->info("Template: {$template}");
+        
         $possiblePaths = [
             // Primary: Template-specific components in bonsai namespace
             base_path("resources/views/bonsai/components/{$template}/{$componentName}.blade.php"),
@@ -176,23 +197,47 @@ class GenerateCommand extends Command
             base_path("resources/views/{$template}/components/{$componentName}.blade.php")
         ];
 
+        $this->info("Checking possible source paths:");
         foreach ($possiblePaths as $path) {
+            $this->info("  - {$path}");
             if (file_exists($path)) {
+                $this->info("✓ Found component at: {$path}");
+                
                 // Create bonsai template-specific component directory
                 $targetDir = resource_path("views/bonsai/components/{$template}");
+                $this->info("Creating target directory: {$targetDir}");
+                
                 if (!$this->files->exists($targetDir)) {
                     $this->files->makeDirectory($targetDir, 0755, true);
+                    $this->info("✓ Created directory");
+                } else {
+                    $this->info("Directory already exists");
                 }
                 
                 $targetPath = "{$targetDir}/{$componentName}.blade.php";
-                $this->files->copy($path, $targetPath);
+                $this->info("Copying to: {$targetPath}");
                 
-                // Register the component with the bonsai namespace
-                $this->registerBonsaiTemplateComponent($template, $componentName);
-                return true;
+                try {
+                    $this->files->copy($path, $targetPath);
+                    $this->info("✓ Successfully copied component");
+                    
+                    // Verify file contents
+                    if (file_exists($targetPath)) {
+                        $content = file_get_contents($targetPath);
+                        $this->info("✓ Verified file contents (" . strlen($content) . " bytes)");
+                    }
+                    
+                    // Register the component with the bonsai namespace
+                    $this->registerBonsaiTemplateComponent($template, $componentName);
+                    return true;
+                } catch (\Exception $e) {
+                    $this->error("Failed to copy component: " . $e->getMessage());
+                    return false;
+                }
             }
         }
 
+        $this->warn("❌ Component not found in any source path");
         return false;
     }
 

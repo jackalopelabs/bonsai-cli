@@ -222,10 +222,26 @@ class ScionCommand extends Command
             $output->writeln("<info>Found template name from file path: {$templateName}</info>");
         }
 
+        // Component name mapping for conventional naming
+        $componentNameMap = [
+            'site-header' => 'header',
+            'site_header' => 'header',
+            'site-footer' => 'footer',
+            'site_footer' => 'footer',
+            'navigation-menu' => 'nav',
+            'navigation_menu' => 'nav',
+            // Add more mappings as needed
+        ];
+
         // Helper function to clean component names while preserving template namespace
-        $cleanComponentName = function($component) use ($templateName) {
-            // Always ensure template namespace for components
+        $cleanComponentName = function($component) use ($templateName, $componentNameMap) {
+            // First clean up the component name
             $baseComponent = trim(preg_replace("/^(bonsai::|bonsai\.|{$templateName}\.)/", '', $component));
+            
+            // Check if we need to map this component name to a more conventional one
+            $baseComponent = $componentNameMap[$baseComponent] ?? $baseComponent;
+            
+            // Always ensure template namespace
             return $templateName . '.' . $baseComponent;
         };
 
