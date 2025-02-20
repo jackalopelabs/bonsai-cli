@@ -1167,7 +1167,7 @@ BLADE;
         $output->writeln("<info>Ensuring Heroicons registration...</info>");
         
         // Check if ViewServiceProvider exists
-        $providerPath = app_path('Providers/ViewServiceProvider.php');
+        $providerPath = $this->getProjectRoot() . '/app/Providers/ViewServiceProvider.php';
         if (!file_exists($providerPath)) {
             $output->writeln("<comment>ViewServiceProvider not found. Creating...</comment>");
             $this->createViewServiceProvider();
@@ -1188,7 +1188,7 @@ BLADE;
             $registrationCode .= "                foreach (glob(\$path . '/*.svg') as \$file) {\n";
             $registrationCode .= "                    \$baseFilename = basename(\$file, '.svg');\n";
             $registrationCode .= "                    \$componentName = \"heroicon-{\$prefix}-{\$baseFilename}\";\n";
-            $registrationCode .= "                    Blade::component(\"heroicons::{$style}.{\$baseFilename}\", \$componentName);\n";
+            $registrationCode .= "                    Blade::component(\"heroicons::{\$style}.{\$baseFilename}\", \$componentName);\n";
             $registrationCode .= "                }\n";
             $registrationCode .= "            }\n";
             $registrationCode .= "        }\n";
@@ -1207,7 +1207,7 @@ BLADE;
 
     private function createViewServiceProvider()
     {
-        $providerPath = app_path('Providers/ViewServiceProvider.php');
+        $providerPath = $this->getProjectRoot() . '/app/Providers/ViewServiceProvider.php';
         $dir = dirname($providerPath);
         
         if (!is_dir($dir)) {
@@ -1239,7 +1239,7 @@ PHP;
         file_put_contents($providerPath, $content);
 
         // Add to config/app.php providers array if it exists
-        $configPath = base_path('config/app.php');
+        $configPath = $this->getProjectRoot() . '/config/app.php';
         if (file_exists($configPath)) {
             $config = file_get_contents($configPath);
             if (strpos($config, 'App\\Providers\\ViewServiceProvider::class') === false) {
@@ -1251,6 +1251,31 @@ PHP;
                 file_put_contents($configPath, $config);
             }
         }
+    }
+
+    private function getProjectRoot(): string
+    {
+        // Get the source path from the input
+        $sourcePath = $this->input->getOption('source');
+        
+        // If source path is provided, use it to determine project root
+        if ($sourcePath) {
+            // Clean up the path to remove any duplicate 'resources/views'
+            $path = str_replace('/resources/views/resources/views/', '/resources/views/', $sourcePath);
+            
+            // Navigate up from the template file to find the project root
+            // Assuming standard structure: project_root/resources/views/...
+            $parts = explode('/resources/views/', $path);
+            if (count($parts) > 1) {
+                return $parts[0];
+            }
+            
+            // Fallback to standard directory traversal
+            return dirname(dirname(dirname($path)));
+        }
+        
+        // Fallback to current working directory
+        return getcwd();
     }
 
     protected function copyTemplateComponent($componentName, OutputInterface $output)

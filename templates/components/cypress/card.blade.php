@@ -52,7 +52,7 @@
             <div class="{{ $imageColumnClasses }}">
                 @if ($image)
                     <!-- Option A: Using Blade Component -->
-                    <x-bonsai::cypress.dynamic-component :component="$image" class="w-full" />
+                    {{-- <x-dynamic-component :component="$image" class="w-full" /> --}}
                 @else
                     @include('bonsai.cypress.components.icons.flowchart', ['attributes' => 'class="w-full"'])
                 @endif

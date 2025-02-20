@@ -31,7 +31,8 @@
 <div class="{{ $containerClasses }} {{ $planType == 'Pro' ? 'border border-emerald-500' : ($planType == 'Sensei' ? 'border border-yellow-500' : '') }}">
     <div class="p-6">
         <!-- Icon -->
-        <x-bonsai::cypress.dynamic-component :component="$icon" 
+        <x-dynamic-component 
+            :component="$icon" 
             class="{{ $iconClasses }} {{ $iconColor }}"
         />
 
@@ -60,7 +61,8 @@
         <a href="{{ $ctaLink }}" class="{{ $ctaButtonClasses }} {{ $ctaColor }}" target="_blank">
             {{ $ctaText }}
             @if($iconBtn)
-                <x-bonsai::cypress.dynamic-component :component="$iconBtn"
+                <x-dynamic-component 
+                    :component="$iconBtn"
                     class="{{ $ctaIconClasses }} {{ $iconBtnColor }}"
                 />
             @endif
