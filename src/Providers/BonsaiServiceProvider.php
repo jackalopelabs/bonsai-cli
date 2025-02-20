@@ -243,33 +243,6 @@ class BonsaiServiceProvider extends ServiceProvider
     {
         $this->log('🔍 Starting template-specific component registration...');
 
-        // Register dynamic component first
-        try {
-            // Register dynamic component with both namespaced and non-namespaced paths
-            Blade::component('dynamic-component', 'dynamic-component');
-            $this->log("✓ Registered dynamic-component without namespace");
-            
-            // Also register with bonsai namespace
-            Blade::component('bonsai::components.dynamic-component', 'bonsai::dynamic-component');
-            $this->log("✓ Registered dynamic-component with bonsai namespace");
-            
-            // Ensure the dynamic component view exists
-            $dynamicComponentPath = resource_path('views/bonsai/components/dynamic-component.blade.php');
-            if (!file_exists($dynamicComponentPath)) {
-                if (!is_dir(dirname($dynamicComponentPath))) {
-                    mkdir(dirname($dynamicComponentPath), 0755, true);
-                }
-                
-                $content = '@props([\'component\'])
-<x-dynamic-component :component="$component" {{ $attributes }} />';
-                
-                file_put_contents($dynamicComponentPath, $content);
-                $this->log("✓ Created dynamic component view");
-            }
-        } catch (\Exception $e) {
-            $this->log("❌ Failed to register dynamic-component: " . $e->getMessage());
-        }
-
         // Get all template directories
         $viewsPath = resource_path('views');
         $this->log("📂 Scanning for template directories in: {$viewsPath}/bonsai/components/*");

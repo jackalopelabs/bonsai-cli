@@ -89,9 +89,6 @@ class GenerateCommand extends Command
         $this->info("📦 Template: {$template}");
         $this->info("🦸 Heroicons enabled: " . ($hasHeroicons ? "yes" : "no"));
 
-        // First ensure dynamic component exists
-        $this->ensureDynamicComponentExists();
-
         if (isset($components[0])) {
             $this->info("Processing array-style component list");
             $components = array_filter($components, function($c) {
@@ -137,31 +134,6 @@ class GenerateCommand extends Command
         }
         
         $this->info("🏁 Component generation complete");
-    }
-
-    protected function ensureDynamicComponentExists()
-    {
-        $this->info("🔍 Checking dynamic component setup...");
-        
-        $dynamicComponentPath = resource_path('views/bonsai/components/dynamic-component.blade.php');
-        $this->info("Checking path: {$dynamicComponentPath}");
-        
-        if (!file_exists($dynamicComponentPath)) {
-            $this->info("Creating dynamic component...");
-            
-            if (!is_dir(dirname($dynamicComponentPath))) {
-                mkdir(dirname($dynamicComponentPath), 0755, true);
-                $this->info("Created directory structure");
-            }
-            
-            $content = '@props([\'component\'])
-<x-dynamic-component :component="$component" {{ $attributes }} />';
-            
-            file_put_contents($dynamicComponentPath, $content);
-            $this->info("✓ Created dynamic component view");
-        } else {
-            $this->info("✓ Dynamic component already exists");
-        }
     }
 
     protected function copyTemplateComponent($componentName)
