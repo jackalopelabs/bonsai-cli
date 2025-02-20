@@ -82,7 +82,7 @@ class GenerateCommand extends Command
 
     protected function generateComponents($components, $hasHeroicons = false)
     {
-        $this->info("🔄 Starting component generation process...");
+        $this->info("\n🔄 Starting component generation process...");
         putenv("BONSAI_HAS_HEROICONS=" . ($hasHeroicons ? "true" : "false"));
         $template = $this->argument('template');
         
@@ -97,7 +97,7 @@ class GenerateCommand extends Command
         ];
 
         if (isset($components[0])) {
-            $this->info("Processing array-style component list");
+            $this->info("\nProcessing array-style component list");
             $components = array_filter($components, function($c) {
                 return in_array($c, [
                     'hero','header','card','widget','accordion',
@@ -107,19 +107,31 @@ class GenerateCommand extends Command
             $components = array_combine($components, array_fill(0, count($components), []));
         }
 
-        $this->info("Found " . count($components) . " components to process");
+        $this->info("\nComponents to process: " . implode(', ', array_keys($components)));
 
         // First pass: Copy main components
+        $this->info("\n=== First Pass: Main Components ===");
         foreach ($components as $component => $config) {
             $componentName = is_array($config) ? $component : $config;
-            $this->info("🔨 Processing component: {$componentName}");
+            $this->info("\n🔨 Processing component: {$componentName}");
+            
+            // Log target paths
+            $targetPath = resource_path("views/bonsai/components/{$template}/{$componentName}.blade.php");
+            $this->info("Target path: {$targetPath}");
             
             if (!$this->copyTemplateComponent($componentName)) {
                 $this->info("⚠️ No template-specific component found, trying core components...");
                 if ($this->copyBonsaiComponent($componentName)) {
                     $this->info("✓ Copied from core components");
+                    $this->info("Registering component in template namespace...");
                     $this->registerBonsaiTemplateComponent($template, $componentName);
-                    $this->info("✓ Registered in template namespace");
+                    
+                    // Verify component file exists
+                    if (file_exists($targetPath)) {
+                        $this->info("✓ Component file exists at target path");
+                    } else {
+                        $this->error("❌ Component file not found at target path");
+                    }
                 } else {
                     $this->warn("❌ Component not found in core components either");
                 }
@@ -127,28 +139,67 @@ class GenerateCommand extends Command
         }
 
         // Second pass: Process dependencies
+        $this->info("\n=== Second Pass: Dependencies ===");
         foreach ($components as $component => $config) {
             $componentName = is_array($config) ? $component : $config;
             if (isset($dependencies[$componentName])) {
-                $this->info("📦 Installing {$componentName} dependencies...");
+                $this->info("\n📦 Installing dependencies for {$componentName}:");
+                $this->info("Required dependencies: " . implode(', ', $dependencies[$componentName]));
+                
                 foreach ($dependencies[$componentName] as $dep) {
+                    $this->info("\nProcessing dependency: {$dep}");
                     if (str_contains($dep, '.')) {
                         // Handle nested components like icons
                         list($folder, $name) = explode('.', $dep);
+                        $this->info("Copying icon dependency: {$name} to icons folder");
                         $this->copyComponentIcon($name);
-                        $this->info("✓ Copied icon dependency: {$name}");
+                        
+                        // Verify icon file exists
+                        $iconPath = resource_path("views/bonsai/components/icons/{$name}.blade.php");
+                        if (file_exists($iconPath)) {
+                            $this->info("✓ Icon file exists at: {$iconPath}");
+                        } else {
+                            $this->error("❌ Icon file not found at: {$iconPath}");
+                        }
                     } else {
                         // Copy and register the dependency in the template namespace
+                        $this->info("Copying and registering regular dependency: {$dep}");
                         if ($this->copyBonsaiComponent($dep)) {
+                            $this->info("Registering dependency in template namespace...");
                             $this->registerBonsaiTemplateComponent($template, $dep);
-                            $this->info("✓ Copied and registered dependency: {$dep}");
+                            
+                            // Verify dependency file exists
+                            $depPath = resource_path("views/bonsai/components/{$template}/{$dep}.blade.php");
+                            if (file_exists($depPath)) {
+                                $this->info("✓ Dependency file exists at: {$depPath}");
+                            } else {
+                                $this->error("❌ Dependency file not found at: {$depPath}");
+                            }
                         }
                     }
                 }
             }
         }
         
-        $this->info("🏁 Component generation complete");
+        $this->info("\n🏁 Component generation complete");
+        
+        // Final verification
+        $this->info("\n=== Final Component Verification ===");
+        $allComponents = array_merge(
+            array_keys($components),
+            array_reduce($dependencies, function($carry, $deps) {
+                return array_merge($carry, array_filter($deps, function($dep) {
+                    return !str_contains($dep, '.');
+                }));
+            }, [])
+        );
+        
+        foreach (array_unique($allComponents) as $comp) {
+            $path = resource_path("views/bonsai/components/{$template}/{$comp}.blade.php");
+            $this->info(file_exists($path) 
+                ? "✓ {$comp}: Found at {$path}" 
+                : "❌ {$comp}: Missing from {$path}");
+        }
     }
 
     protected function copyTemplateComponent($componentName)
@@ -212,11 +263,15 @@ class GenerateCommand extends Command
 
     protected function registerBonsaiTemplateComponent($template, $componentName)
     {
+        $this->info("\n=== Registering Component: {$componentName} ===");
+        
         // Register in ViewServiceProvider
         $providerPath = app_path('Providers/ViewServiceProvider.php');
         if (!file_exists($providerPath)) {
+            $this->error("❌ ViewServiceProvider not found at: {$providerPath}");
             return;
         }
+        $this->info("Found ViewServiceProvider at: {$providerPath}");
 
         $content = file_get_contents($providerPath);
         
@@ -229,15 +284,32 @@ class GenerateCommand extends Command
 
         // Register with template namespace
         $componentLine = "        Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$template}.{$componentName}');\n";
+        $this->info("Adding template namespace registration:\n{$componentLine}");
         
         // Also register without template namespace for backward compatibility
         $backwardCompatLine = "        Blade::component('bonsai.components.{$template}.{$componentName}', 'bonsai::{$componentName}');\n";
+        $this->info("Adding backward compatibility registration:\n{$backwardCompatLine}");
         
         if (preg_match('/public function boot\(\)\s*{/', $content, $matches, PREG_OFFSET_CAPTURE)) {
             $position = $matches[0][1] + strlen($matches[0][0]);
             $content = substr_replace($content, "\n" . $componentLine . $backwardCompatLine, $position, 0);
-            file_put_contents($providerPath, $content);
-            $this->info("✓ Registered component {$componentName} with both namespaces");
+            
+            // Write the updated content
+            if (file_put_contents($providerPath, $content)) {
+                $this->info("✓ Successfully updated ViewServiceProvider");
+                
+                // Verify the changes
+                $newContent = file_get_contents($providerPath);
+                if (strpos($newContent, $componentLine) !== false && strpos($newContent, $backwardCompatLine) !== false) {
+                    $this->info("✓ Verified both registrations are present in the file");
+                } else {
+                    $this->error("❌ Failed to verify registrations in the file");
+                }
+            } else {
+                $this->error("❌ Failed to write to ViewServiceProvider");
+            }
+        } else {
+            $this->error("❌ Could not find boot method in ViewServiceProvider");
         }
     }
 
