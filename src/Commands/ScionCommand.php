@@ -38,7 +38,7 @@ class ScionCommand extends Command
 
         // Find all includes in the source file
         $content = file_get_contents($sourcePath);
-        preg_match_all('/\@include\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/', $content, $matches);
+        preg_match_all('/\@include(?:If)?\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/', $content, $matches);
 
         $output->writeln("Found the following includes:");
         foreach ($matches[1] as $include) {
@@ -575,16 +575,16 @@ PHP;
             dirname($sourcePath) . "/../../components/{$componentBaseName}.blade.php"
         ];
         
-        $this->info("<info>Checking source project paths:</info>");
+        $this->info("Checking source project paths:");
         foreach ($sourceProjectPaths as $path) {
             $this->info("  - $path");
             if (file_exists($path)) {
-                $this->info("<info>✓ Found component at: $path</info>");
+                $this->info("✓ Found component at: $path");
                 
                 // Create target directory
                 $targetDir = $this->getOutputPath("templates/components/{$template}");
-                if (!is_dir($targetDir)) {
-                    mkdir($targetDir, 0755, true);
+                if (!$this->files->exists($targetDir)) {
+                    $this->files->makeDirectory($targetDir, 0755, true);
                 }
                 
                 // Copy the component
@@ -600,7 +600,7 @@ PHP;
                 
                 // Write the content
                 file_put_contents($targetPath, $content);
-                $this->info("<info>✓ Copied component to: $targetPath</info>");
+                $this->info("✓ Copied component to: $targetPath");
                 
                 // Register the component
                 $this->registerBonsaiTemplateComponent($template, $componentBaseName);
@@ -614,16 +614,33 @@ PHP;
 
     protected function updateHeaderStyles($content)
     {
-        // Define the correct header styles
-        $correctHeaderStyles = 'max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
-        
-        // Replace any existing headerClass definition with the correct styles
-        $content = preg_replace(
-            "/'headerClass'\s*=>\s*'[^']*'/",
-            "'headerClass' => '{$correctHeaderStyles}'",
-            $content
-        );
-        
+        // Define the correct header styles and structure
+        $headerData = [
+            'headerClass' => 'max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4',
+            'containerClasses' => 'max-w-5xl mx-auto',
+            'containerInnerClasses' => 'px-6',
+            'showDarkModeToggle' => true,
+            'darkModeToggleClass' => 'ml-4'
+        ];
+
+        // Replace or add each header-related property
+        foreach ($headerData as $key => $value) {
+            $pattern = "/'$key'\s*=>\s*'[^']*'/";
+            $replacement = "'$key' => '$value'";
+            
+            if (preg_match($pattern, $content)) {
+                // Replace existing property
+                $content = preg_replace($pattern, $replacement, $content);
+            } else {
+                // Add new property before the closing bracket of the data array
+                $content = preg_replace(
+                    '/(\s*)\]\s*;/',
+                    ",$1    $replacement$1];",
+                    $content
+                );
+            }
+        }
+
         return $content;
     }
 

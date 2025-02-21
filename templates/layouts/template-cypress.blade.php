@@ -28,8 +28,7 @@
                 {{ __('Skip to content', 'radicle') }}
             </a>
 
-            {{-- @includeIf('bonsai.sections.site_header') --}}
-            @include('bonsai.cypress.sections.site_header')
+            @includeIf('bonsai.sections.site_header')
 
             <main id="main" class="max-w-5xl mx-auto">
                 <div class="{{ $containerInnerClasses ?? 'px-6' }}">
