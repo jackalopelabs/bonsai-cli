@@ -628,9 +628,9 @@ TS;
 
             // Add colors spread if it doesn't exist
             if (!str_contains($tailwindConfig, '...bonsaiConfig.colors')) {
-                // Find the indigo object (last default color) and add bonsaiConfig.colors after it
-                $pattern = '/(indigo:\s*{[^}]*}),?\s*}/s';
-                $replacement = "$1,\n      ...bonsaiConfig.colors\n    }";
+                // Find the indigo object and ensure it ends with a comma before adding bonsaiConfig.colors
+                $pattern = '/(indigo:\s*{[^}]*})/s';
+                $replacement = "$1,\n      ...bonsaiConfig.colors";
                 $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
                 $modified = true;
             }
