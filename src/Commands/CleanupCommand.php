@@ -187,8 +187,8 @@ class CleanupCommand extends Command
             // Remove the import statement
             $content = preg_replace("/import\s+bonsaiConfig\s+from\s+['\"]\.\\/bonsai\.config['\"]\s*;?\n?/", '', $content);
 
-            // Remove the ...bonsaiConfig.colors spread
-            $content = preg_replace("/,\s*\.\.\.bonsaiConfig\.colors\s*(?=})/", '', $content);
+            // Remove the ...bonsaiConfig.colors spread and ensure proper closing brace
+            $content = preg_replace("/,\s*\.\.\.bonsaiConfig\.colors\s*}+/", '}', $content);
 
             // Clean up any potential double commas
             $content = preg_replace('/,(\s*,)+/', ',', $content);
