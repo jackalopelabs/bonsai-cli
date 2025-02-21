@@ -628,12 +628,10 @@ TS;
 
             // Add colors spread if it doesn't exist
             if (!str_contains($tailwindConfig, '...bonsaiConfig.colors')) {
-                // Find the end of the last color definition before the closing colors brace
-                $tailwindConfig = preg_replace(
-                    '/(colors:\s*{[^}]*?)(\s*}(?=\s*,?\s*(?:plugins|$)))/s',
-                    "$1,\n      ...bonsaiConfig.colors$2",
-                    $tailwindConfig
-                );
+                // Look for the colors object closing and add bonsaiConfig.colors before it
+                $pattern = '/(\s*)(})\s*(?=,\s*plugins|\s*}\s*satisfies)/s';
+                $replacement = "$1  ...bonsaiConfig.colors\n$1$2";
+                $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
                 $modified = true;
             }
 
