@@ -184,11 +184,11 @@ class CleanupCommand extends Command
         try {
             $content = File::get($configPath);
 
-            // Remove the import statement
+            // Remove the bonsaiConfig import statement
             $content = preg_replace("/import\s+bonsaiConfig\s+from\s+['\"]\.\\/bonsai\.config['\"]\s*;?\n?/", '', $content);
 
-            // Remove the ...bonsaiConfig.colors spread and ensure proper closing brace
-            $content = preg_replace("/,?\s*\.\.\.bonsaiConfig\.colors\s*}/", "}", $content);
+            // Remove the ...bonsaiConfig.colors spread without affecting the closing brace
+            $content = preg_replace("/,?\s*\.\.\.bonsaiConfig\.colors(?=\s*[,}])/", "", $content);
 
             // Clean up any potential double braces
             $content = preg_replace('/}{2,}/', '}', $content);
