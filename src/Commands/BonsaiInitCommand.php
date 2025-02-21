@@ -47,6 +47,9 @@ class BonsaiInitCommand extends Command
             // Install bonsai.sh script
             $this->installBonsaiScript();
     
+            // Configure Tailwind
+            $this->configureTailwind();
+    
             // Ask about configuration preference upfront
             $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
     
@@ -559,6 +562,88 @@ PHP;
             }
             $this->files->copy($exampleConfig, $targetConfig);
             $this->info("Created example config at: {$targetConfig}");
+        }
+    }
+
+    protected function configureTailwind()
+    {
+        $this->info('Configuring Tailwind...');
+
+        // Create bonsai.config.ts if it doesn't exist
+        $bonsaiConfigPath = base_path('bonsai.config.ts');
+        if (!$this->files->exists($bonsaiConfigPath)) {
+            $bonsaiConfigContent = <<<TS
+export default {
+    colors: {
+        midnight: {
+            950: '#060614',
+        },
+        blue: {
+            50: '#F0F7FF',
+            100: '#E0EFFF',
+            200: '#B9DEFF',
+            300: '#8CCDFF',
+            400: '#4DB3FF',
+            500: '#1A91FF',
+            600: '#0077FF',
+            700: '#0057CC',
+            800: '#004299',
+            900: '#003166',
+        },
+        teal: {
+            50: '#E6FFFA',
+            100: '#CCFFF6',
+            200: '#9DFFE9',
+            300: '#6EFFDF',
+            400: '#2FFFD1',
+            500: '#00FFB9',
+            600: '#00DB9D',
+            700: '#00B481',
+            800: '#008F66',
+            900: '#006B4D',
+        },
+    },
+};
+TS;
+            $this->files->put($bonsaiConfigPath, $bonsaiConfigContent);
+            $this->info('Created bonsai.config.ts');
+        }
+
+        // Update tailwind.config.ts
+        $tailwindConfigPath = base_path('tailwind.config.ts');
+        if ($this->files->exists($tailwindConfigPath)) {
+            $tailwindConfig = $this->files->get($tailwindConfigPath);
+            $modified = false;
+
+            // Add import if it doesn't exist
+            if (!str_contains($tailwindConfig, "import bonsaiConfig from './bonsai.config'")) {
+                $tailwindConfig = preg_replace(
+                    '/(import.*?;)/s',
+                    "$1\nimport bonsaiConfig from './bonsai.config';",
+                    $tailwindConfig,
+                    1
+                );
+                $modified = true;
+            }
+
+            // Add colors spread if it doesn't exist
+            if (!str_contains($tailwindConfig, '...bonsaiConfig.colors')) {
+                $tailwindConfig = preg_replace(
+                    '/(colors:\s*{[^}]*?)(\s*})/s',
+                    "$1,\n      ...bonsaiConfig.colors$2",
+                    $tailwindConfig
+                );
+                $modified = true;
+            }
+
+            if ($modified) {
+                $this->files->put($tailwindConfigPath, $tailwindConfig);
+                $this->info('Updated tailwind.config.ts');
+            } else {
+                $this->info('Tailwind configuration already up to date');
+            }
+        } else {
+            $this->warn('tailwind.config.ts not found');
         }
     }
 }
