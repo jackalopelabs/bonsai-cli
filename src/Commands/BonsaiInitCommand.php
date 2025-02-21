@@ -628,8 +628,9 @@ TS;
 
             // Add colors spread if it doesn't exist
             if (!str_contains($tailwindConfig, '...bonsaiConfig.colors')) {
+                // Find the end of the last color definition before the closing colors brace
                 $tailwindConfig = preg_replace(
-                    '/(colors:\s*{[^}]*?)(\s*})/s',
+                    '/(colors:\s*{[^}]*?)(\s*}(?=\s*,?\s*(?:plugins|$)))/s',
                     "$1,\n      ...bonsaiConfig.colors$2",
                     $tailwindConfig
                 );
