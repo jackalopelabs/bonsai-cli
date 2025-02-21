@@ -17,6 +17,7 @@ class CleanupCommand extends Command
         'app/View/Components/Bonsai',
         'resources/views/template-components.blade.php',
         'scripts/bonsai.sh',
+        'bonsai.config.ts',
     ];
 
     public function handle()
@@ -30,6 +31,7 @@ class CleanupCommand extends Command
         $this->cleanupWordPressContent();
         $this->cleanupMenus();
         $this->resetTemplateRegistry();
+        $this->cleanupTailwindConfig();
         
         $this->info('Cleanup completed successfully!');
     }
@@ -167,5 +169,36 @@ class CleanupCommand extends Command
         }
         
         $this->line("- Template registry reset successfully");
+    }
+
+    protected function cleanupTailwindConfig()
+    {
+        $this->info('Cleaning up Tailwind configuration...');
+        
+        $configPath = base_path('tailwind.config.ts');
+        if (!File::exists($configPath)) {
+            $this->warn('tailwind.config.ts not found');
+            return;
+        }
+
+        try {
+            $content = File::get($configPath);
+
+            // Remove the import statement
+            $content = preg_replace("/import\s+bonsaiConfig\s+from\s+['\"]\.\\/bonsai\.config['\"]\s*;?\n?/", '', $content);
+
+            // Remove the ...bonsaiConfig.colors spread
+            $content = preg_replace("/,\s*\.\.\.bonsaiConfig\.colors\s*(?=})/", '', $content);
+
+            // Clean up any potential double commas
+            $content = preg_replace('/,(\s*,)+/', ',', $content);
+            // Clean up any trailing commas before closing braces
+            $content = preg_replace('/,(\s*})/', '$1', $content);
+
+            File::put($configPath, $content);
+            $this->line("- Cleaned up Tailwind configuration");
+        } catch (\Exception $e) {
+            $this->error("Failed to update tailwind.config.ts: " . $e->getMessage());
+        }
     }
 }
