@@ -628,23 +628,18 @@ TS;
 
             // Add colors spread if it doesn't exist
             if (!str_contains($tailwindConfig, '...bonsaiConfig.colors')) {
-                // Match the entire colors object including nested objects
-                $pattern = '/(colors:\s*{[^{]*(?:{[^}]*}[^{]*)*})/s';
-                $replacement = preg_replace(
-                    '/}(\s*)$/',
-                    ",\n      ...bonsaiConfig.colors\n    }$1",
-                    preg_match($pattern, $tailwindConfig, $matches) ? $matches[1] : ''
-                );
-                
-                if ($replacement) {
-                    $tailwindConfig = str_replace($matches[1], $replacement, $tailwindConfig);
-                    $modified = true;
-                }
+                // Find the indigo object (last default color) and add bonsaiConfig.colors after it
+                $pattern = '/(indigo:\s*{[^}]*}),?\s*}/s';
+                $replacement = "$1,\n      ...bonsaiConfig.colors\n    }";
+                $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
+                $modified = true;
             }
 
             if ($modified) {
                 // Clean up any double commas
                 $tailwindConfig = preg_replace('/,(\s*,)+/', ',', $tailwindConfig);
+                // Clean up any trailing commas before closing braces
+                $tailwindConfig = preg_replace('/,(\s*})/', '$1', $tailwindConfig);
                 
                 $this->files->put($tailwindConfigPath, $tailwindConfig);
                 $this->info('Updated tailwind.config.ts');
