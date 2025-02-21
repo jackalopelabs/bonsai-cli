@@ -628,23 +628,23 @@ TS;
 
             // Add colors spread if it doesn't exist
             if (!str_contains($tailwindConfig, '...bonsaiConfig.colors')) {
-                // Find the last color object (indigo) and add bonsaiConfig.colors after it
-                $pattern = '/(indigo:\s*{[^}]*}\s*)(})\s*(?=,|\s*})/s';
-                $replacement = "$1,\n      ...bonsaiConfig.colors$2";
-                $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
+                // Match the entire colors object including nested objects
+                $pattern = '/(colors:\s*{[^{]*(?:{[^}]*}[^{]*)*})/s';
+                $replacement = preg_replace(
+                    '/}(\s*)$/',
+                    ",\n      ...bonsaiConfig.colors\n    }$1",
+                    preg_match($pattern, $tailwindConfig, $matches) ? $matches[1] : ''
+                );
                 
-                // Clean up any extra newlines between colors and closing brace
-                $tailwindConfig = preg_replace('/(\n\s+\.\.\.bonsaiConfig\.colors)(\n\s*)+}/s', '$1\n    }', $tailwindConfig);
-                $modified = true;
+                if ($replacement) {
+                    $tailwindConfig = str_replace($matches[1], $replacement, $tailwindConfig);
+                    $modified = true;
+                }
             }
 
             if ($modified) {
-                // Clean up any double commas that might have been introduced
+                // Clean up any double commas
                 $tailwindConfig = preg_replace('/,(\s*,)+/', ',', $tailwindConfig);
-                // Clean up any trailing commas before closing braces
-                $tailwindConfig = preg_replace('/,(\s*})/', '$1', $tailwindConfig);
-                // Clean up multiple consecutive empty lines
-                $tailwindConfig = preg_replace('/\n\s*\n\s*\n/', "\n\n", $tailwindConfig);
                 
                 $this->files->put($tailwindConfigPath, $tailwindConfig);
                 $this->info('Updated tailwind.config.ts');
