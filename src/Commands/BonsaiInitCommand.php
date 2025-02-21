@@ -628,10 +628,13 @@ TS;
 
             // Add colors spread if it doesn't exist
             if (!str_contains($tailwindConfig, '...bonsaiConfig.colors')) {
-                // Look for the colors object closing and add bonsaiConfig.colors before it
-                $pattern = '/(\s*)(})\s*(?=,\s*plugins|\s*}\s*satisfies)/s';
-                $replacement = "$1  ...bonsaiConfig.colors\n$1$2";
+                // Find the last color object (indigo) and add bonsaiConfig.colors after it
+                $pattern = '/(indigo:\s*{[^}]*}\s*)(})\s*(?=,|\s*})/s';
+                $replacement = "$1,\n      ...bonsaiConfig.colors$2";
                 $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
+                
+                // Clean up any extra newlines between colors and closing brace
+                $tailwindConfig = preg_replace('/(\n\s+\.\.\.bonsaiConfig\.colors)(\n\s*)+}/s', '$1\n    }', $tailwindConfig);
                 $modified = true;
             }
 
@@ -640,6 +643,8 @@ TS;
                 $tailwindConfig = preg_replace('/,(\s*,)+/', ',', $tailwindConfig);
                 // Clean up any trailing commas before closing braces
                 $tailwindConfig = preg_replace('/,(\s*})/', '$1', $tailwindConfig);
+                // Clean up multiple consecutive empty lines
+                $tailwindConfig = preg_replace('/\n\s*\n\s*\n/', "\n\n", $tailwindConfig);
                 
                 $this->files->put($tailwindConfigPath, $tailwindConfig);
                 $this->info('Updated tailwind.config.ts');
