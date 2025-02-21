@@ -552,70 +552,79 @@ PHP;
         return getcwd() . '/' . ltrim($path, '/');
     }
 
-    protected function copyTemplateComponent($componentName, OutputInterface $output)
+    protected function copyTemplateComponent($componentName)
     {
-        $output->writeln("\n🔍 Attempting to copy template component: {$componentName}");
+        $template = $this->argument('template');
+        $this->info("\n🔍 Attempting to copy template component: {$componentName}");
         
-        // First check for Heroicon dependencies
-        $this->checkAndRegisterHeroiconDependencies($componentName, $output);
+        // Handle namespaced components (e.g., cypress.hero)
+        $componentParts = explode('.', $componentName);
+        $componentBaseName = end($componentParts);
+        $componentNamespace = count($componentParts) > 1 ? $componentParts[0] : '';
         
-        $template = $this->input->getArgument('template');
-        $output->writeln("Template: {$template}");
-        
-        $possiblePaths = [
-            // Primary: Template-specific components in bonsai namespace (project-based)
-            $this->getResourcePath("views/bonsai/components/{$template}/{$componentName}.blade.php"),
-            // Fallback: Package default component
-            __DIR__ . "/../../templates/components/{$template}/{$componentName}.blade.php",
-            // Secondary: Legacy template paths (project-based)
-            $this->getResourcePath("templates/{$template}/components/{$componentName}.blade.php"),
-            $this->getResourcePath("views/{$template}/components/{$componentName}.blade.php")
+        // Define source project paths to check
+        $sourceProjectPaths = [
+            // Check in template-specific directory first
+            $this->getResourcePath("views/bonsai/components/{$template}/{$componentBaseName}.blade.php"),
+            // Then check in namespace directory if it exists
+            $this->getResourcePath("views/bonsai/components/{$componentNamespace}/{$componentBaseName}.blade.php"),
+            // Then check in root components directory
+            $this->getResourcePath("views/bonsai/components/{$componentBaseName}.blade.php"),
+            // Finally check in parent directories
+            dirname($sourcePath) . "/../components/{$componentBaseName}.blade.php",
+            dirname($sourcePath) . "/../../components/{$componentBaseName}.blade.php"
         ];
-
-        $output->writeln("Checking possible source paths:");
-        foreach ($possiblePaths as $path) {
-            $output->writeln("  - {$path}");
+        
+        $this->info("<info>Checking source project paths:</info>");
+        foreach ($sourceProjectPaths as $path) {
+            $this->info("  - $path");
             if (file_exists($path)) {
-                $output->writeln("✓ Found component at: {$path}");
+                $this->info("<info>✓ Found component at: $path</info>");
                 
-                // Create bonsai template-specific component directory
+                // Create target directory
                 $targetDir = $this->getOutputPath("templates/components/{$template}");
-                $output->writeln("Creating target directory: {$targetDir}");
-                
                 if (!is_dir($targetDir)) {
                     mkdir($targetDir, 0755, true);
-                    $output->writeln("✓ Created directory");
                 }
                 
-                $targetPath = "{$targetDir}/{$componentName}.blade.php";
-                $output->writeln("Copying to: {$targetPath}");
+                // Copy the component
+                $targetPath = $targetDir . "/{$componentBaseName}.blade.php";
                 
-                try {
-                    // Read the component content
-                    $content = file_get_contents($path);
-                    
-                    // Check for Heroicon usage and ensure they're registered
-                    if (preg_match_all('/<x-heroicon-[osm]-([^"\s]+)/', $content, $matches)) {
-                        $output->writeln("Found Heroicon dependencies:");
-                        foreach ($matches[1] as $iconName) {
-                            $output->writeln("  - {$iconName}");
-                        }
-                    }
-                    
-                    // Write the component
-                    file_put_contents($targetPath, $content);
-                    $output->writeln("✓ Successfully copied component");
-                    
-                    return true;
-                } catch (\Exception $e) {
-                    $output->writeln("<error>Failed to copy component: " . $e->getMessage() . "</error>");
-                    return false;
+                // Read the source content
+                $content = file_get_contents($path);
+                
+                // If this is a header component, ensure we preserve the correct styles
+                if ($componentBaseName === 'header') {
+                    $content = $this->updateHeaderStyles($content);
                 }
+                
+                // Write the content
+                file_put_contents($targetPath, $content);
+                $this->info("<info>✓ Copied component to: $targetPath</info>");
+                
+                // Register the component
+                $this->registerBonsaiTemplateComponent($template, $componentBaseName);
+                return true;
             }
         }
-
-        $output->writeln("❌ Component not found in any source path");
+        
+        $this->warn("❌ Component not found in any source path");
         return false;
+    }
+
+    protected function updateHeaderStyles($content)
+    {
+        // Define the correct header styles
+        $correctHeaderStyles = 'max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
+        
+        // Replace any existing headerClass definition with the correct styles
+        $content = preg_replace(
+            "/'headerClass'\s*=>\s*'[^']*'/",
+            "'headerClass' => '{$correctHeaderStyles}'",
+            $content
+        );
+        
+        return $content;
     }
 
     private function checkAndRegisterHeroiconDependencies($componentName, OutputInterface $output)

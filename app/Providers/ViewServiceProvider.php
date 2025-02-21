@@ -20,6 +20,12 @@ class ViewServiceProvider extends ServiceProvider
             Blade::component('components.icons.' . $iconName, $iconName);
         }
 
+        // Register Heroicons
+        foreach (glob(resource_path('views/components/icons/*.blade.php')) as $icon) {
+            $iconName = basename($icon, '.blade.php');
+            Blade::component('components.icons.' . $iconName, $iconName);
+        }
+
         // Component registrations will be added here
     }
 }

@@ -1,6 +1,29 @@
 sections:
+  site_header:
+    component: header
+    data:
+      siteName: "Cypress"
+      iconComponent: "heroicon-o-sparkles"
+      navLinks: [
+        {"url": "#features", "label": "Features"},
+        {"url": "#pricing", "label": "Pricing"},
+        {"url": "#templates", "label": "Templates"},
+        {"url": "#docs", "label": "Documentation"}
+      ]
+      primaryLink: "https://cypress.bonsai-cli.com"
+      # Style Classes
+      containerClasses: "max-w-5xl mx-auto"
+      containerInnerClasses: "px-6"
+      headerClass: "max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4"
+      iconClasses: "h-8 w-8 mr-2 p-1"
+      chevronClasses: "w-4 h-4 ml-2 inline-block"
+      buttonText: "Plans"
+      buttonPrefix: "See"
+      # Dark Mode Toggle
+      showDarkModeToggle: true
+      darkModeToggleClass: "ml-4"
   home_hero:
-    component: .hero
+    component: hero
     data:
       title: 'Bonsai CLI: Roots Build Tool'
       subtitle: 'Generate a beautful Roots project in minutes'
