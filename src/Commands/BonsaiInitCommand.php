@@ -576,7 +576,7 @@ PHP;
 export default {
     colors: {
         midnight: {
-            950: '#060614',
+            950: '#060614'
         },
         blue: {
             50: '#F0F7FF',
@@ -588,7 +588,7 @@ export default {
             600: '#0077FF',
             700: '#0057CC',
             800: '#004299',
-            900: '#003166',
+            900: '#003166'
         },
         teal: {
             50: '#E6FFFA',
@@ -600,9 +600,9 @@ export default {
             600: '#00DB9D',
             700: '#00B481',
             800: '#008F66',
-            900: '#006B4D',
-        },
-    },
+            900: '#006B4D'
+        }
+    }
 };
 TS;
             $this->files->put($bonsaiConfigPath, $bonsaiConfigContent);
@@ -637,6 +637,11 @@ TS;
             }
 
             if ($modified) {
+                // Clean up any double commas that might have been introduced
+                $tailwindConfig = preg_replace('/,(\s*,)+/', ',', $tailwindConfig);
+                // Clean up any trailing commas before closing braces
+                $tailwindConfig = preg_replace('/,(\s*})/', '$1', $tailwindConfig);
+                
                 $this->files->put($tailwindConfigPath, $tailwindConfig);
                 $this->info('Updated tailwind.config.ts');
             } else {
