@@ -614,6 +614,55 @@ PHP;
 
     protected function updateHeaderStyles($content)
     {
+        // Define the correct header component structure
+        $headerComponentStructure = <<<'BLADE'
+@props([
+    'data' => [],
+    'siteName' => '',
+    'iconComponent' => '',
+    'navLinks' => [],
+    'primaryLink' => '',
+    'containerClasses' => '',
+    'containerInnerClasses' => '',
+    'headerClass' => '',
+    'iconClasses' => '',
+    'chevronClasses' => '',
+    'buttonText' => '',
+    'buttonPrefix' => '',
+    'showDarkModeToggle' => false,
+    'darkModeToggleClass' => ''
+])
+
+@php
+    // Merge data array with direct props, giving precedence to direct props
+    $props = array_merge($data ?? [], [
+        'siteName' => $siteName,
+        'iconComponent' => $iconComponent,
+        'navLinks' => $navLinks,
+        'primaryLink' => $primaryLink,
+        'containerClasses' => $containerClasses,
+        'containerInnerClasses' => $containerInnerClasses,
+        'headerClass' => $headerClass ?: 'max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4',
+        'iconClasses' => $iconClasses,
+        'chevronClasses' => $chevronClasses,
+        'buttonText' => $buttonText,
+        'buttonPrefix' => $buttonPrefix,
+        'showDarkModeToggle' => $showDarkModeToggle,
+        'darkModeToggleClass' => $darkModeToggleClass
+    ]);
+
+    // Extract variables
+    extract($props);
+@endphp
+BLADE;
+
+        // Replace the existing @props and any PHP code before the header tag
+        $content = preg_replace(
+            '/(@props\[[\s\S]*?\])[\s\S]*?(<header)/',
+            $headerComponentStructure . "\n$2",
+            $content
+        );
+
         // Define the correct header styles and structure
         $headerData = [
             'headerClass' => 'max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4',
@@ -640,6 +689,13 @@ PHP;
                 );
             }
         }
+
+        // Fix any HTML structure issues
+        $content = str_replace(
+            ["</nav>\n        </div>", "</div>\n        </nav>"],
+            ["</div>\n        </nav>", "</nav>\n        </div>"],
+            $content
+        );
 
         return $content;
     }
