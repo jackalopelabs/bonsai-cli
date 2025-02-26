@@ -331,7 +331,7 @@ class ScionCommand extends Command
                     }
                     
                     // Handle array fields that should always be arrays
-                    if (in_array($key, ['imagePaths', 'featureItems', 'listItems', 'pricingBoxes', 'features'])) {
+                    if (in_array($key, ['imagePaths', 'featureItems', 'listItems', 'pricingBoxes', 'features', 'navLinks'])) {
                         if (empty($pairs[3][$i])) {
                             $value = [];
                         } else {
@@ -365,6 +365,26 @@ class ScionCommand extends Command
             }
         }
 
+        // Special handling for header component
+        if (strpos($content, '<header') !== false) {
+            // If this is a header component, add default values from reference template
+            if (empty($data['headerClass'])) {
+                $data['headerClass'] = 'bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
+            }
+            if (empty($data['containerClasses'])) {
+                $data['containerClasses'] = 'max-w-5xl mx-auto';
+            }
+            if (empty($data['containerInnerClasses'])) {
+                $data['containerInnerClasses'] = 'px-6';
+            }
+            if (!isset($data['showDarkModeToggle'])) {
+                $data['showDarkModeToggle'] = true;
+            }
+            if (empty($data['darkModeToggleClass'])) {
+                $data['darkModeToggleClass'] = 'ml-4';
+            }
+        }
+
         return $data;
     }
 
@@ -391,6 +411,12 @@ class ScionCommand extends Command
             dirname($sourcePath) . "/../../components/{$componentBaseName}.blade.php"
         ];
         
+        // Get reference styles for this component
+        $referenceStyles = $this->getComponentStylesFromReference($templateName, $componentBaseName);
+        if (!empty($referenceStyles)) {
+            $output->writeln("<info>Found reference styles for component: $componentBaseName</info>");
+        }
+        
         $output->writeln("<info>Checking source project paths:</info>");
         foreach ($sourceProjectPaths as $path) {
             $output->writeln("  - $path");
@@ -405,7 +431,18 @@ class ScionCommand extends Command
                 
                 // Copy the component
                 $targetPath = $targetDir . "/{$componentBaseName}.blade.php";
-                copy($path, $targetPath);
+                
+                // Read the source content
+                $content = file_get_contents($path);
+                
+                // Apply component-specific transformations
+                if ($componentBaseName === 'header') {
+                    $output->writeln("<info>Applying header-specific transformations</info>");
+                    $content = $this->updateHeaderStyles($content);
+                }
+                
+                // Write the content to the target path
+                file_put_contents($targetPath, $content);
                 $output->writeln("<info>✓ Copied component to: $targetPath</info>");
                 return;
             }
@@ -439,6 +476,54 @@ class ScionCommand extends Command
             __DIR__ . "/../../templates/components/{$templateName}/{$component}.blade.php",
             __DIR__ . "/../../templates/components/{$component}.blade.php",
         ];
+    }
+
+    /**
+     * Load reference template data from config files
+     */
+    private function loadReferenceTemplateData(string $templateName): ?array
+    {
+        $referencePaths = [
+            $this->getProjectRoot() . "/config/templates/{$templateName}.yml",
+            $this->getProjectRoot() . "/config/bonsai/templates/{$templateName}.yml",
+            __DIR__ . "/../../config/templates/{$templateName}.yml"
+        ];
+
+        foreach ($referencePaths as $path) {
+            if (file_exists($path)) {
+                $yamlContent = file_get_contents($path);
+                return Yaml::parse($yamlContent);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get component styles from reference template
+     */
+    private function getComponentStylesFromReference(string $templateName, string $componentName): array
+    {
+        $referenceData = $this->loadReferenceTemplateData($templateName);
+        if (!$referenceData) {
+            return [];
+        }
+
+        // Map component names to their section keys in the reference template
+        $componentToSectionMap = [
+            'header' => 'site_header',
+            'hero' => 'home_hero',
+            'card' => 'services_card',
+            'widget' => 'features_widget',
+            'pricing-box' => 'pricing'
+        ];
+
+        $sectionKey = $componentToSectionMap[$componentName] ?? null;
+        if (!$sectionKey || !isset($referenceData['sections'][$sectionKey]['data'])) {
+            return [];
+        }
+
+        return $referenceData['sections'][$sectionKey]['data'];
     }
 
     protected function ensureHeroiconsRegistration(OutputInterface $output): void
@@ -614,6 +699,11 @@ PHP;
 
     protected function updateHeaderStyles($content)
     {
+        $templateName = $this->input->getArgument('template');
+        
+        // Get header styles from reference template
+        $referenceStyles = $this->getComponentStylesFromReference($templateName, 'header');
+        
         // Define the correct header component structure
         $headerComponentStructure = <<<'BLADE'
 @props([
@@ -642,7 +732,7 @@ PHP;
         'primaryLink' => $primaryLink,
         'containerClasses' => $containerClasses,
         'containerInnerClasses' => $containerInnerClasses,
-        'headerClass' => $headerClass ?: 'max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4',
+        'headerClass' => $headerClass ?: 'bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4',
         'iconClasses' => $iconClasses,
         'chevronClasses' => $chevronClasses,
         'buttonText' => $buttonText,
@@ -663,13 +753,13 @@ BLADE;
             $content
         );
 
-        // Define the correct header styles and structure
+        // Define the correct header styles and structure from the reference template
         $headerData = [
-            'headerClass' => 'max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4',
-            'containerClasses' => 'max-w-5xl mx-auto',
-            'containerInnerClasses' => 'px-6',
-            'showDarkModeToggle' => true,
-            'darkModeToggleClass' => 'ml-4'
+            'headerClass' => $referenceStyles['headerClass'] ?? 'bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4',
+            'containerClasses' => $referenceStyles['containerClasses'] ?? 'max-w-5xl mx-auto',
+            'containerInnerClasses' => $referenceStyles['containerInnerClasses'] ?? 'px-6',
+            'showDarkModeToggle' => $referenceStyles['showDarkModeToggle'] ?? true,
+            'darkModeToggleClass' => $referenceStyles['darkModeToggleClass'] ?? 'ml-4'
         ];
 
         // Replace or add each header-related property

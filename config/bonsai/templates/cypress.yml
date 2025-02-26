@@ -14,7 +14,7 @@ sections:
       # Style Classes
       containerClasses: "max-w-5xl mx-auto"
       containerInnerClasses: "px-6"
-      headerClass: "max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4"
+      headerClass: "bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4"
       iconClasses: "h-8 w-8 mr-2 p-1"
       chevronClasses: "w-4 h-4 ml-2 inline-block"
       buttonText: "Plans"
@@ -37,7 +37,7 @@ sections:
       secondaryIcon: true
       iconMappings: { dropdownIcon: heroicon-s-chevron-down, buttonLinkIcon: heroicon-s-play, secondaryIcon: heroicon-s-arrow-right }
   services_card:
-    component: .card
+    component: card
     data:
       sectionId: services
       sectionTitle: Features
@@ -49,7 +49,7 @@ sections:
       title: 'Template System'
       description: 'Pre-built templates for rapid WordPress development.'
   features_widget:
-    component: .widget
+    component: widget
     data:
       items: { id: widget-1, title: 'Template System', icon: heroicon-o-template, link: 'https://github.com/jackalopelabs/bonsai-cli' }
       description: 'Comprehensive documentation and configuration guides:'
@@ -62,7 +62,7 @@ sections:
       icon: heroicon-o-book-open
       cta: { title: Documentation, link: 'https://github.com/jackalopelabs/bonsai-cli' }
   pricing:
-    component: .pricing-box
+    component: pricing-box
     data:
       title: 'Choose Your Plan'
       subtitle: 'Limited-time pricing available now'
