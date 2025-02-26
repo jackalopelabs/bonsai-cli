@@ -13,6 +13,7 @@
   $buttonLink = $data['buttonLink'] ?? null;
   $secondaryText = $data['secondaryText'] ?? null;
   $secondaryLink = $data['secondaryLink'] ?? null;
+  $secondaryIconClasses = $data['secondaryIconClasses'] ?? 'w-4 h-4 ml-2 inline-block align-middle';
   $iconMappings = $data['iconMappings'] ?? [
     'dropdownIcon' => 'heroicon-s-chevron-down',
     'buttonLinkIcon' => 'heroicon-s-shopping-cart',
