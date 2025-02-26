@@ -204,61 +204,49 @@ class GenerateCommand extends Command
 
     protected function copyTemplateComponent($componentName)
     {
-        $template = $this->argument('template');
-        $this->info("\n🔍 Attempting to copy template component: {$componentName}");
-        $this->info("Template: {$template}");
-        
-        $possiblePaths = [
-            // Primary: Template-specific components in bonsai namespace
-            base_path("resources/views/bonsai/components/{$template}/{$componentName}.blade.php"),
-            __DIR__ . "/../../templates/components/{$template}/{$componentName}.blade.php",
-            // Secondary: Legacy template paths
-            base_path("templates/{$template}/components/{$componentName}.blade.php"),
-            base_path("resources/views/{$template}/components/{$componentName}.blade.php")
+        // Handle namespaced components (e.g., cypress.header)
+        $componentParts = explode('.', $componentName);
+        $namespace = count($componentParts) > 1 ? $componentParts[0] : '';
+        $baseComponentName = count($componentParts) > 1 ? $componentParts[1] : $componentName;
+
+        // Build source paths
+        $sourcePaths = [
+            base_path("templates/components/{$namespace}/{$baseComponentName}.blade.php"),
+            base_path("templates/components/{$baseComponentName}.blade.php"),
+            __DIR__ . "/../../templates/components/{$namespace}/{$baseComponentName}.blade.php",
+            __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php"
         ];
 
-        $this->info("Checking possible source paths:");
-        foreach ($possiblePaths as $path) {
-            $this->info("  - {$path}");
+        // Find first existing source
+        $sourcePath = null;
+        foreach ($sourcePaths as $path) {
             if (file_exists($path)) {
-                $this->info("✓ Found component at: {$path}");
-                
-                // Create bonsai template-specific component directory
-                $targetDir = resource_path("views/bonsai/components/{$template}");
-                $this->info("Creating target directory: {$targetDir}");
-                
-                if (!$this->files->exists($targetDir)) {
-                    $this->files->makeDirectory($targetDir, 0755, true);
-                    $this->info("✓ Created directory");
-                } else {
-                    $this->info("Directory already exists");
-                }
-                
-                $targetPath = "{$targetDir}/{$componentName}.blade.php";
-                $this->info("Copying to: {$targetPath}");
-                
-                try {
-                    $this->files->copy($path, $targetPath);
-                    $this->info("✓ Successfully copied component");
-                    
-                    // Verify file contents
-                    if (file_exists($targetPath)) {
-                        $content = file_get_contents($targetPath);
-                        $this->info("✓ Verified file contents (" . strlen($content) . " bytes)");
-                    }
-                    
-                    // Register the component with the bonsai namespace
-                    $this->registerBonsaiTemplateComponent($template, $componentName);
-                    return true;
-                } catch (\Exception $e) {
-                    $this->error("Failed to copy component: " . $e->getMessage());
-                    return false;
-                }
+                $sourcePath = $path;
+                break;
             }
         }
 
-        $this->warn("❌ Component not found in any source path");
-        return false;
+        if (!$sourcePath) {
+            $this->warn("Component template not found: {$componentName}");
+            return false;
+        }
+
+        // Determine target path based on namespace
+        $targetDir = $namespace 
+            ? resource_path("views/bonsai/components/{$namespace}")
+            : resource_path("views/bonsai/components");
+
+        if (!$this->files->exists($targetDir)) {
+            $this->files->makeDirectory($targetDir, 0755, true);
+        }
+
+        $targetPath = "{$targetDir}/{$baseComponentName}.blade.php";
+        
+        // Copy the component
+        $this->files->copy($sourcePath, $targetPath);
+        $this->info("✓ Copied component {$componentName} to {$targetPath}");
+
+        return true;
     }
 
     protected function registerBonsaiTemplateComponent($template, $componentName)
@@ -376,6 +364,11 @@ BLADE;
             }
         }
 
+        // Handle namespaced components (e.g., cypress.header)
+        $componentParts = explode('.', $componentType);
+        $componentNamespace = count($componentParts) > 1 ? $componentParts[0] : $template;
+        $componentName = count($componentParts) > 1 ? $componentParts[1] : $componentType;
+
         // Build the section content with proper component reference
         return <<<BLADE
 @props([
@@ -389,7 +382,7 @@ BLADE;
 @endphp
 
 <div class="{{ \$class }}">
-    <x-bonsai::{$template}.{$componentType} :data="\${$dataVarName}" />
+    <x-bonsai::{$componentNamespace}.{$componentName} :data="\${$dataVarName}" />
 </div>
 BLADE;
     }
