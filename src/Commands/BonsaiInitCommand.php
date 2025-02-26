@@ -637,9 +637,9 @@ TS;
             
             // Add darkMode configuration if it doesn't exist
             if (!str_contains($tailwindConfig, "darkMode:")) {
-                // Add darkMode after theme configuration
-                $pattern = '/(theme:\s*{[^}]*})/s';
-                $replacement = "$1,\n  darkMode: 'class'";
+                // Add darkMode at the root level, after content array
+                $pattern = '/(content:\s*\[[^\]]*\],)/s';
+                $replacement = "$1\n  darkMode: 'class',";
                 $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
                 $modified = true;
             }
