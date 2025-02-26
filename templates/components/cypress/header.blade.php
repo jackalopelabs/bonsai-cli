@@ -5,18 +5,18 @@
     $iconSvg = $data['iconSvg'] ?? '';
     $navLinks = $data['navLinks'] ?? [];
     $primaryLink = $data['primaryLink'] ?? '';
-    $containerClasses = $data['containerClasses'] ?? '';
-    $headerClass = $data['headerClass'] ?? '';
+    $containerClasses = $data['containerClasses'] ?? 'px-6 flex justify-between items-center w-full';
+    $headerClass = $data['headerClass'] ?? 'mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
     $buttonText = $data['buttonText'] ?? '';
     $buttonPrefix = $data['buttonPrefix'] ?? '';
     $showDarkModeToggle = $data['showDarkModeToggle'] ?? false;
-    $darkModeToggleClass = $data['darkModeToggleClass'] ?? '';
+    $darkModeToggleClass = $data['darkModeToggleClass'] ?? 'p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200';
     $chevronSvg = $data['chevronSvg'] ?? '';
 @endphp
 
 <header class="{{ $headerClass }}" x-data="scrollHandler">
     <div class="{{ $containerClasses }}">
-        <a class="py-3 font-bold text-lg block text-gray-900 dark:text-white" href="https://bonsai.so/">
+        <a class="py-3 font-bold text-lg block" href="https://bonsai.so/">
             <div class="flex items-center">
                 {!! $iconSvg !!}
                 {{ $siteName }}
@@ -25,14 +25,14 @@
 
         <ul class="hidden sm:flex items-center justify-center flex-1 mx-6 space-x-8">
             @foreach($navLinks as $link)
-                <a href="{{ $link['url'] }}" class="text-gray-900 dark:text-white">
+                <a href="{{ $link['url'] }}">
                     <li>{{ $link['label'] }}</li>
                 </a>
             @endforeach
         </ul>
 
         <div class="flex space-x-4 items-center">
-            <a href="{{ $primaryLink }}" class="btn bg-indigo-500 text-white py-2 px-4 border border-transparent rounded-full backdrop-blur-md shadow-lg" x-on:click.prevent="scrollTo('{{ $primaryLink }}')">
+            <a href="{{ $primaryLink }}" class="btn bg-indigo-500 py-2 px-4 border border-transparent rounded-full backdrop-blur-md shadow-lg" x-on:click.prevent="scrollTo('{{ $primaryLink }}')">
                 <span class="hidden sm:inline">{{ $buttonPrefix }}</span> {{ $buttonText }} {!! $chevronSvg !!}
             </a>
             @if($showDarkModeToggle)
