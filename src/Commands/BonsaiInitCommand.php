@@ -574,7 +574,6 @@ PHP;
         if (!$this->files->exists($bonsaiConfigPath)) {
             $bonsaiConfigContent = <<<TS
 export default {
-    darkMode: 'class',
     colors: {
         midnight: {
             950: '#060614'
@@ -632,6 +631,15 @@ TS;
                 // Find the indigo object and ensure it ends with a comma before adding bonsaiConfig.colors
                 $pattern = '/(indigo:\s*{[^}]*})/s';
                 $replacement = "$1,\n      ...bonsaiConfig.colors";
+                $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
+                $modified = true;
+            }
+            
+            // Add darkMode configuration if it doesn't exist
+            if (!str_contains($tailwindConfig, "darkMode:")) {
+                // Add darkMode after theme configuration
+                $pattern = '/(theme:\s*{[^}]*})/s';
+                $replacement = "$1,\n  darkMode: 'class'";
                 $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
                 $modified = true;
             }
