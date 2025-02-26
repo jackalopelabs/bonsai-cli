@@ -62,6 +62,9 @@
             @if($secondaryText && $secondaryLink)
                 <a href="{{ $secondaryLink }}" target="_blank" class="text-sm bg-transparent px-4 py-1 backdrop-blur-md shadow-lg rounded-lg inline-flex items-center justify-center dark:border border-0 dark:border-gray-100 text-gray-900 dark:text-white group">
                     {{ $secondaryText }}
+                    @if($secondaryIcon)
+                        <x-dynamic-component :component="$iconMappings['secondaryIcon']" class="{{ $secondaryIconClasses }}" />
+                    @endif
                 </a>
             @endif
         </div>
