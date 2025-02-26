@@ -58,7 +58,7 @@ sections:
       # Style Classes
       containerClasses: "max-w-5xl mx-auto"
       containerInnerClasses: "px-6"
-      headerClass: "bg-indigo-500 bg-opacity-60 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4"
+      headerClass: "mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4"
       iconClasses: "h-8 w-8 mr-2 p-1"
       chevronClasses: "w-4 h-4 ml-2 inline-block"
       buttonText: "Plans"
