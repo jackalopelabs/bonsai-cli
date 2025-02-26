@@ -574,6 +574,7 @@ PHP;
         if (!$this->files->exists($bonsaiConfigPath)) {
             $bonsaiConfigContent = <<<TS
 export default {
+    darkMode: 'class',
     colors: {
         midnight: {
             950: '#060614'
