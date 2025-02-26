@@ -204,24 +204,33 @@ class GenerateCommand extends Command
 
     protected function copyTemplateComponent($componentName)
     {
+        $template = $this->argument('template');
+        $this->info("\n🔨 Processing component: {$componentName}");
+
         // Handle namespaced components (e.g., cypress.header)
         $componentParts = explode('.', $componentName);
-        $namespace = count($componentParts) > 1 ? $componentParts[0] : '';
+        $namespace = count($componentParts) > 1 ? $componentParts[0] : $template;
         $baseComponentName = count($componentParts) > 1 ? $componentParts[1] : $componentName;
 
-        // Build source paths
+        // Build source paths with priority for template-specific components
         $sourcePaths = [
+            // First check template-specific directory
             base_path("templates/components/{$namespace}/{$baseComponentName}.blade.php"),
-            base_path("templates/components/{$baseComponentName}.blade.php"),
             __DIR__ . "/../../templates/components/{$namespace}/{$baseComponentName}.blade.php",
+            // Then check root components directory
+            base_path("templates/components/{$baseComponentName}.blade.php"),
             __DIR__ . "/../../templates/components/{$baseComponentName}.blade.php"
         ];
+
+        $targetPath = resource_path("views/bonsai/components/{$namespace}/{$baseComponentName}.blade.php");
+        $this->info("Target path: {$targetPath}");
 
         // Find first existing source
         $sourcePath = null;
         foreach ($sourcePaths as $path) {
             if (file_exists($path)) {
                 $sourcePath = $path;
+                $this->info("Found source at: {$path}");
                 break;
             }
         }
@@ -231,39 +240,37 @@ class GenerateCommand extends Command
             return false;
         }
 
-        // Determine target path based on namespace
-        $targetDir = $namespace 
-            ? resource_path("views/bonsai/components/{$namespace}")
-            : resource_path("views/bonsai/components");
-
+        // Ensure target directory exists
+        $targetDir = dirname($targetPath);
         if (!$this->files->exists($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
+            $this->info("Created directory: {$targetDir}");
         }
 
-        $targetPath = "{$targetDir}/{$baseComponentName}.blade.php";
-        
         // Copy the component
         $this->files->copy($sourcePath, $targetPath);
         $this->info("✓ Copied component {$componentName} to {$targetPath}");
 
+        // Register the component
+        $this->registerBonsaiTemplateComponent($namespace, $baseComponentName);
+
         return true;
     }
 
-    protected function registerBonsaiTemplateComponent($template, $componentName)
+    protected function registerBonsaiTemplateComponent($namespace, $componentName)
     {
-        $this->info("\n=== Registering Component: {$componentName} ===");
+        $this->info("\n=== Registering Component: {$namespace}.{$componentName} ===");
         
-        // Instead of modifying ViewServiceProvider, we'll use Blade::component directly
         try {
-            // Register with template namespace
-            $templatePath = "bonsai.components.{$template}.{$componentName}";
-            $templateAlias = "bonsai::{$template}.{$componentName}";
-            \Illuminate\Support\Facades\Blade::component($templatePath, $templateAlias);
-            $this->info("✓ Registered component with template namespace: <x-{$templateAlias}>");
+            // Register with namespace
+            $viewPath = "bonsai.components.{$namespace}.{$componentName}";
+            $alias = "bonsai::{$namespace}.{$componentName}";
+            \Illuminate\Support\Facades\Blade::component($viewPath, $alias);
+            $this->info("✓ Registered component with namespace: <x-{$alias}>");
             
-            // Also register without template namespace for backward compatibility
+            // Also register without namespace for backward compatibility
             $backwardAlias = "bonsai::{$componentName}";
-            \Illuminate\Support\Facades\Blade::component($templatePath, $backwardAlias);
+            \Illuminate\Support\Facades\Blade::component($viewPath, $backwardAlias);
             $this->info("✓ Registered component with backward compatibility: <x-{$backwardAlias}>");
             
             return true;
