@@ -39,7 +39,11 @@ components:
   - header
   - card
   - widget
+  - accordion
+  - cta
+  - list-item
   - pricing-box
+  - feature-grid
   - dark-mode-toggle
 
 sections:
@@ -144,91 +148,112 @@ sections:
   features_widget:
     component: widget
     data:
-      # Global widget styles
       globalStyles:
-        containerClasses: "bg-white bg-opacity-30 shadow-lg rounded-xl"
+        containerClasses: "bg-white dark:bg-midnight-950 bg-opacity-30 dark:bg-opacity-10 shadow-lg rounded-xl"
         contentClasses: "p-2"
-        descriptionClasses: "text-gray-600 text-sm"
-        noteClasses: "text-gray-600 text-sm"
+        descriptionClasses: "text-gray-600 dark:text-gray-400 text-sm"
+        noteClasses: "text-gray-600 dark:text-gray-400 text-sm"
         noteLabelClasses: "font-bold"
-
-      # Global list item styles
       listItemStyles:
         listItemClasses: "flex items-start py-2"
-        numberClasses: "flex-shrink-0 flex items-center justify-center text-white mr-4 bg-gray-600 rounded-full w-8 h-8 text-sm"
+        numberClasses: "flex-shrink-0 flex items-center justify-center text-white mr-4 bg-gray-600 dark:bg-gray-700 rounded-full w-8 h-8 text-sm"
         contentClasses: ""
-        titleClasses: "font-semibold"
-        textClasses: "text-sm text-gray-500"
-
-      # Global CTA styles
+        titleClasses: "font-semibold dark:text-gray-200"
+        textClasses: "text-sm text-gray-500 dark:text-gray-400"
       ctaStyles:
-        containerClasses: "cta bg-white bg-opacity-50 rounded-lg flex items-center space-x-8 mt-2"
+        containerClasses: "cta bg-white dark:bg-midnight-950 bg-opacity-50 dark:bg-opacity-10 rounded-lg flex items-center space-x-8 mt-2"
         imageClasses: "w-44 h-44 object-cover rounded-xl"
         contentContainerClasses: "flex items-center justify-between flex-1"
-        titleClasses: "text-xl font-semibold"
-        buttonClasses: "inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        titleClasses: "text-xl font-semibold text-gray-900 dark:text-gray-100"
+        buttonClasses: "inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-midnight-950 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-opacity-10"
         buttonIconClasses: "w-4 h-4 ml-2"
-
       items:
         - id: "widget-1"
-          title: "Component Generation"
-          icon: "heroicon-o-command-line"
-          content: ""
-          cta:
-            title: "Component Generation"
-            link: "#components"
-            imagePath: "https://placehold.co/600x400/png"
-          description: "Generate and manage reusable components with ease:"
-          listItems:
-            - number: 1
-              itemName: "Quick Setup"
-              text: "Initialize your project with bonsai:init"
-            - number: 2
-              itemName: "Component Library"
-              text: "Access pre-built components ready for customization"
-            - number: 3
-              itemName: "Custom Components"
-              text: "Create your own components with simple commands"
-
-        - id: "widget-2"
-          title: "Section Builder"
-          icon: "heroicon-o-puzzle-piece"
-          content: ""
-          cta:
-            title: "Section Builder"
-            link: "#sections"
-            imagePath: "https://placehold.co/600x400/png"
-          description: "Build dynamic page sections with powerful features:"
-          listItems:
-            - number: 1
-              itemName: "Dynamic Data"
-              text: "Configure sections using YAML files"
-            - number: 2
-              itemName: "Reusable Sections"
-              text: "Create once, use anywhere in your site"
-            - number: 3
-              itemName: "Flexible Layout"
-              text: "Combine sections into custom page layouts"
-
-        - id: "widget-3"
           title: "Template System"
           icon: "heroicon-o-template"
           content: ""
           cta:
             title: "Template System"
             link: "#templates"
-            imagePath: "https://placehold.co/600x400/png"
+            imagePath: "https://bonsai.so/dist/images/template-system_v01.adb3a1.png"
+            buttonText: "Learn more"
           description: "Generate complete WordPress sites from templates:"
           listItems:
-            - number: 1
-              itemName: "Pre-built Templates"
-              text: "Start with our collection of ready-to-use templates"
-            - number: 2
+            - number: "1"
+              itemName: "Bonsai Template"
+              text: "Clean, lightweight, and modern"
+            - number: "2"
+              itemName: "Cypress Template"
+              text: "Glassy, modern, and beautiful"
+            - number: "3"
               itemName: "Custom Templates"
               text: "Create your own templates for reuse"
-            - number: 3
-              itemName: "WordPress Integration"
-              text: "Seamlessly works with WordPress and Sage"
+        - id: "widget-2"
+          title: "Component Library"
+          icon: "heroicon-o-command-line"
+          content: ""
+          cta:
+            title: "Component Generation"
+            link: "#components"
+            imagePath: "https://bonsai.so/dist/images/component-generation_v01.92fb24.png"
+            buttonText: "Learn more"
+          description: "Generate and manage reusable components with ease:"
+          listItems:
+            - number: "1"
+              itemName: "Quick Setup"
+              text: "Initialize your project with bonsai:init"
+            - number: "2"
+              itemName: "Component Library"
+              text: "Access pre-built components ready for customization"
+            - number: "3"
+              itemName: "Component Generation"
+              text: "Create new components with simple commands"
+            - number: "4"
+              itemName: "Custom Components"
+              text: "Create your own components with simple commands"
+        - id: "widget-3"
+          title: "Section Builder"
+          icon: "heroicon-o-puzzle-piece"
+          content: ""
+          cta:
+            title: "Section Builder"
+            link: "#sections"
+            imagePath: "https://bonsai.so/dist/images/section-builder_v01.143d17.png"
+            buttonText: "Learn more"
+          description: "Build dynamic page sections with powerful features:"
+          listItems:
+            - number: "1"
+              itemName: "Dynamic Data"
+              text: "Configure sections using YAML files"
+            - number: "2"
+              itemName: "Reusable Sections"
+              text: "Create once, use anywhere in your site"
+            - number: "3"
+              itemName: "Flexible Layout"
+              text: "Combine sections into custom page layouts"
+        - id: "widget-4"
+          title: "Documentation"
+          icon: "heroicon-o-menu"
+          content: ""
+          cta:
+            title: "Documentation"
+            link: "#documentation"
+            imagePath: "https://bonsai.so/dist/images/documentation_v01.dfc82e.png"
+            buttonText: "Learn more"
+          description: "Comprehensive documentation and configuration guides:"
+          listItems:
+            - number: "1"
+              itemName: "Installation & Setup"
+              text: "Quick installation via Composer and initial project setup"
+            - number: "2"
+              itemName: "Command Reference"
+              text: "Full documentation of all CLI commands and options"
+            - number: "3"
+              itemName: "Configuration Guide"
+              text: "Detailed YAML configuration and template system guides"
+            - number: "4"
+              itemName: "Troubleshooting"
+              text: "Common issues, debugging steps, and best practices"
 
   pricing:
     component: pricing-box
