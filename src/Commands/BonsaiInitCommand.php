@@ -50,6 +50,9 @@ class BonsaiInitCommand extends Command
             // Configure Tailwind
             $this->configureTailwind();
     
+            // Configure CSS
+            $this->configureCSS();
+    
             // Ask about configuration preference upfront
             $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
     
@@ -657,6 +660,72 @@ TS;
             }
         } else {
             $this->warn('tailwind.config.ts not found');
+        }
+    }
+
+    protected function configureCSS()
+    {
+        $this->info('Configuring CSS...');
+
+        // Create bonsai.css if it doesn't exist
+        $bonsaiCssPath = base_path('resources/styles/bonsai.css');
+        if (!$this->files->exists($bonsaiCssPath)) {
+            $bonsaiCssContent = <<<CSS
+@layer base {
+    :root {
+        --background: 255 255 255;
+        --foreground: 15 23 42;
+    }
+
+    .dark {
+        --background: 6 6 20;
+        --foreground: 255 255 255;
+    }
+
+    body {
+        @apply text-gray-900 dark:text-white bg-white dark:bg-midnight-950;
+    }
+}
+CSS;
+            
+            // Ensure directory exists
+            $dir = dirname($bonsaiCssPath);
+            if (!$this->files->isDirectory($dir)) {
+                $this->files->makeDirectory($dir, 0755, true);
+            }
+
+            $this->files->put($bonsaiCssPath, $bonsaiCssContent);
+            $this->info('Created bonsai.css');
+        }
+
+        // Update app.css to import bonsai.css
+        $appCssPath = base_path('resources/styles/app.css');
+        if ($this->files->exists($appCssPath)) {
+            $appCss = $this->files->get($appCssPath);
+            
+            // Check if bonsai.css is already imported
+            if (!str_contains($appCss, "@import 'bonsai.css';")) {
+                // Add import after utilities
+                if (str_contains($appCss, "@import 'tailwindcss/utilities';")) {
+                    $appCss = str_replace(
+                        "@import 'tailwindcss/utilities';",
+                        "@import 'tailwindcss/utilities';\n\n@import 'bonsai.css';",
+                        $appCss
+                    );
+                    
+                    $this->files->put($appCssPath, $appCss);
+                    $this->info('Updated app.css to import bonsai.css');
+                } else {
+                    // If utilities import not found, append to the end
+                    $appCss .= "\n\n@import 'bonsai.css';";
+                    $this->files->put($appCssPath, $appCss);
+                    $this->info('Appended bonsai.css import to app.css');
+                }
+            } else {
+                $this->info('app.css already imports bonsai.css');
+            }
+        } else {
+            $this->warn('app.css not found');
         }
     }
 }
