@@ -139,9 +139,11 @@ BLADE;
     {
         $bodyClass = $themeSettings['body']['class'] ?? 'dark relative h-screen';
         $htmlClass = $themeSettings['html']['class'] ?? 'dark relative h-screen';
-        $xData = $themeSettings['html']['x-data'] ?? '{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }';
-        $xInit = $themeSettings['html']['x-init'] ?? '$watch("darkMode", val => localStorage.setItem("darkMode", val))';
-        $xBindClass = $themeSettings['html']['x-bind:class'] ?? '{ "dark": darkMode }';
+        
+        // Fix the quotes in Alpine.js attributes
+        $xData = $themeSettings['html']['x-data'] ?? '{ darkMode: localStorage.getItem(\'darkMode\') === null ? true : localStorage.getItem(\'darkMode\') === \'true\' }';
+        $xInit = $themeSettings['html']['x-init'] ?? '$watch(\'darkMode\', val => localStorage.setItem(\'darkMode\', val))';
+        $xBindClass = $themeSettings['html']['x-bind:class'] ?? '{ \'dark\': darkMode }';
 
         return <<<BLADE
 <!doctype html>

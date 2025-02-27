@@ -8,9 +8,9 @@ theme:
     class: 'dark relative h-screen'
   html:
     class: 'dark relative h-screen'
-    x-data: '{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }'
-    x-init: '$watch("darkMode", val => localStorage.setItem("darkMode", val))'
-    x-bind:class: '{ "dark": darkMode }'
+    x-data: '{ darkMode: localStorage.getItem(''darkMode'') === null ? true : localStorage.getItem(''darkMode'') === ''true'' }'
+    x-init: '$watch(''darkMode'', val => localStorage.setItem(''darkMode'', val))'
+    x-bind:class: '{ ''dark'': darkMode }'
 
 # ASCII art configuration section
 ascii_art:
