@@ -16,7 +16,7 @@
 
 <header class="{{ $headerClass }}" x-data="scrollHandler">
     <div class="{{ $containerClasses }}">
-        <a class="py-3 font-bold text-lg block" href="https://bonsai.so/">
+        <a class="py-3 font-bold text-lg block text-gray-900 dark:text-white" href="https://bonsai.so/">
             <div class="flex items-center">
                 {!! $iconSvg !!}
                 {{ $siteName }}
@@ -25,20 +25,20 @@
 
         <ul class="hidden sm:flex items-center justify-center flex-1 mx-6 space-x-8">
             @foreach($navLinks as $link)
-                <a href="{{ $link['url'] }}">
+            <a href="{{ $link['url'] }}" class="text-gray-900 dark:text-white">
                     <li>{{ $link['label'] }}</li>
                 </a>
             @endforeach
         </ul>
 
         <div class="flex space-x-4 items-center">
-            <a href="{{ $primaryLink }}" class="btn bg-indigo-500 py-2 px-4 border border-transparent rounded-full backdrop-blur-md shadow-lg" x-on:click.prevent="scrollTo('{{ $primaryLink }}')">
+            <a href="{{ $primaryLink }}" class="btn bg-indigo-500 py-2 px-4 border border-transparent rounded-full backdrop-blur-md shadow-lg text-white" x-on:click.prevent="scrollTo('{{ $primaryLink }}')">
                 <span class="hidden sm:inline">{{ $buttonPrefix }}</span> {{ $buttonText }} {!! $chevronSvg !!}
             </a>
             @if($showDarkModeToggle)
             <button
                 x-on:click="darkMode = !darkMode"
-                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 text-gray-900 dark:text-white"
                 aria-label="{{ __('Toggle dark mode', 'radicle') }}"
             >
                 <svg x-show="!darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
