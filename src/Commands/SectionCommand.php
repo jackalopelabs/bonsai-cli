@@ -117,6 +117,61 @@ class SectionCommand extends Command
                     'prompt' => 'Enter description',
                     'default' => 'Select the plan that best suits your needs.'
                 ],
+                'pricingBoxStyles' => [
+                    'type' => 'object',
+                    'schema' => [
+                        'containerClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter container classes',
+                            'default' => 'bg-white bg-opacity-50 rounded-xl shadow-lg overflow-hidden mx-auto md:mx-0 text-center my-3 transition-transform transform hover:scale-105'
+                        ],
+                        'iconClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter icon classes',
+                            'default' => 'inline-block h-12 w-12 mt-8 mb-4'
+                        ],
+                        'planTypeClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter plan type classes',
+                            'default' => 'text-gray-400'
+                        ],
+                        'priceClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter price classes',
+                            'default' => 'text-4xl font-bold'
+                        ],
+                        'dividerClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter divider classes',
+                            'default' => 'border-t border-gray-200 my-5'
+                        ],
+                        'featureListClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter feature list classes',
+                            'default' => 'my-4 text-left space-y-3'
+                        ],
+                        'featureItemClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter feature item classes',
+                            'default' => 'flex items-center justify-start text-gray-500'
+                        ],
+                        'featureIconClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter feature icon classes',
+                            'default' => 'w-5 h-5 mr-2'
+                        ],
+                        'ctaButtonClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA button classes',
+                            'default' => 'inline-block py-2 px-6 rounded-full'
+                        ],
+                        'ctaIconClasses' => [
+                            'type' => 'string',
+                            'prompt' => 'Enter CTA icon classes',
+                            'default' => 'inline-block h-4 w-4 ml-2'
+                        ]
+                    ]
+                ],
                 'pricingBoxes' => [
                     'type' => 'array',
                     'prompt' => 'How many pricing boxes?',
