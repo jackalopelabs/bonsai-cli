@@ -150,11 +150,11 @@ BLADE;
 <html @php(language_attributes()) class="{$htmlClass}" x-data="{$xData}" x-init="{$xInit}" :class="{$xBindClass}">
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
-        <img src="{{ asset('images/bonsai_hero_03.png') }}" 
+        <img src="@asset('images/bonsai_hero_03.webp')" 
              alt="Background Light" 
              class="w-full h-full object-cover object-top opacity-100 block dark:hidden"
         />
-        <img src="{{ asset('images/bonsai_hero_01.png') }}" 
+        <img src="@asset('images/bonsai_hero_01.webp')" 
              alt="Background Dark" 
              class="w-full h-full object-cover object-top opacity-100 hidden dark:block"
         />
