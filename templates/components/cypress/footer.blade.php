@@ -9,7 +9,7 @@ $brandData = $data['brand'] ?? [
     'classes' => [
         'container' => 'flex items-center',
         'icon' => 'h-8 w-8 mr-2 p-1',
-        'text' => 'font-semibold text-xl tracking-tight text-gray-800'
+        'text' => 'font-semibold text-xl tracking-tight text-gray-900 dark:text-white'
     ]
 ];
 $menuGroups = $data['menuGroups'] ?? [];
@@ -22,17 +22,17 @@ $copyright = $data['copyright'] ?? [
 $styles = $data['styles'] ?? [
     'footer' => [
         'grid' => 'grid grid-cols-2 gap-12 sm:grid-cols-4 mt-8 md:mt-0 md:order-3',
-        'heading' => 'text-gray-700 font-semibold',
-        'list' => 'text-gray-600 mt-4',
+        'heading' => 'text-gray-900 dark:text-white font-semibold',
+        'list' => 'text-gray-700 dark:text-gray-300 mt-4',
         'socialContainer' => 'flex mt-4 gap-4',
-        'socialLink' => 'text-gray-600 hover:text-gray-500 backdrop-blur-md shadow-lg rounded-full p-2',
-        'divider' => 'border-t',
+        'socialLink' => 'text-gray-700 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-400 backdrop-blur-md shadow-lg rounded-full p-2',
+        'divider' => 'border-t border-gray-200 dark:border-gray-700',
         'bottomBar' => 'max-w-6xl mx-auto px-4 py-4 md:flex md:items-center md:justify-between',
         'legalLinks' => 'flex justify-center space-x-6 md:order-2',
-        'legalLink' => 'text-gray-600 hover:text-gray-500 mt-2',
+        'legalLink' => 'text-gray-700 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-400 mt-2',
         'copyright' => 'mt-4 md:mt-0 md:order-1',
-        'copyrightText' => 'text-center text-gray-600 text-sm',
-        'tagline' => 'text-gray-200'
+        'copyrightText' => 'text-center text-gray-700 dark:text-gray-300 text-sm',
+        'tagline' => 'text-gray-500 dark:text-gray-400'
     ]
 ];
 @endphp
