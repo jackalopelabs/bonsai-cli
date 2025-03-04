@@ -529,8 +529,8 @@ BLADE;
     protected function copyLayoutBackgroundImages($template)
     {
         $sourceImages = [
-            __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_01.png",
-            __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_03.png"
+            __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_01.webp",
+            __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_03.webp"
         ];
         
         // Create resources/images directory if it doesn't exist
@@ -851,9 +851,9 @@ BLADE;
             base_path("templates/assets/{$template}")
         ];
 
-        $targetDir = resource_path('images');
+        $targetDir = base_path('public/dist/images');
 
-        // Create resources/images directory if it doesn't exist
+        // Create dist/images directory if it doesn't exist
         if (!$this->files->isDirectory($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
             $this->info("Created directory: {$targetDir}");
@@ -869,7 +869,7 @@ BLADE;
                     $targetPath = $targetDir . '/' . $filename;
                     
                     if ($this->files->copy($file->getPathname(), $targetPath)) {
-                        $this->info("✓ Copied asset: {$filename} to resources/images/");
+                        $this->info("✓ Copied asset: {$filename} to dist/images/");
                         $assetsFound = true;
                     } else {
                         $this->warn("! Failed to copy asset: {$filename}");
