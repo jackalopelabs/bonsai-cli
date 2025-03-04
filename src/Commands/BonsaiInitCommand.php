@@ -52,6 +52,9 @@ class BonsaiInitCommand extends Command
     
             // Configure CSS
             $this->configureCSS();
+
+            // Configure Scripts
+            $this->configureScripts();
     
             // Ask about configuration preference upfront
             $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
@@ -733,30 +736,27 @@ CSS;
     {
         $this->info('Configuring Scripts...');
 
-        // Create pixel-matrix.ts
-        $pixelMatrixPath = base_path('resources/scripts/pixel-matrix.ts');
-        if (!$this->files->exists($pixelMatrixPath)) {
-            // Get the template path
-            $templatePath = __DIR__ . '/../../templates/scripts/pixel-matrix.ts';
-            
-            if (!$this->files->exists($templatePath)) {
-                $this->error('Pixel matrix template not found');
-                return;
-            }
-
-            // Ensure directory exists
-            $dir = dirname($pixelMatrixPath);
-            if (!$this->files->isDirectory($dir)) {
-                $this->files->makeDirectory($dir, 0755, true);
-            }
-
-            // Copy the template
-            $this->files->copy($templatePath, $pixelMatrixPath);
-            $this->info('Created pixel-matrix.ts');
+        // Ensure scripts directory exists
+        $scriptsDir = base_path('resources/scripts');
+        if (!$this->files->isDirectory($scriptsDir)) {
+            $this->files->makeDirectory($scriptsDir, 0755, true);
+            $this->info('Created scripts directory');
         }
 
-        // Update app.ts
-        $appTsPath = base_path('resources/scripts/app.ts');
+        // Copy pixel-matrix.ts
+        $pixelMatrixTemplate = __DIR__ . '/../../templates/scripts/pixel-matrix.ts';
+        $pixelMatrixTarget = $scriptsDir . '/pixel-matrix.ts';
+        
+        if ($this->files->exists($pixelMatrixTemplate)) {
+            $this->files->copy($pixelMatrixTemplate, $pixelMatrixTarget);
+            $this->info('Created pixel-matrix.ts');
+        } else {
+            $this->error('Pixel matrix template not found at: ' . $pixelMatrixTemplate);
+            return;
+        }
+
+        // Update existing app.ts
+        $appTsPath = $scriptsDir . '/app.ts';
         if ($this->files->exists($appTsPath)) {
             $appTs = $this->files->get($appTsPath);
             $modified = false;
@@ -768,34 +768,29 @@ CSS;
                 if ($lastImportPos !== false) {
                     $endOfLine = strpos($appTs, "\n", $lastImportPos);
                     if ($endOfLine !== false) {
-                        $appTs = substr_replace(
-                            $appTs,
-                            "\nimport PixelMatrix from './pixel-matrix';",
-                            $endOfLine,
-                            0
-                        );
+                        $appTs = substr_replace($appTs, "\nimport PixelMatrix from './pixel-matrix'", $endOfLine, 0);
                         $modified = true;
                     }
                 } else {
                     // No imports found, add at the beginning
-                    $appTs = "import PixelMatrix from './pixel-matrix';\n" . $appTs;
+                    $appTs = "import PixelMatrix from './pixel-matrix'\n" . $appTs;
                     $modified = true;
                 }
             }
 
             // Add PixelMatrix initialization if it doesn't exist
             if (!str_contains($appTs, "new PixelMatrix")) {
-                // Find the last closing brace or add before webpack hot accept
-                $insertPos = strrpos($appTs, "import.meta.webpackHot");
+                $initCode = "\n// Initialize PixelMatrix on pricing boxes\n";
+                $initCode .= "document.addEventListener('DOMContentLoaded', () => {\n";
+                $initCode .= "    const pricingBoxes = document.querySelectorAll('.pricing-box')\n";
+                $initCode .= "    pricingBoxes.forEach(box => new PixelMatrix(box as HTMLElement))\n";
+                $initCode .= "})\n";
+
+                // Find the right position to insert (before webpack hot accept if it exists)
+                $insertPos = strrpos($appTs, "if (import.meta.webpackHot)");
                 if ($insertPos === false) {
                     $insertPos = strlen($appTs);
                 }
-
-                $initCode = "\n\n// Initialize PixelMatrix on pricing boxes\n";
-                $initCode .= "document.addEventListener('DOMContentLoaded', () => {\n";
-                $initCode .= "    const pricingBoxes = document.querySelectorAll('.pricing-box');\n";
-                $initCode .= "    pricingBoxes.forEach(box => new PixelMatrix(box as HTMLElement));\n";
-                $initCode .= "});\n";
 
                 $appTs = substr_replace($appTs, $initCode, $insertPos, 0);
                 $modified = true;
@@ -808,7 +803,7 @@ CSS;
                 $this->info('app.ts already contains PixelMatrix integration');
             }
         } else {
-            $this->warn('app.ts not found');
+            $this->warn('app.ts not found in resources/scripts directory');
         }
     }
 }
