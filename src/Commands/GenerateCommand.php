@@ -480,11 +480,11 @@ BLADE;
 <html @php(language_attributes()) class='dark relative h-screen' x-data='{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }' x-init='@{{ \$watch }}("darkMode", val => localStorage.setItem("darkMode", val))' :class='{ "dark": darkMode }'>
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
-        <img src="/dist/images/bonsai_hero_03.webp"
+        <img src="@asset('images/bonsai_hero_03.webp')"
              alt="Background Light" 
              class="w-full h-full object-cover object-top opacity-100 block dark:hidden"
         />
-        <img src="/dist/images/bonsai_hero_01.webp"
+        <img src="@asset('images/bonsai_hero_01.webp')"
              alt="Background Dark" 
              class="w-full h-full object-cover object-top opacity-100 hidden dark:block"
         />
@@ -710,7 +710,7 @@ BLADE;
 
         return <<<BLADE
 {{-- 
-    Template Name: {{ \$config['name'] ?? ucfirst(\$template) }}
+    Template Name: Cypress Template
 --}}
 @extends('{$layoutNamespace}.{$layout}')
 
@@ -851,9 +851,9 @@ BLADE;
             base_path("templates/assets/{$template}")
         ];
 
-        $targetDir = base_path('public/dist/images');
+        $targetDir = resource_path('images');
 
-        // Create dist/images directory if it doesn't exist
+        // Create resources/images directory if it doesn't exist
         if (!$this->files->isDirectory($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
             $this->info("Created directory: {$targetDir}");
@@ -869,7 +869,7 @@ BLADE;
                     $targetPath = $targetDir . '/' . $filename;
                     
                     if ($this->files->copy($file->getPathname(), $targetPath)) {
-                        $this->info("✓ Copied asset: {$filename} to dist/images/");
+                        $this->info("✓ Copied asset: {$filename} to resources/images/");
                         $assetsFound = true;
                     } else {
                         $this->warn("! Failed to copy asset: {$filename}");
