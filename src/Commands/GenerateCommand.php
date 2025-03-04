@@ -673,11 +673,6 @@ BLADE;
 
     protected function generateTemplateContent($template, $layout, $config)
     {
-        $sections = $config['sections'] ?? [];
-        $sectionIncludes = array_map(function($section) {
-            return "@include('bonsai.sections.{$section}')";
-        }, $sections);
-
         // Check if we should use bonsai namespace for layout
         $layoutNamespace = file_exists(resource_path("views/bonsai/layouts/{$layout}.blade.php")) 
             ? 'bonsai.layouts' 
@@ -690,7 +685,6 @@ BLADE;
 @extends('{$layoutNamespace}.{$layout}')
 
 @section('content')
-{$this->indent(implode("\n", $sectionIncludes), 4)}
 @endsection
 BLADE;
     }
