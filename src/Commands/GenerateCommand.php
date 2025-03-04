@@ -440,13 +440,10 @@ BLADE;
     protected function generateLayouts($layouts)
     {
         $template = $this->argument('template');
-        $config = $this->loadConfig($this->getConfigPath($template));
+        $this->info("\n🎨 Generating layouts...");
         
-        $this->info("🔍 Checking for existing layout in bonsai namespace...");
-        
-        // First check if a bonsai-namespaced layout exists
+        // Check for existing bonsai layout first
         $bonsaiLayoutPath = resource_path("views/bonsai/layouts/{$template}.blade.php");
-        $this->info("Checking bonsai layout path: {$bonsaiLayoutPath}");
         
         if (file_exists($bonsaiLayoutPath)) {
             $this->info("✓ Found existing bonsai layout, using it as source");
@@ -483,11 +480,11 @@ BLADE;
 <html @php(language_attributes()) class='dark relative h-screen' x-data='{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }' x-init='@{{ \$watch }}("darkMode", val => localStorage.setItem("darkMode", val))' :class='{ "dark": darkMode }'>
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
-        <img src="{{ asset('images/bonsai_hero_03.png') }}" 
+        <img src="{{ asset('images/bonsai_hero_03.webp') }}" 
              alt="Background Light" 
              class="w-full h-full object-cover object-top opacity-100 block dark:hidden"
         />
-        <img src="{{ asset('images/bonsai_hero_01.png') }}" 
+        <img src="{{ asset('images/bonsai_hero_01.webp') }}" 
              alt="Background Dark" 
              class="w-full h-full object-cover object-top opacity-100 hidden dark:block"
         />
@@ -848,28 +845,44 @@ BLADE;
 
     protected function copyTemplateAssets($template)
     {
-        $sourceDir = $this->getPackageRoot() . "/templates/assets/{$template}";
-        $targetDir = resource_path('images');
+        // Check both package and local template assets
+        $possibleSourceDirs = [
+            $this->getPackageRoot() . "/templates/assets/{$template}",
+            base_path("templates/assets/{$template}")
+        ];
 
-        if (!$this->files->isDirectory($sourceDir)) {
-            $this->warn("! No assets found for template: {$template}");
-            return;
-        }
+        $targetDir = public_path('images');
 
-        // Create resources/images directory if it doesn't exist
+        // Create public/images directory if it doesn't exist
         if (!$this->files->isDirectory($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
+            $this->info("Created directory: {$targetDir}");
         }
 
-        // Copy all files from the template assets directory
-        foreach ($this->files->files($sourceDir) as $file) {
-            $filename = $file->getFilename();
-            $targetPath = $targetDir . '/' . $filename;
-            
-            if ($this->files->copy($file->getPathname(), $targetPath)) {
-                $this->info("✓ Copied asset: {$filename}");
-            } else {
-                $this->warn("! Failed to copy asset: {$filename}");
+        $assetsFound = false;
+
+        foreach ($possibleSourceDirs as $sourceDir) {
+            if ($this->files->isDirectory($sourceDir)) {
+                // Copy all files from the template assets directory
+                foreach ($this->files->files($sourceDir) as $file) {
+                    $filename = $file->getFilename();
+                    $targetPath = $targetDir . '/' . $filename;
+                    
+                    if ($this->files->copy($file->getPathname(), $targetPath)) {
+                        $this->info("✓ Copied asset: {$filename} to public/images/");
+                        $assetsFound = true;
+                    } else {
+                        $this->warn("! Failed to copy asset: {$filename}");
+                    }
+                }
+            }
+        }
+
+        if (!$assetsFound) {
+            $this->warn("! No assets found for template: {$template}");
+            $this->info("  Checked directories:");
+            foreach ($possibleSourceDirs as $dir) {
+                $this->info("  - {$dir}");
             }
         }
     }
