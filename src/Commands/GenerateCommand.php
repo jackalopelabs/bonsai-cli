@@ -96,6 +96,18 @@ class GenerateCommand extends Command
             'hero' => ['icons.github'],
         ];
 
+        // Get all components from sections that use namespaced components
+        $configPath = $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
+        $namespacedComponents = [];
+        
+        foreach ($config['sections'] ?? [] as $section => $sectionConfig) {
+            if (isset($sectionConfig['component']) && str_contains($sectionConfig['component'], '.')) {
+                $namespacedComponents[] = $sectionConfig['component'];
+            }
+        }
+
+        // Merge with explicitly defined components
         if (isset($components[0])) {
             $this->info("\nProcessing array-style component list");
             $components = array_filter($components, function($c) {
@@ -105,6 +117,13 @@ class GenerateCommand extends Command
                 ]);
             });
             $components = array_combine($components, array_fill(0, count($components), []));
+        }
+
+        // Add namespaced components to the components list
+        foreach ($namespacedComponents as $component) {
+            if (!isset($components[$component])) {
+                $components[$component] = [];
+            }
         }
 
         $this->info("\nComponents to process: " . implode(', ', array_keys($components)));
@@ -195,7 +214,13 @@ class GenerateCommand extends Command
         );
         
         foreach (array_unique($allComponents) as $comp) {
-            $path = resource_path("views/bonsai/components/{$template}/{$comp}.blade.php");
+            if (str_contains($comp, '.')) {
+                // Handle namespaced components
+                list($namespace, $name) = explode('.', $comp);
+                $path = resource_path("views/bonsai/components/{$namespace}/{$name}.blade.php");
+            } else {
+                $path = resource_path("views/bonsai/components/{$template}/{$comp}.blade.php");
+            }
             $this->info(file_exists($path) 
                 ? "✓ {$comp}: Found at {$path}" 
                 : "❌ {$comp}: Missing from {$path}");
