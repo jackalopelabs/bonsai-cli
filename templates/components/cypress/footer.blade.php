@@ -6,8 +6,6 @@
 // Extract data with defaults
 $containerClasses = $data['containerClasses'] ?? 'container mx-auto';
 $brandData = $data['brand'] ?? [
-    'icon' => 'icon-jackalope',
-    'name' => 'Jackalope Labs',
     'classes' => [
         'container' => 'flex items-center',
         'icon' => 'h-8 w-8 mr-2 p-1',
@@ -44,7 +42,9 @@ $styles = $data['styles'] ?? [
         <div class="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-start justify-between">
             {{-- Brand --}}
             <div class="{{ $brandData['classes']['container'] }}">
-                <x-dynamic-component :component="$brandData['icon']" class="{{ $brandData['classes']['icon'] }}" />
+                @if(isset($brandData['iconSvg']))
+                    {!! $brandData['iconSvg'] !!}
+                @endif
                 <span class="{{ $brandData['classes']['text'] }}">{{ $brandData['name'] }}</span>
             </div>
 
