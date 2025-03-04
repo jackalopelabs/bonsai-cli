@@ -674,8 +674,8 @@ BLADE;
     protected function generateTemplateContent($template, $layout, $config)
     {
         $sections = $config['sections'] ?? [];
-        $sectionIncludes = array_map(function($section) use ($template) {
-            return "@include('bonsai.{$template}.sections.{$section}')";
+        $sectionIncludes = array_map(function($section) {
+            return "@include('bonsai.sections.{$section}')";
         }, $sections);
 
         // Check if we should use bonsai namespace for layout
