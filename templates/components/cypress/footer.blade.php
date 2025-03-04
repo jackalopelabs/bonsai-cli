@@ -7,7 +7,7 @@
 $containerClasses = $data['containerClasses'] ?? 'container mx-auto';
 $brandData = $data['brand'] ?? [
     'classes' => [
-        'container' => 'flex items-center',
+        'container' => 'flex items-center hover:opacity-80 transition-opacity',
         'icon' => 'h-8 w-8 mr-2 p-1',
         'text' => 'font-semibold text-xl tracking-tight text-gray-900 dark:text-white'
     ]
@@ -41,12 +41,12 @@ $styles = $data['styles'] ?? [
     <div class="{{ $containerClasses }} mt-36">
         <div class="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-start justify-between">
             {{-- Brand --}}
-            <div class="{{ $brandData['classes']['container'] }}">
+            <a href="{{ $brandData['url'] }}" class="{{ $brandData['classes']['container'] }}">
                 @if(isset($brandData['iconSvg']))
                     {!! str_replace(['\"', '\&quot;'], '"', $brandData['iconSvg']) !!}
                 @endif
                 <span class="{{ $brandData['classes']['text'] }}">{{ $brandData['name'] }}</span>
-            </div>
+            </a>
 
             {{-- Menu Groups --}}
             <div class="{{ $styles['footer']['grid'] }}">

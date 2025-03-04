@@ -6,12 +6,10 @@
 // Extract data with defaults
 $containerClasses = $data['containerClasses'] ?? 'container mx-auto';
 $brandData = $data['brand'] ?? [
-    'icon' => 'icon-jackalope',
-    'name' => 'Jackalope Labs',
     'classes' => [
-        'container' => 'flex items-center',
+        'container' => 'flex items-center hover:opacity-80 transition-opacity',
         'icon' => 'h-8 w-8 mr-2 p-1',
-        'text' => 'font-semibold text-xl tracking-tight text-gray-800'
+        'text' => 'font-semibold text-xl tracking-tight text-gray-900 dark:text-white'
     ]
 ];
 $menuGroups = $data['menuGroups'] ?? [];
@@ -24,17 +22,17 @@ $copyright = $data['copyright'] ?? [
 $styles = $data['styles'] ?? [
     'footer' => [
         'grid' => 'grid grid-cols-2 gap-12 sm:grid-cols-4 mt-8 md:mt-0 md:order-3',
-        'heading' => 'text-gray-700 font-semibold',
-        'list' => 'text-gray-600 mt-4',
+        'heading' => 'text-gray-900 dark:text-white font-semibold',
+        'list' => 'text-gray-700 dark:text-gray-300 mt-4',
         'socialContainer' => 'flex mt-4 gap-4',
-        'socialLink' => 'text-gray-600 hover:text-gray-500 backdrop-blur-md shadow-lg rounded-full p-2',
-        'divider' => 'border-t',
+        'socialLink' => 'text-gray-700 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-400 backdrop-blur-md shadow-lg rounded-full p-2',
+        'divider' => 'border-t border-gray-200 dark:border-gray-700',
         'bottomBar' => 'max-w-6xl mx-auto px-4 py-4 md:flex md:items-center md:justify-between',
         'legalLinks' => 'flex justify-center space-x-6 md:order-2',
-        'legalLink' => 'text-gray-600 hover:text-gray-500 mt-2',
+        'legalLink' => 'text-gray-700 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-400 mt-2',
         'copyright' => 'mt-4 md:mt-0 md:order-1',
-        'copyrightText' => 'text-center text-gray-600 text-sm',
-        'tagline' => 'text-gray-200'
+        'copyrightText' => 'text-center text-gray-700 dark:text-gray-300 text-sm',
+        'tagline' => 'text-gray-500 dark:text-gray-400'
     ]
 ];
 @endphp
@@ -43,10 +41,12 @@ $styles = $data['styles'] ?? [
     <div class="{{ $containerClasses }} mt-36">
         <div class="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-start justify-between">
             {{-- Brand --}}
-            <div class="{{ $brandData['classes']['container'] }}">
-                <x-dynamic-component :component="$brandData['icon']" class="{{ $brandData['classes']['icon'] }}" />
+            <a href="{{ $brandData['url'] }}" class="{{ $brandData['classes']['container'] }}">
+                @if(isset($brandData['iconSvg']))
+                    {!! str_replace(['\"', '\&quot;'], '"', $brandData['iconSvg']) !!}
+                @endif
                 <span class="{{ $brandData['classes']['text'] }}">{{ $brandData['name'] }}</span>
-            </div>
+            </a>
 
             {{-- Menu Groups --}}
             <div class="{{ $styles['footer']['grid'] }}">
@@ -66,7 +66,7 @@ $styles = $data['styles'] ?? [
                 {{-- Social Links --}}
                 @if(!empty($socialLinks))
                     <div>
-                        <h3 class="text-gray-400">{{ $socialLinks['title'] }}</h3>
+                        <h3 class="{{ $styles['footer']['heading'] }}">{{ $socialLinks['title'] }}</h3>
                         <div class="{{ $styles['footer']['socialContainer'] }}">
                             @foreach($socialLinks['links'] as $social)
                                 <a href="{{ $social['url'] }}" class="{{ $styles['footer']['socialLink'] }}" aria-label="{{ $social['label'] }}">
