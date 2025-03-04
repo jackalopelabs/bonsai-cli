@@ -458,7 +458,7 @@ BLADE;
 
             $layoutContent = <<<BLADE
 <!doctype html>
-<html @php(language_attributes()) class='dark relative h-screen' x-data='{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }' x-init='$watch("darkMode", val => localStorage.setItem("darkMode", val))' :class='{ "dark": darkMode }'>
+<html @php(language_attributes()) class='dark relative h-screen' x-data='{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }' x-init='@{{ \$watch }}("darkMode", val => localStorage.setItem("darkMode", val))' :class='{ "dark": darkMode }'>
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
         <img src="{{ asset('images/bonsai_hero_03.png') }}" 
