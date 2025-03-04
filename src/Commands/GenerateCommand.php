@@ -481,13 +481,11 @@ BLADE;
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
-            @includeIf('bonsai.sections.site_header')
             <main id="main" class="max-w-5xl mx-auto">
                 <div class="{{ \$containerInnerClasses ?? 'px-6' }}">
                     @yield('content')
                 </div>
             </main>
-            @includeIf('bonsai.sections.footer')
         </div>
         @php(do_action('get_footer'))
         @php(wp_footer())
@@ -673,6 +671,11 @@ BLADE;
 
     protected function generateTemplateContent($template, $layout, $config)
     {
+        $sections = $config['sections'] ?? [];
+        $sectionIncludes = array_map(function($section) {
+            return "@include('bonsai.sections.{$section}')";
+        }, $sections);
+
         // Check if we should use bonsai namespace for layout
         $layoutNamespace = file_exists(resource_path("views/bonsai/layouts/{$layout}.blade.php")) 
             ? 'bonsai.layouts' 
@@ -685,6 +688,7 @@ BLADE;
 @extends('{$layoutNamespace}.{$layout}')
 
 @section('content')
+{$this->indent(implode("\n", $sectionIncludes), 4)}
 @endsection
 BLADE;
     }
