@@ -672,6 +672,11 @@ BLADE;
     protected function generateTemplateContent($template, $layout, $config)
     {
         $sections = $config['sections'] ?? [];
+        // Filter out site_header from sections
+        $sections = array_filter($sections, function($section) {
+            return $section !== 'site_header';
+        });
+        
         $sectionIncludes = array_map(function($section) {
             return "@include('bonsai.sections.{$section}')";
         }, $sections);
