@@ -19,6 +19,7 @@ class CleanupCommand extends Command
         'scripts/bonsai.sh',
         'bonsai.config.ts',
         'resources/styles/bonsai.css',
+        'resources/scripts/pixel-matrix.ts',
     ];
 
     public function handle()
@@ -33,6 +34,8 @@ class CleanupCommand extends Command
         $this->cleanupMenus();
         $this->resetTemplateRegistry();
         $this->cleanupTailwindConfig();
+        $this->cleanupAppCss();
+        $this->cleanupAppTs();
         
         $this->info('Cleanup completed successfully!');
     }
@@ -204,6 +207,55 @@ class CleanupCommand extends Command
             $this->line("- Cleaned up Tailwind configuration");
         } catch (\Exception $e) {
             $this->error("Failed to update tailwind.config.ts: " . $e->getMessage());
+        }
+    }
+
+    protected function cleanupAppCss()
+    {
+        $this->info('Cleaning up app.css...');
+        
+        $appCssPath = base_path('resources/styles/app.css');
+        
+        if (File::exists($appCssPath)) {
+            try {
+                $content = File::get($appCssPath);
+                $updatedContent = preg_replace("/@import\s+['\"]bonsai\.css['\"];?\n?/", '', $content);
+                
+                if ($content !== $updatedContent) {
+                    File::put($appCssPath, $updatedContent);
+                    $this->line("- Removed bonsai.css import from app.css");
+                }
+            } catch (\Exception $e) {
+                $this->error("Failed to update app.css: " . $e->getMessage());
+            }
+        }
+    }
+
+    protected function cleanupAppTs()
+    {
+        $this->info('Cleaning up app.ts...');
+        
+        $appTsPath = base_path('resources/scripts/app.ts');
+        
+        if (File::exists($appTsPath)) {
+            try {
+                $content = File::get($appTsPath);
+                
+                // Remove the import statement and the PixelMatrix initialization code
+                $pattern = "/import\s+PixelMatrix\s+from\s+['\"]\.\\/pixel-matrix['\"].*?(?:\/\/\s*Initialize\s+PixelMatrix\s+on\s+pricing\s+boxes\s*document\.addEventListener\(['\"]DOMContentLoaded['\"]\s*,\s*\(\)\s*=>\s*{\s*const\s+pricingBoxes\s*=\s*document\.querySelectorAll\(['\"]\.pricing-box['\"]\)\s*pricingBoxes\.forEach\(box\s*=>\s*new\s+PixelMatrix\(box\s+as\s+HTMLElement\)\)\s*}\))/s";
+                
+                $updatedContent = preg_replace($pattern, '', $content);
+                
+                // Clean up any resulting double newlines
+                $updatedContent = preg_replace("/\n{3,}/", "\n\n", $updatedContent);
+                
+                if ($content !== $updatedContent) {
+                    File::put($appTsPath, $updatedContent);
+                    $this->line("- Removed PixelMatrix code from app.ts");
+                }
+            } catch (\Exception $e) {
+                $this->error("Failed to update app.ts: " . $e->getMessage());
+            }
         }
     }
 }
