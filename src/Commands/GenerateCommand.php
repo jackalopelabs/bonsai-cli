@@ -337,27 +337,25 @@ BLADE;
 
     protected function generateSections($sections)
     {
-        $template = $this->argument('template');
-        
         foreach ($sections as $section => $config) {
             $componentType = $config['component'] ?? $section;
             $type = explode('_', $section)[0];
             
-            // Generate the section in the bonsai template's directory structure
-            $fullPath = resource_path("views/bonsai/{$template}/sections/{$section}.blade.php");
+            // Generate the section in the bonsai sections directory
+            $fullPath = resource_path("views/bonsai/sections/{$section}.blade.php");
             
             if (!$this->files->exists(dirname($fullPath))) {
                 $this->files->makeDirectory(dirname($fullPath), 0755, true);
             }
 
-            $sectionContent = $this->generateSectionContent($template, $section, $componentType, $config['data'] ?? []);
+            $sectionContent = $this->generateSectionContent($componentType, $section, $config['data'] ?? []);
             $this->files->put($fullPath, $sectionContent);
             
-            $this->info("Generated section: bonsai/{$template}/sections/{$section}");
+            $this->info("Generated section: bonsai/sections/{$section}");
         }
     }
 
-    protected function generateSectionContent($template, $section, $componentType, $data)
+    protected function generateSectionContent($componentType, $section, $data)
     {
         $dataVarName = "{$section}Data";
 
@@ -373,10 +371,9 @@ BLADE;
 
         // Handle namespaced components (e.g., cypress.header)
         $componentParts = explode('.', $componentType);
-        $componentNamespace = count($componentParts) > 1 ? $componentParts[0] : $template;
         $componentName = count($componentParts) > 1 ? $componentParts[1] : $componentType;
 
-        // Build the section content with proper component reference
+        // Build the section content
         return <<<BLADE
 @props([
     'class' => ''
@@ -389,7 +386,7 @@ BLADE;
 @endphp
 
 <div class="{{ \$class }}">
-    <x-bonsai::{$componentNamespace}.{$componentName} :data="\${$dataVarName}" />
+    <x-bonsai::{$componentName} :data="\${$dataVarName}" />
 </div>
 BLADE;
     }
@@ -484,13 +481,13 @@ BLADE;
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
-            @include('{$template}.sections.site_header')
+            @includeIf('bonsai.sections.site_header')
             <main id="main" class="max-w-5xl mx-auto">
                 <div class="{{ \$containerInnerClasses ?? 'px-6' }}">
                     @yield('content')
                 </div>
             </main>
-            @includeIf('{$template}.sections.footer')
+            @includeIf('bonsai.sections.footer')
         </div>
         @php(do_action('get_footer'))
         @php(wp_footer())
