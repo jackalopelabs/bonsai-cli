@@ -728,4 +728,87 @@ CSS;
             $this->warn('app.css not found');
         }
     }
+
+    protected function configureScripts()
+    {
+        $this->info('Configuring Scripts...');
+
+        // Create pixel-matrix.ts
+        $pixelMatrixPath = base_path('resources/scripts/pixel-matrix.ts');
+        if (!$this->files->exists($pixelMatrixPath)) {
+            // Get the template path
+            $templatePath = __DIR__ . '/../../templates/scripts/pixel-matrix.ts';
+            
+            if (!$this->files->exists($templatePath)) {
+                $this->error('Pixel matrix template not found');
+                return;
+            }
+
+            // Ensure directory exists
+            $dir = dirname($pixelMatrixPath);
+            if (!$this->files->isDirectory($dir)) {
+                $this->files->makeDirectory($dir, 0755, true);
+            }
+
+            // Copy the template
+            $this->files->copy($templatePath, $pixelMatrixPath);
+            $this->info('Created pixel-matrix.ts');
+        }
+
+        // Update app.ts
+        $appTsPath = base_path('resources/scripts/app.ts');
+        if ($this->files->exists($appTsPath)) {
+            $appTs = $this->files->get($appTsPath);
+            $modified = false;
+
+            // Add PixelMatrix import if it doesn't exist
+            if (!str_contains($appTs, "import PixelMatrix")) {
+                // Find the last import statement
+                $lastImportPos = strrpos($appTs, "import");
+                if ($lastImportPos !== false) {
+                    $endOfLine = strpos($appTs, "\n", $lastImportPos);
+                    if ($endOfLine !== false) {
+                        $appTs = substr_replace(
+                            $appTs,
+                            "\nimport PixelMatrix from './pixel-matrix';",
+                            $endOfLine,
+                            0
+                        );
+                        $modified = true;
+                    }
+                } else {
+                    // No imports found, add at the beginning
+                    $appTs = "import PixelMatrix from './pixel-matrix';\n" . $appTs;
+                    $modified = true;
+                }
+            }
+
+            // Add PixelMatrix initialization if it doesn't exist
+            if (!str_contains($appTs, "new PixelMatrix")) {
+                // Find the last closing brace or add before webpack hot accept
+                $insertPos = strrpos($appTs, "import.meta.webpackHot");
+                if ($insertPos === false) {
+                    $insertPos = strlen($appTs);
+                }
+
+                $initCode = "\n\n// Initialize PixelMatrix on pricing boxes\n";
+                $initCode .= "document.addEventListener('DOMContentLoaded', () => {\n";
+                $initCode .= "    const pricingBoxes = document.querySelectorAll('.pricing-box');\n";
+                $initCode .= "    pricingBoxes.forEach(box => new PixelMatrix(box as HTMLElement));\n";
+                $initCode .= "});\n";
+
+                $appTs = substr_replace($appTs, $initCode, $insertPos, 0);
+                $modified = true;
+            }
+
+            if ($modified) {
+                $this->files->put($appTsPath, $appTs);
+                $this->info('Updated app.ts with PixelMatrix integration');
+            } else {
+                $this->info('app.ts already contains PixelMatrix integration');
+            }
+        } else {
+            $this->warn('app.ts not found');
+        }
+    }
 }
