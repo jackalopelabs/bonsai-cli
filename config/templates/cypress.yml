@@ -447,8 +447,8 @@ wordpress:
 # Asset compilation settings
 assets:
   images:
-    - bonsai_hero_01.png
-    - bonsai_hero_03.png
+    - bonsai_hero_01.webp
+    - bonsai_hero_03.webp
   styles:
     - resources/styles/cypress.scss
     - resources/styles/editor.scss
