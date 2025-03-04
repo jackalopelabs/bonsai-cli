@@ -43,7 +43,7 @@ $styles = $data['styles'] ?? [
             {{-- Brand --}}
             <div class="{{ $brandData['classes']['container'] }}">
                 @if(isset($brandData['iconSvg']))
-                    {!! $brandData['iconSvg'] !!}
+                    {!! str_replace(['\"', '\&quot;'], '"', $brandData['iconSvg']) !!}
                 @endif
                 <span class="{{ $brandData['classes']['text'] }}">{{ $brandData['name'] }}</span>
             </div>
@@ -66,7 +66,7 @@ $styles = $data['styles'] ?? [
                 {{-- Social Links --}}
                 @if(!empty($socialLinks))
                     <div>
-                        <h3 class="text-gray-400">{{ $socialLinks['title'] }}</h3>
+                        <h3 class="{{ $styles['footer']['heading'] }}">{{ $socialLinks['title'] }}</h3>
                         <div class="{{ $styles['footer']['socialContainer'] }}">
                             @foreach($socialLinks['links'] as $social)
                                 <a href="{{ $social['url'] }}" class="{{ $styles['footer']['socialLink'] }}" aria-label="{{ $social['label'] }}">
