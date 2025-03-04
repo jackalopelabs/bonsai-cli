@@ -404,6 +404,7 @@ layouts:
       - services_card
       - features_widget
       - pricing
+      - site_footer
 
 pages:
   home:
