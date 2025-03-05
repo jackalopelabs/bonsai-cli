@@ -261,8 +261,8 @@ class CleanupCommand extends Command
                 
                 $updatedContent = preg_replace($pattern, '', $content);
                 
-                // Clean up multiple empty lines, ensuring only single newlines remain
-                $updatedContent = preg_replace("/\n{2,}/", "\n", $updatedContent);
+                // Remove extra newlines at the end of the file while preserving existing spacing
+                $updatedContent = rtrim($updatedContent) . "\n";
                 
                 if ($content !== $updatedContent) {
                     File::put($appTsPath, $updatedContent);
