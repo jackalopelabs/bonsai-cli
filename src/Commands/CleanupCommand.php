@@ -207,6 +207,12 @@ class CleanupCommand extends Command
             // Clean up any trailing commas before closing braces
             $content = preg_replace('/,(\s*})/', '$1', $content);
 
+            // Fix indentation for theme: { to be consistent
+            $content = preg_replace('/(\s+)theme:\s*{/', '  theme: {', $content);
+
+            // Clean up multiple empty lines
+            $content = preg_replace("/\n{3,}/", "\n\n", $content);
+
             File::put($configPath, $content);
             $this->line("- Cleaned up Tailwind configuration");
         } catch (\Exception $e) {
@@ -223,7 +229,12 @@ class CleanupCommand extends Command
         if (File::exists($appCssPath)) {
             try {
                 $content = File::get($appCssPath);
-                $updatedContent = preg_replace("/@import\s+['\"]bonsai\.css['\"];?\n?/", '', $content);
+                
+                // Remove bonsai.css import and any resulting empty lines
+                $updatedContent = preg_replace("/@import\s+['\"]bonsai\.css['\"];?\n*/", '', $content);
+                
+                // Clean up multiple empty lines
+                $updatedContent = preg_replace("/\n{2,}/", "\n", $updatedContent);
                 
                 if ($content !== $updatedContent) {
                     File::put($appCssPath, $updatedContent);
@@ -250,8 +261,8 @@ class CleanupCommand extends Command
                 
                 $updatedContent = preg_replace($pattern, '', $content);
                 
-                // Clean up any resulting double newlines
-                $updatedContent = preg_replace("/\n{3,}/", "\n\n", $updatedContent);
+                // Clean up multiple empty lines, ensuring only single newlines remain
+                $updatedContent = preg_replace("/\n{2,}/", "\n", $updatedContent);
                 
                 if ($content !== $updatedContent) {
                     File::put($appTsPath, $updatedContent);
