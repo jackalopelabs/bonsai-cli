@@ -60,10 +60,10 @@ sections:
           label: 'Components'
         - url: '/tutorials'
           label: 'Tutorials'
-      primaryLink: '#plans'
+      primaryLink: '#pricing'
       containerClasses: 'px-6 flex justify-between items-center w-full'
       headerClass: 'max-w-5xl mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4'
-      buttonText: 'Plans'
+      buttonText: 'Pricing'
       buttonPrefix: 'See'
       showDarkModeToggle: true
       darkModeToggleClass: 'p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200'
@@ -73,14 +73,13 @@ sections:
     component: hero
     data:
       # Content
-      title: "Elevate Your Agency's Web Presence"
-      subtitle: "Sleek Design Meets Powerful Functionality"
-      description: "Cypress offers a streamlined approach to creating stunning landing pages with the flexibility of no-code editing and developer-friendly tools."
-      imagePaths: ["https://placehold.co/600x400/png"]
-      buttonText: "Get Started"
-      buttonLink: "#pricing"
-      secondaryText: "View Demo"
-      secondaryLink: "#demo"
+      title: "Bonsai CLI"
+      subtitle: "Generate a beautful Roots project in minutes"
+      description: "A WordPress CLI tool for generating and managing reusable components, layouts, and sections in Roots-based projects"
+      buttonText: "Watch Demo"
+      buttonLink: "/docs"
+      secondaryText: "Github"
+      secondaryLink: "https://github.com/jackalope-labs/bonsai-cli"
       buttonLinkIcon: true
       secondaryIcon: true
       
@@ -100,17 +99,17 @@ sections:
       # Icons
       iconMappings:
         dropdownIcon: "heroicon-s-chevron-down"
-        buttonLinkIcon: "heroicon-s-sparkles"
-        secondaryIcon: "heroicon-s-play"
+        buttonLinkIcon: "heroicon-s-play"
+        secondaryIcon: "heroicon-s-arrow-right"
 
   services_card:
     component: card
     data:
-      sectionId: "services"
-      sectionTitle: "<span class=\"hidden sm:inline\">Our</span> Services"
+      sectionId: "features"
+      sectionTitle: "Features"
       navLinks: [
-        {"url": "#features", "label": "Features"},
-        {"url": "#docs", "label": "Documentation"}
+        {"url": "/docs", "label": "Documentation"},
+        {"url": "#pricing", "label": "Pricing"}
       ]
       # Style classes
       sectionClasses: "py-12"
@@ -132,17 +131,17 @@ sections:
         {
           "icon": "heroicon-o-command-line",
           "title": "Component Generation",
-          "description": "Generate reusable components with a single command."
+          "description": "Generate reusable components with a single command"
         },
         {
           "icon": "heroicon-o-puzzle-piece",
           "title": "Section Builder",
-          "description": "Create and manage page sections with dynamic data."
+          "description": "Create and manage page sections with dynamic data"
         },
         {
           "icon": "heroicon-o-template",
-          "title": "Template System",
-          "description": "Pre-built templates for rapid WordPress development."
+          "title": "Template Builder",
+          "description": "Build custom templates in seconds"
         }
       ]
 
@@ -175,7 +174,7 @@ sections:
           content: ""
           cta:
             title: "Template System"
-            link: "#templates"
+            link: "/docs"
             imagePath: "https://bonsai.so/dist/images/template-system_v01.adb3a1.png"
             buttonText: "Learn more"
           description: "Generate complete WordPress sites from templates:"
@@ -195,7 +194,7 @@ sections:
           content: ""
           cta:
             title: "Component Generation"
-            link: "#components"
+            link: "/docs"
             imagePath: "https://bonsai.so/dist/images/component-generation_v01.92fb24.png"
             buttonText: "Learn more"
           description: "Generate and manage reusable components with ease:"
@@ -218,7 +217,7 @@ sections:
           content: ""
           cta:
             title: "Section Builder"
-            link: "#sections"
+            link: "/docs"
             imagePath: "https://bonsai.so/dist/images/section-builder_v01.143d17.png"
             buttonText: "Learn more"
           description: "Build dynamic page sections with powerful features:"
@@ -238,7 +237,7 @@ sections:
           content: ""
           cta:
             title: "Documentation"
-            link: "#documentation"
+            link: "/docs"
             imagePath: "https://bonsai.so/dist/images/documentation_v01.dfc82e.png"
             buttonText: "Learn more"
           description: "Comprehensive documentation and configuration guides:"
@@ -272,22 +271,22 @@ sections:
         ctaButtonClasses: "inline-block py-2 px-6 rounded-full"
         ctaIconClasses: "inline-block h-4 w-4 ml-2"
 
-      title: "Flexible Pricing Plans"
-      subtitle: "Choose a plan that fits your agency's needs"
-      description: "All plans include premium support and regular updates. Upgrade anytime to unlock more features."
+      title: "Choose Your Plan"
+      subtitle: "Select the plan that best suits your needs. Lock in your price early and keep it forever, or until you cancel."
+      description: "Limited-time pricing available now"
       pricingBoxes:
         - icon: "heroicon-o-building-storefront"
           iconColor: "text-purple-500"
           planType: "Starter"
-          price: "$99"
+          price: "Free"
           features:
-            - "3 site licenses"
-            - "All premium features"
-            - "Visual builder access"
-            - "Standard support"
-            - "Regular updates"
-          ctaLink: "#buy-starter"
-          ctaText: "Purchase"
+            - "Bonsai CLI"
+            - "Cypress Alpha Access"
+            - "All components"
+            - "Tutorials"
+            - "Community support"
+          ctaLink: "https://github.com/jackalope-labs/bonsai-cli"
+          ctaText: "Github"
           ctaColor: "bg-white"
           iconBtn: "heroicon-o-arrow-right"
           iconBtnColor: "text-gray-500"
@@ -295,34 +294,31 @@ sections:
         - icon: "heroicon-o-building-office-2"
           iconColor: "text-indigo-600"
           planType: "Professional"
-          price: "$299"
+          price: "$99/yr"
           features:
-            - "10 site licenses"
-            - "White labeling"
-            - "Priority support"
-            - "Client management tools"
-            - "Advanced templates"
+            - "Cypress Theme"
+            - "Cypress Components"
+            - "Exclusive Content"
+            - "Discord Support"
             - "Early access to new features"
           ctaLink: "#buy-professional"
           ctaText: "Purchase"
           ctaColor: "bg-gradient-to-r from-emerald-600 to-green-500 text-white"
-          iconBtn: "heroicon-o-shopping-cart"
+          iconBtn: "heroicon-o-arrow-down-on-square"
           iconBtnColor: "text-white"
 
         - icon: "heroicon-o-globe-americas"
           iconColor: "text-blue-600"
           planType: "Enterprise"
-          price: "$799"
+          price: "$249/yr"
           features:
-            - "Unlimited site licenses"
-            - "All Professional features"
-            - "Custom development services"
-            - "VIP support"
-            - "Dedicated account manager"
-            - "1-on-1 training sessions"
+            - "Everything in Pro"
+            - "Priority Discord Support"
+            - "Custom feature requests"
+            - "Custom component requests"
             - "Custom integrations"
-          ctaLink: "#buy-enterprise"
-          ctaText: "Purchase"
+          ctaLink: "#buy-sensei"
+          ctaText: "Coming soon"
           ctaColor: "bg-gradient-to-r from-yellow-500 to-amber-500 text-white"
           iconBtn: "heroicon-o-shopping-cart"
           iconBtnColor: "text-white"
@@ -386,7 +382,7 @@ sections:
           list: 'text-gray-700 dark:text-gray-300 mt-4'
           socialContainer: 'flex mt-4 gap-4'
           socialLink: 'text-gray-700 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-400 backdrop-blur-md shadow-lg rounded-full p-2'
-          divider: 'border-t border-gray-200 dark:border-gray-700'
+          divider: 'border-t border-gray-100 dark:border-gray-900'
           bottomBar: 'max-w-6xl mx-auto px-4 py-4 md:flex md:items-center md:justify-between'
           legalLinks: 'flex justify-center space-x-6 md:order-2'
           legalLink: 'text-gray-700 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-400 mt-2'

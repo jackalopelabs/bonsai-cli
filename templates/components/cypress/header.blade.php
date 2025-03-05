@@ -32,7 +32,7 @@
         </ul>
 
         <div class="flex space-x-4 items-center">
-            <a href="{{ $primaryLink }}" class="btn bg-indigo-500 py-2 px-4 border border-transparent rounded-full backdrop-blur-md shadow-lg text-white" x-on:click.prevent="scrollTo('{{ $primaryLink }}')">
+            <a href="{{ $primaryLink }}" class="btn bg-indigo-500 py-2 px-4 border border-transparent rounded-full backdrop-blur-md shadow-lg text-white">
                 <span class="hidden sm:inline">{{ $buttonPrefix }}</span> {{ $buttonText }} {!! $chevronSvg !!}
             </a>
             @if($showDarkModeToggle)
