@@ -50,15 +50,15 @@ function getCTAData($box) {
 <div id="pricing" class="container mx-auto px-4 py-12">
     <!-- Pricing Section Header -->
     <div class="mx-auto px-4 text-center">
-        <div class="inline-flex items-center gap-2 rounded-md bg-white dark:bg-midnight-950 text-sm px-3 py-1 text-center mb-4">
+        <h2 class="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4 pt-4">{{ $title }}</h2>
+        <p class="text-gray-500 dark:text-gray-400 mb-8">{{ $subtitle }}</p>
+        <div class="inline-flex items-center gap-2 rounded-md bg-white dark:bg-midnight-950 text-sm px-3 py-1 text-center mb-8">
             <svg class="h-6 w-6 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon">
                 <path d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.75 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM12.75 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM14.25 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"></path>
                 <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd"></path>
             </svg>               
             <span class="text-gray-400 dark:text-gray-500">{{ $description }}</span>
         </div>
-        <h2 class="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4 pt-4">{{ $title }}</h2>
-        <p class="text-gray-500 dark:text-gray-400 mb-8">{{ $subtitle }}</p>
     </div>
     
     <!-- Pricing Boxes Container -->
