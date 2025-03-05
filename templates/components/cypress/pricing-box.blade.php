@@ -12,9 +12,9 @@ $pricingBoxes = $data['pricingBoxes'] ?? [];
 // Helper function to get gradient definitions based on plan type
 function getGradientColors($planType) {
     $gradients = [
-        'Starter' => ['start' => '#7e22ce', 'end' => '#d8b4fe'],
-        'Professional' => ['start' => '#047857', 'end' => '#6ee7b7'],
-        'Enterprise' => ['start' => '#b45309', 'end' => '#fcd34d']
+        'Starter' => ['start' => '#a5b4fc', 'end' => '#4f46e5'],
+        'Professional' => ['start' => '#8CCDFF', 'end' => '#0077FF'],
+        'Enterprise' => ['start' => '#6EFFDF', 'end' => '#00DB9D']
     ];
     return $gradients[$planType] ?? $gradients['Starter'];
 }
