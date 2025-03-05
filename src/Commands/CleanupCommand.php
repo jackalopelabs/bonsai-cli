@@ -36,6 +36,7 @@ class CleanupCommand extends Command
         $this->cleanupTailwindConfig();
         $this->cleanupAppCss();
         $this->cleanupAppTs();
+        $this->cleanupBonsaiImages();
         
         $this->info('Cleanup completed successfully!');
     }
@@ -194,6 +195,9 @@ class CleanupCommand extends Command
             // Remove the ...bonsaiConfig.colors spread without affecting the closing brace
             $content = preg_replace("/,?\s*\.\.\.bonsaiConfig\.colors(?=\s*[,}])/", "", $content);
 
+            // Remove or replace darkMode: 'class' configuration
+            $content = preg_replace("/darkMode:\s*['\"](class|media)['\"],?(\r?\n)?/", "", $content);
+
             // Clean up any potential double braces
             $content = preg_replace('/}{2,}/', '}', $content);
 
@@ -256,6 +260,26 @@ class CleanupCommand extends Command
             } catch (\Exception $e) {
                 $this->error("Failed to update app.ts: " . $e->getMessage());
             }
+        }
+    }
+
+    protected function cleanupBonsaiImages()
+    {
+        $this->info('Cleaning up Bonsai images...');
+        
+        $imagesDir = base_path('resources/images');
+        if (!File::exists($imagesDir)) {
+            return;
+        }
+
+        try {
+            $files = File::glob($imagesDir . '/bonsai_*.webp');
+            foreach ($files as $file) {
+                File::delete($file);
+                $this->line("- Removed: " . basename($file));
+            }
+        } catch (\Exception $e) {
+            $this->error("Failed to clean up Bonsai images: " . $e->getMessage());
         }
     }
 }
