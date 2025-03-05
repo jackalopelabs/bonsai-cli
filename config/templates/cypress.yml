@@ -302,7 +302,7 @@ sections:
             - "Discord Support"
             - "Early access to new features"
           ctaLink: "#buy-professional"
-          ctaText: "Purchase"
+          ctaText: "Coming soon"
           ctaColor: "bg-gradient-to-r from-emerald-600 to-green-500 text-white"
           iconBtn: "heroicon-o-arrow-down-on-square"
           iconBtnColor: "text-white"
