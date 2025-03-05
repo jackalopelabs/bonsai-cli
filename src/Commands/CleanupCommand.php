@@ -207,8 +207,8 @@ class CleanupCommand extends Command
             // Clean up any trailing commas before closing braces
             $content = preg_replace('/,(\s*})/', '$1', $content);
 
-            // Fix indentation for theme: { to be consistent
-            $content = preg_replace('/(\s+)theme:\s*{/', '  theme: {', $content);
+            // Fix theme indentation and ensure proper line break
+            $content = preg_replace('/\],\s*theme:\s*{/', "],\n  theme: {", $content);
 
             // Clean up multiple empty lines
             $content = preg_replace("/\n{3,}/", "\n\n", $content);
