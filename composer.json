@@ -4,8 +4,8 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.0",
-        "roots/acorn": "^4.0",
+        "php": "^8.2",
+        "roots/acorn": "^5.0",
         "symfony/yaml": "^6.4",
         "illuminate/console": "^10.48",
         "blade-ui-kit/blade-heroicons": "^2.2"
