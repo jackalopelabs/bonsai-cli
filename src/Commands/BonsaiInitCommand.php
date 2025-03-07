@@ -55,6 +55,9 @@ class BonsaiInitCommand extends Command
 
             // Configure Scripts
             $this->configureScripts();
+
+            // Configure Composer
+            $this->configureComposer();
     
             // Ask about configuration preference upfront
             $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
@@ -804,6 +807,53 @@ CSS;
             }
         } else {
             $this->warn('app.ts not found in resources/scripts directory');
+        }
+    }
+
+    protected function configureComposer()
+    {
+        $this->info('Configuring composer.json...');
+
+        $composerPath = base_path('composer.json');
+        if (!$this->files->exists($composerPath)) {
+            $this->error('composer.json not found');
+            return;
+        }
+
+        try {
+            $composer = json_decode($this->files->get($composerPath), true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Invalid composer.json format');
+            }
+
+            // Initialize extra.acorn.providers if it doesn't exist
+            if (!isset($composer['extra'])) {
+                $composer['extra'] = [];
+            }
+            if (!isset($composer['extra']['acorn'])) {
+                $composer['extra']['acorn'] = [];
+            }
+            if (!isset($composer['extra']['acorn']['providers'])) {
+                $composer['extra']['acorn']['providers'] = [];
+            }
+
+            // Add BonsaiServiceProvider if not already present
+            $provider = 'Jackalopelabs\\BonsaiCli\\Providers\\BonsaiServiceProvider';
+            if (!in_array($provider, $composer['extra']['acorn']['providers'])) {
+                $composer['extra']['acorn']['providers'][] = $provider;
+                
+                // Save the updated composer.json with proper formatting
+                $this->files->put(
+                    $composerPath,
+                    json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n"
+                );
+                
+                $this->info('✓ Added BonsaiServiceProvider to composer.json');
+            } else {
+                $this->info('BonsaiServiceProvider already registered in composer.json');
+            }
+        } catch (\Exception $e) {
+            $this->error('Failed to update composer.json: ' . $e->getMessage());
         }
     }
 }
