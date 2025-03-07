@@ -7,10 +7,11 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
 use Symfony\Component\Yaml\Yaml;
 use Jackalopelabs\BonsaiCli\Traits\HandlesTemplatePaths;
+use Jackalopelabs\BonsaiCli\Traits\BuildSystemDetector;
 
 class GenerateCommand extends Command
 {
-    use HandlesTemplatePaths;
+    use HandlesTemplatePaths, BuildSystemDetector;
 
     protected $signature = 'bonsai:generate {template} {--config=}';
     protected $description = 'Generate a complete Bonsai site from a template configuration';
@@ -826,7 +827,10 @@ BLADE;
 
     protected function displaySuccessMessage($template)
     {
-        $this->info("🌳 Successfully generated {$template} template! Run `npm run dev` to compile assets.");
+        $buildSystem = $this->detectBuildSystem();
+        $buildCommand = $this->getBuildCommand();
+        
+        $this->info("🌳 Successfully generated {$template} template! Run `{$buildCommand}` to compile assets.");
     }
 
     protected function importSqlFile($file)
@@ -848,12 +852,13 @@ BLADE;
         // Check both package and local template assets
         $possibleSourceDirs = [
             $this->getPackageRoot() . "/templates/assets/{$template}",
-            base_path("templates/assets/{$template}")
+            $this->getBasePath() . "/templates/assets/{$template}"
         ];
 
-        $targetDir = base_path('public/dist/images');
+        $assetDir = $this->getAssetDirectory();
+        $targetDir = $this->getBasePath() . "/{$assetDir}/images";
 
-        // Create dist/images directory if it doesn't exist
+        // Create images directory if it doesn't exist
         if (!$this->files->isDirectory($targetDir)) {
             $this->files->makeDirectory($targetDir, 0755, true);
             $this->info("Created directory: {$targetDir}");
@@ -869,7 +874,7 @@ BLADE;
                     $targetPath = $targetDir . '/' . $filename;
                     
                     if ($this->files->copy($file->getPathname(), $targetPath)) {
-                        $this->info("✓ Copied asset: {$filename} to dist/images/");
+                        $this->info("✓ Copied asset: {$filename} to {$assetDir}/images/");
                         $assetsFound = true;
                     } else {
                         $this->warn("! Failed to copy asset: {$filename}");

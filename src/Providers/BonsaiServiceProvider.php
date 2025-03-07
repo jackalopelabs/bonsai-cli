@@ -4,9 +4,12 @@ namespace Jackalopelabs\BonsaiCli\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Jackalopelabs\BonsaiCli\Traits\BuildSystemDetector;
 
 class BonsaiServiceProvider extends ServiceProvider
 {
+    use BuildSystemDetector;
+
     protected function log($message)
     {
         if (defined('WP_CLI') && WP_CLI) {
@@ -101,9 +104,9 @@ class BonsaiServiceProvider extends ServiceProvider
     {
         $template = 'bonsai'; // Default template
         $configPaths = [
-            base_path("config/bonsai/templates/{$template}.yml"),
-            base_path("config/bonsai/{$template}.yml"),
-            base_path("config/templates/{$template}.yml"),
+            $this->getBasePath() . "/config/bonsai/templates/{$template}.yml",
+            $this->getBasePath() . "/config/bonsai/{$template}.yml",
+            $this->getBasePath() . "/config/templates/{$template}.yml",
             __DIR__ . "/../../config/templates/{$template}.yml"
         ];
 
@@ -150,10 +153,18 @@ class BonsaiServiceProvider extends ServiceProvider
                         
                         // Get the correct image URL using Sage's asset handling
                         $imagePath = $themeSettings['body']['background']['image'];
+                        
+                        // Detect build system to determine asset path
+                        $buildSystem = $this->detectBuildSystem();
+                        $imageUrl = '';
+                        
                         if (function_exists('sage')) {
                             // If path starts with /resources/, remove it
                             $imagePath = preg_replace('/^\/resources\//', '', $imagePath);
                             $imageUrl = sage($imagePath);
+                        } elseif (function_exists('asset') && $buildSystem === 'vite') {
+                            // For Sage 11 with Vite
+                            $imageUrl = asset($imagePath);
                         } else {
                             // Fallback to theme directory
                             $imageUrl = get_theme_file_uri($imagePath);

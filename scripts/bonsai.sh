@@ -86,14 +86,44 @@ case $ENV in
         ;;
 esac
 
+# Function to detect build system
+detect_build_system() {
+    if [ -f "vite.config.js" ] || [ -f "vite.config.ts" ]; then
+        echo "vite"
+    elif [ -f "bud.config.js" ] || [ -f "bud.config.ts" ]; then
+        echo "bud"
+    else
+        echo "unknown"
+    fi
+}
+
 # Function to run yarn build
 run_build() {
     echo -e "${GREEN}🏗️  Rebuilding assets locally...${NC}"
-    if ! yarn bud build production; then
-        echo -e "${RED}❌ Asset build failed${NC}"
-        return 1
+    
+    BUILD_SYSTEM=$(detect_build_system)
+    
+    if [ "$BUILD_SYSTEM" = "vite" ]; then
+        if ! yarn build; then
+            echo -e "${RED}❌ Vite asset build failed${NC}"
+            return 1
+        fi
+        echo -e "${GREEN}✅ Vite asset build completed${NC}"
+    elif [ "$BUILD_SYSTEM" = "bud" ]; then
+        if ! yarn bud build production; then
+            echo -e "${RED}❌ Bud asset build failed${NC}"
+            return 1
+        fi
+        echo -e "${GREEN}✅ Bud asset build completed${NC}"
+    else
+        echo -e "${YELLOW}⚠️ Unknown build system, attempting default build...${NC}"
+        if ! yarn build; then
+            echo -e "${RED}❌ Asset build failed${NC}"
+            return 1
+        fi
+        echo -e "${GREEN}✅ Asset build completed${NC}"
     fi
-    echo -e "${GREEN}✅ Asset build completed${NC}"
+    
     return 0
 }
 
