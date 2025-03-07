@@ -383,57 +383,59 @@ BLADE;
 
     protected function generateSectionContent($componentType, $section, $data)
     {
-        $dataVarName = "{$section}Data";
-
-        $dataLines = [];
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                $arrayStr = $this->arrayToPhpString($value, 1);
-                $dataLines[] = "    '{$key}' => {$arrayStr},";
-            } else {
-                $dataLines[] = "    '{$key}' => " . var_export($value, true) . ",";
-            }
-        }
+        $dataVarName = Str::camel($section) . "Data";
 
         // Handle namespaced components (e.g., cypress.header)
         $componentParts = explode('.', $componentType);
-        $componentName = count($componentParts) > 1 ? $componentParts[1] : $componentType;
+        $namespace = count($componentParts) > 1 ? $componentParts[0] : null;
+        $baseComponentName = count($componentParts) > 1 ? $componentParts[1] : $componentType;
 
         // Build the section content
-        return <<<BLADE
-@props([
-    'class' => ''
-])
+        $content = "@props([\n    'class' => ''\n])\n\n";
+        $content .= "@php\n";
+        $content .= "\${$dataVarName} = " . $this->arrayToPhpString($data) . ";\n";
+        $content .= "@endphp\n\n";
+        $content .= "<div class=\"{{ \$class }}\">\n";
+        
+        // Use namespaced component if available
+        if ($namespace) {
+            $content .= "    <x-bonsai::{$namespace}.{$baseComponentName} :data=\"\${$dataVarName}\" />\n";
+        } else {
+            $content .= "    <x-bonsai::{$baseComponentName} :data=\"\${$dataVarName}\" />\n";
+        }
+        
+        $content .= "</div>";
 
-@php
-\${$dataVarName} = [
-{$this->indent(implode("\n", $dataLines), 0)}
-];
-@endphp
-
-<div class="{{ \$class }}">
-    <x-bonsai::{$componentName} :data="\${$dataVarName}" />
-</div>
-BLADE;
+        return $content;
     }
 
     protected function arrayToPhpString($array, $depth = 0)
     {
         $indent = str_repeat('    ', $depth);
         $output = "[\n";
+        
         foreach ($array as $key => $value) {
             $output .= $indent . "    ";
+            
             if (is_string($key)) {
-                $output .= "'{$key}' => ";
+                $output .= "'" . addslashes($key) . "' => ";
             }
 
             if (is_array($value)) {
                 $output .= $this->arrayToPhpString($value, $depth + 1);
-            } else {
+            } elseif (is_bool($value)) {
+                $output .= $value ? 'true' : 'false';
+            } elseif (is_null($value)) {
+                $output .= 'null';
+            } elseif (is_string($value)) {
                 $output .= "'" . addslashes($value) . "'";
+            } else {
+                $output .= $value;
             }
+            
             $output .= ",\n";
         }
+        
         $output .= $indent . "]";
         return $output;
     }
@@ -481,13 +483,13 @@ BLADE;
 <html @php(language_attributes()) class='dark relative h-screen' x-data='{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }' x-init='@{{ \$watch }}("darkMode", val => localStorage.setItem("darkMode", val))' :class='{ "dark": darkMode }'>
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
-        <img src="@asset('images/bonsai_hero_03.webp')"
-             alt="Background Light" 
-             class="w-full h-full object-cover object-top opacity-100 block dark:hidden"
+        <img src="{{ Vite::asset('resources/images/bonsai_hero_03.webp') }}" 
+                alt="Background Light" 
+                class="w-full h-full object-cover object-top opacity-100 block dark:hidden"
         />
-        <img src="@asset('images/bonsai_hero_01.webp')"
-             alt="Background Dark" 
-             class="w-full h-full object-cover object-top opacity-100 hidden dark:block"
+        <img src="{{ Vite::asset('resources/images/bonsai_hero_01.webp') }}" 
+                alt="Background Dark" 
+                class="w-full h-full object-cover object-top opacity-100 hidden dark:block"
         />
     </div>
 

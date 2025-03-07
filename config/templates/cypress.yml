@@ -70,9 +70,8 @@ sections:
       chevronSvg: '<svg class="w-4 h-4 ml-2 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd"></path></svg>'
 
   home_hero:
-    component: hero
+    component: cypress.hero
     data:
-      # Content
       title: "Bonsai CLI"
       subtitle: "Generate a beautful Roots project in minutes"
       description: "A WordPress CLI tool for generating and managing reusable components, layouts, and sections in Roots-based projects"
@@ -82,8 +81,6 @@ sections:
       secondaryLink: "https://github.com/jackalope-labs/bonsai-cli"
       buttonLinkIcon: true
       secondaryIcon: true
-      
-      # Style Classes
       containerClasses: "container mx-auto px-4 mb-12 mt-0 md:mt-24"
       columnClasses: "flex flex-col md:flex-row items-center md:items-start -mx-4"
       imageColumnClasses: "w-full md:w-1/2 px-4 flex justify-center items-center mt-12 md:mt-0 md:order-last"
@@ -95,8 +92,6 @@ sections:
       buttonIconClasses: "text-white w-6 h-6 ml-2 inline-block align-middle"
       secondaryClasses: "text-sm bg-transparent px-2 py-1 backdrop-blur-md shadow-lg rounded-md border border-gray-100"
       secondaryIconClasses: "w-4 h-4 ml-2 inline-block align-middle"
-      
-      # Icons
       iconMappings:
         dropdownIcon: "heroicon-s-chevron-down"
         buttonLinkIcon: "heroicon-s-play"
