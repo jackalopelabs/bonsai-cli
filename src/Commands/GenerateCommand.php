@@ -428,7 +428,13 @@ BLADE;
             } elseif (is_null($value)) {
                 $output .= 'null';
             } elseif (is_string($value)) {
-                $output .= "'" . addslashes($value) . "'";
+                // Check if the string contains SVG content
+                if (strpos($value, '<svg') !== false) {
+                    // For SVG content, use single quotes and don't escape internal double quotes
+                    $output .= "'" . str_replace("'", "\\'", $value) . "'";
+                } else {
+                    $output .= "'" . addslashes($value) . "'";
+                }
             } else {
                 $output .= $value;
             }
