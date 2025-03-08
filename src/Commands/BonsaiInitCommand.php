@@ -728,76 +728,109 @@ CSS;
 
     protected function configureScripts()
     {
-        $this->info('Configuring Scripts...');
+        $this->info('Configuring JavaScript...');
 
-        // Ensure scripts directory exists
-        $scriptsDir = base_path('resources/scripts');
-        if (!$this->files->isDirectory($scriptsDir)) {
-            $this->files->makeDirectory($scriptsDir, 0755, true);
-            $this->info('Created scripts directory');
+        // Create js directory if it doesn't exist
+        $jsDir = base_path('resources/js');
+        if (!$this->files->isDirectory($jsDir)) {
+            $this->files->makeDirectory($jsDir, 0755, true);
+            $this->info('Created js directory');
         }
 
-        // Copy pixel-matrix.ts
-        $pixelMatrixTemplate = __DIR__ . '/../../templates/scripts/pixel-matrix.ts';
-        $pixelMatrixTarget = $scriptsDir . '/pixel-matrix.ts';
+        // Copy pixel-matrix.js
+        $pixelMatrixTemplate = __DIR__ . '/../../templates/scripts/pixel-matrix.js';
+        $pixelMatrixTarget = $jsDir . '/pixel-matrix.js';
         
         if ($this->files->exists($pixelMatrixTemplate)) {
             $this->files->copy($pixelMatrixTemplate, $pixelMatrixTarget);
-            $this->info('Created pixel-matrix.ts');
+            $this->info('Created pixel-matrix.js');
         } else {
-            $this->error('Pixel matrix template not found at: ' . $pixelMatrixTemplate);
-            return;
+            // Try to convert the TS file to JS if it exists
+            $pixelMatrixTsTemplate = __DIR__ . '/../../templates/scripts/pixel-matrix.ts';
+            if ($this->files->exists($pixelMatrixTsTemplate)) {
+                // Simple conversion from TS to JS (removing type annotations)
+                $tsContent = $this->files->get($pixelMatrixTsTemplate);
+                $jsContent = preg_replace('/:\s*HTMLElement|\bas\s+HTMLElement|\<HTMLElement\>/', '', $tsContent);
+                $this->files->put($pixelMatrixTarget, $jsContent);
+                $this->info('Created pixel-matrix.js (converted from TS)');
+            } else {
+                $this->error('Pixel matrix template not found');
+                return;
+            }
         }
 
-        // Update existing app.ts
-        $appTsPath = $scriptsDir . '/app.ts';
-        if ($this->files->exists($appTsPath)) {
-            $appTs = $this->files->get($appTsPath);
+        // Update existing app.js
+        $appJsPath = $jsDir . '/app.js';
+        if (!$this->files->exists($appJsPath)) {
+            // Check if there's an app.ts file we can convert
+            $appTsPath = base_path('resources/scripts/app.ts');
+            if ($this->files->exists($appTsPath)) {
+                // Simple conversion from TS to JS (removing type annotations)
+                $tsContent = $this->files->get($appTsPath);
+                $jsContent = preg_replace('/:\s*\w+|\bas\s+\w+|\<\w+\>/', '', $tsContent);
+                $this->files->put($appJsPath, $jsContent);
+                $this->info('Created app.js (converted from app.ts)');
+            } else {
+                // Create a basic app.js file
+                $basicAppJs = <<<JS
+// Main application JavaScript file
+import 'alpinejs'
+import PixelMatrix from './pixel-matrix'
+
+// Initialize PixelMatrix on pricing boxes
+document.addEventListener('DOMContentLoaded', () => {
+    const pricingBoxes = document.querySelectorAll('.pricing-box')
+    pricingBoxes.forEach(box => new PixelMatrix(box))
+})
+JS;
+                $this->files->put($appJsPath, $basicAppJs);
+                $this->info('Created basic app.js file');
+            }
+        } else {
+            $appJs = $this->files->get($appJsPath);
             $modified = false;
 
             // Add PixelMatrix import if it doesn't exist
-            if (!str_contains($appTs, "import PixelMatrix")) {
+            if (!str_contains($appJs, "import PixelMatrix")) {
                 // Find the last import statement
-                $lastImportPos = strrpos($appTs, "import");
+                $lastImportPos = strrpos($appJs, "import");
                 if ($lastImportPos !== false) {
-                    $endOfLine = strpos($appTs, "\n", $lastImportPos);
+                    $endOfLine = strpos($appJs, "\n", $lastImportPos);
                     if ($endOfLine !== false) {
-                        $appTs = substr_replace($appTs, "\nimport PixelMatrix from './pixel-matrix'", $endOfLine, 0);
+                        $appJs = substr_replace($appJs, "\nimport PixelMatrix from './pixel-matrix'", $endOfLine, 0);
                         $modified = true;
                     }
                 } else {
                     // No imports found, add at the beginning
-                    $appTs = "import PixelMatrix from './pixel-matrix'\n" . $appTs;
+                    $appJs = "import PixelMatrix from './pixel-matrix'\n" . $appJs;
                     $modified = true;
                 }
             }
 
             // Add PixelMatrix initialization if it doesn't exist
-            if (!str_contains($appTs, "new PixelMatrix")) {
+            if (!str_contains($appJs, "new PixelMatrix")) {
                 $initCode = "\n// Initialize PixelMatrix on pricing boxes\n";
                 $initCode .= "document.addEventListener('DOMContentLoaded', () => {\n";
                 $initCode .= "    const pricingBoxes = document.querySelectorAll('.pricing-box')\n";
-                $initCode .= "    pricingBoxes.forEach(box => new PixelMatrix(box as HTMLElement))\n";
+                $initCode .= "    pricingBoxes.forEach(box => new PixelMatrix(box))\n";
                 $initCode .= "})\n";
 
                 // Find the right position to insert (before webpack hot accept if it exists)
-                $insertPos = strrpos($appTs, "if (import.meta.webpackHot)");
+                $insertPos = strrpos($appJs, "if (import.meta.webpackHot)");
                 if ($insertPos === false) {
-                    $insertPos = strlen($appTs);
+                    $insertPos = strlen($appJs);
                 }
 
-                $appTs = substr_replace($appTs, $initCode, $insertPos, 0);
+                $appJs = substr_replace($appJs, $initCode, $insertPos, 0);
                 $modified = true;
             }
 
             if ($modified) {
-                $this->files->put($appTsPath, $appTs);
-                $this->info('Updated app.ts with PixelMatrix integration');
+                $this->files->put($appJsPath, $appJs);
+                $this->info('Updated app.js with PixelMatrix integration');
             } else {
-                $this->info('app.ts already contains PixelMatrix integration');
+                $this->info('app.js already contains PixelMatrix integration');
             }
-        } else {
-            $this->warn('app.ts not found in resources/scripts directory');
         }
     }
 

@@ -304,5 +304,5 @@ assets:
   styles:
     - resources/css/bonsai.scss
   scripts:
-    - resources/scripts/bonsai.js
-    - resources/scripts/alpine.js
+    - resources/js/bonsai.js
+    - resources/js/alpine.js

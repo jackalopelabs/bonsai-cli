@@ -189,4 +189,4 @@ assets:
   styles:
     - resources/css/example.scss
   scripts:
-    - resources/scripts/example.js 
+    - resources/js/example.js 

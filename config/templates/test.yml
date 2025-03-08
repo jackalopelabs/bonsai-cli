@@ -243,4 +243,4 @@ assets:
   styles:
     - resources/css/hydrofera.scss
   scripts:
-    - resources/scripts/hydrofera.js
+    - resources/js/hydrofera.js

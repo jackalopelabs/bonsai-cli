@@ -17,7 +17,7 @@ class CleanupCommand extends Command
         'app/View/Components/Bonsai',
         'resources/views/template-components.blade.php',
         'scripts/bonsai.sh',
-        'resources/scripts/pixel-matrix.ts',
+        'resources/js/pixel-matrix.js',
     ];
 
     public function handle()
@@ -33,7 +33,7 @@ class CleanupCommand extends Command
         $this->resetTemplateRegistry();
         $this->cleanupTailwindConfig();
         $this->cleanupAppCss();
-        $this->cleanupAppTs();
+        $this->cleanupAppJs();
         $this->cleanupBonsaiImages();
         
         $this->info('Cleanup completed successfully!');
@@ -237,18 +237,18 @@ class CleanupCommand extends Command
         }
     }
 
-    protected function cleanupAppTs()
+    protected function cleanupAppJs()
     {
-        $this->info('Cleaning up app.ts...');
+        $this->info('Cleaning up app.js...');
         
-        $appTsPath = base_path('resources/scripts/app.ts');
+        $appJsPath = base_path('resources/js/app.js');
         
-        if (File::exists($appTsPath)) {
+        if (File::exists($appJsPath)) {
             try {
-                $content = File::get($appTsPath);
+                $content = File::get($appJsPath);
                 
                 // Remove the import statement and the PixelMatrix initialization code
-                $pattern = "/import\s+PixelMatrix\s+from\s+['\"]\.\\/pixel-matrix['\"].*?(?:\/\/\s*Initialize\s+PixelMatrix\s+on\s+pricing\s+boxes\s*document\.addEventListener\(['\"]DOMContentLoaded['\"]\s*,\s*\(\)\s*=>\s*{\s*const\s+pricingBoxes\s*=\s*document\.querySelectorAll\(['\"]\.pricing-box['\"]\)\s*pricingBoxes\.forEach\(box\s*=>\s*new\s+PixelMatrix\(box\s+as\s+HTMLElement\)\)\s*}\))/s";
+                $pattern = "/import\s+PixelMatrix\s+from\s+['\"]\.\\/pixel-matrix['\"].*?(?:\/\/\s*Initialize\s+PixelMatrix\s+on\s+pricing\s+boxes\s*document\.addEventListener\(['\"]DOMContentLoaded['\"]\s*,\s*\(\)\s*=>\s*{\s*const\s+pricingBoxes\s*=\s*document\.querySelectorAll\(['\"]\.pricing-box['\"]\)\s*pricingBoxes\.forEach\(box\s*=>\s*new\s+PixelMatrix\(box\)\)\s*}\))/s";
                 
                 $updatedContent = preg_replace($pattern, '', $content);
                 
@@ -256,11 +256,11 @@ class CleanupCommand extends Command
                 $updatedContent = rtrim($updatedContent) . "\n";
                 
                 if ($content !== $updatedContent) {
-                    File::put($appTsPath, $updatedContent);
-                    $this->line("- Removed PixelMatrix code from app.ts");
+                    File::put($appJsPath, $updatedContent);
+                    $this->line("- Removed PixelMatrix code from app.js");
                 }
             } catch (\Exception $e) {
-                $this->error("Failed to update app.ts: " . $e->getMessage());
+                $this->error("Failed to update app.js: " . $e->getMessage());
             }
         }
     }

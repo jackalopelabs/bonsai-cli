@@ -444,6 +444,6 @@ assets:
     - resources/css/cypress.scss
     - resources/css/editor.scss
   scripts:
-    - resources/scripts/cypress.js
-    - resources/scripts/gutenberg.js
-    - resources/scripts/alpine.js
+    - resources/js/cypress.js
+    - resources/js/gutenberg.js
+    - resources/js/alpine.js
