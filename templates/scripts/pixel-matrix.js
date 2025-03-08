@@ -1,32 +1,13 @@
-interface PixelConfig {
-    x: number;
-    y: number;
-    size: number;
-    maxSize: number;
-    minSize: number;
-    colorStart: string;
-    colorEnd: string;
-    colorPos: number;
-    speed: number;
-    counter: number;
-    counterStep: number;
-    isIdle: boolean;
-    isReverse: boolean;
-    isShimmer: boolean;
-    distance: number;
-}
-
+/**
+ * PixelMatrix - A class that creates an animated pixel effect on hover
+ * for pricing boxes or other container elements.
+ */
 class PixelMatrix {
-    private container: HTMLElement;
-    private canvas: HTMLCanvasElement;
-    private ctx: CanvasRenderingContext2D;
-    private pixels: PixelConfig[] = [];
-    private animationFrame: number | null = null;
-    private isAnimating = false;
-    private colors: { start: string; end: string; }[];
-
-    constructor(container: HTMLElement) {
+    constructor(container) {
         this.container = container;
+        this.pixels = [];
+        this.animationFrame = null;
+        this.isAnimating = false;
         
         // Set colors based on plan type
         this.colors = this.getColorsForPlan();
@@ -52,14 +33,14 @@ class PixelMatrix {
         window.addEventListener('resize', () => this.init());
     }
 
-    private init(): void {
+    init() {
         const rect = this.container.getBoundingClientRect();
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
         this.generatePixels();
     }
 
-    private getColorsForPlan(): { start: string; end: string; }[] {
+    getColorsForPlan() {
         const planType = this.container.querySelector('h3')?.textContent?.trim();
         
         switch (planType) {
@@ -88,7 +69,7 @@ class PixelMatrix {
         }
     }
 
-    private generatePixels(): void {
+    generatePixels() {
         this.pixels = [];
         const gap = 8;
         const gradients = this.getColorsForPlan();
@@ -127,18 +108,18 @@ class PixelMatrix {
         }
     }
 
-    private getRandomValue(min: number, max: number): number {
+    getRandomValue(min, max) {
         return Math.random() * (max - min) + min;
     }
 
-    private startAnimation(type: 'appear' | 'disappear'): void {
+    startAnimation(type) {
         if (this.animationFrame) {
             cancelAnimationFrame(this.animationFrame);
         }
         this.animate(type);
     }
 
-    private animate(type: 'appear' | 'disappear'): void {
+    animate(type) {
         this.animationFrame = requestAnimationFrame(() => this.animate(type));
         
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -206,7 +187,7 @@ class PixelMatrix {
         }
     }
 
-    private shimmerPixel(pixel: PixelConfig): void {
+    shimmerPixel(pixel) {
         if (pixel.size >= pixel.maxSize) {
             pixel.isReverse = true;
         } else if (pixel.size <= pixel.minSize) {
@@ -220,7 +201,7 @@ class PixelMatrix {
         }
     }
 
-    private interpolateColor(startColor: string, endColor: string, position: number): string {
+    interpolateColor(startColor, endColor, position) {
         // Convert hex to RGB
         const start = this.hexToRgb(startColor);
         const end = this.hexToRgb(endColor);
@@ -233,7 +214,7 @@ class PixelMatrix {
         return `rgb(${r}, ${g}, ${b})`;
     }
 
-    private hexToRgb(hex: string): { r: number; g: number; b: number; } {
+    hexToRgb(hex) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? {
             r: parseInt(result[1], 16),
@@ -242,7 +223,7 @@ class PixelMatrix {
         } : { r: 0, g: 0, b: 0 };
     }
 
-    public destroy(): void {
+    destroy() {
         if (this.animationFrame) {
             cancelAnimationFrame(this.animationFrame);
         }
