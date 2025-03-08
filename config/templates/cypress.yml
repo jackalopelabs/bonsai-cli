@@ -441,8 +441,8 @@ assets:
     - bonsai_hero_01.webp
     - bonsai_hero_03.webp
   styles:
-    - resources/styles/cypress.scss
-    - resources/styles/editor.scss
+    - resources/css/cypress.scss
+    - resources/css/editor.scss
   scripts:
     - resources/scripts/cypress.js
     - resources/scripts/gutenberg.js

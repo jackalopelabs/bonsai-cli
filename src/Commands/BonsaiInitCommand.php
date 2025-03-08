@@ -578,70 +578,24 @@ PHP;
     {
         $this->info('Configuring Tailwind...');
 
-        // Create bonsai.config.ts if it doesn't exist
-        $bonsaiConfigPath = base_path('bonsai.config.ts');
-        if (!$this->files->exists($bonsaiConfigPath)) {
-            $bonsaiConfigContent = <<<TS
-export default {
-    colors: {
-        midnight: {
-            950: '#060614'
-        },
-        blue: {
-            50: '#F0F7FF',
-            100: '#E0EFFF',
-            200: '#B9DEFF',
-            300: '#8CCDFF',
-            400: '#4DB3FF',
-            500: '#1A91FF',
-            600: '#0077FF',
-            700: '#0057CC',
-            800: '#004299',
-            900: '#003166'
-        },
-        teal: {
-            50: '#E6FFFA',
-            100: '#CCFFF6',
-            200: '#9DFFE9',
-            300: '#6EFFDF',
-            400: '#2FFFD1',
-            500: '#00FFB9',
-            600: '#00DB9D',
-            700: '#00B481',
-            800: '#008F66',
-            900: '#006B4D'
-        }
-    }
-};
-TS;
-            $this->files->put($bonsaiConfigPath, $bonsaiConfigContent);
-            $this->info('Created bonsai.config.ts');
-        }
-
         // Update tailwind.config.ts
         $tailwindConfigPath = base_path('tailwind.config.ts');
         if ($this->files->exists($tailwindConfigPath)) {
             $tailwindConfig = $this->files->get($tailwindConfigPath);
             $modified = false;
 
-            // Add import if it doesn't exist
-            if (!str_contains($tailwindConfig, "import bonsaiConfig from './bonsai.config'")) {
-                $tailwindConfig = preg_replace(
-                    '/(import.*?;)/s',
-                    "$1\nimport bonsaiConfig from './bonsai.config';",
-                    $tailwindConfig,
-                    1
-                );
-                $modified = true;
-            }
-
-            // Add colors spread if it doesn't exist
-            if (!str_contains($tailwindConfig, '...bonsaiConfig.colors')) {
-                // Find the indigo object and ensure it ends with a comma before adding bonsaiConfig.colors
-                $pattern = '/(indigo:\s*{[^}]*})/s';
-                $replacement = "$1,\n      ...bonsaiConfig.colors";
-                $tailwindConfig = preg_replace($pattern, $replacement, $tailwindConfig);
-                $modified = true;
+            // Add midnight color if it doesn't exist
+            if (!str_contains($tailwindConfig, 'midnight:')) {
+                // Find the colors object
+                $pattern = '/(colors:\s*{[^}]*})/s';
+                if (preg_match($pattern, $tailwindConfig, $matches)) {
+                    // Check if the colors object ends with a comma
+                    $colorsObj = $matches[1];
+                    $replacement = rtrim($colorsObj, '}');
+                    $replacement = rtrim($replacement, ',') . ",\n      midnight: {\n        950: '#060614'\n      }\n    }";
+                    $tailwindConfig = str_replace($colorsObj, $replacement, $tailwindConfig);
+                    $modified = true;
+                }
             }
             
             // Add darkMode configuration if it doesn't exist
@@ -671,12 +625,86 @@ TS;
 
     protected function configureCSS()
     {
-        $this->info('Configuring CSS...');
+        $this->info('Configuring CSS for Tailwind 4...');
 
-        // Create bonsai.css if it doesn't exist
-        $bonsaiCssPath = base_path('resources/styles/bonsai.css');
-        if (!$this->files->exists($bonsaiCssPath)) {
-            $bonsaiCssContent = <<<CSS
+        // Update app.css to add Tailwind 4 specific CSS
+        $appCssPath = base_path('resources/css/app.css');
+
+        if ($this->files->exists($appCssPath)) {
+            $appCss = $this->files->get($appCssPath);
+            
+            // Check if the Tailwind 4 CSS is already added
+            if (!str_contains($appCss, "@theme {")) {
+                $tailwind4Css = <<<CSS
+
+@theme {
+    --color-midnight-950: #060614;
+}
+
+@layer base {
+    :root {
+        --background: 255 255 255;
+        --foreground: 15 23 42;
+    }
+
+    .dark {
+        --background: 6 6 20;
+        --foreground: 255 255 255;
+    }
+
+    body {
+        @apply text-gray-900 dark:text-white bg-white dark:bg-midnight-950;
+    }
+}
+CSS;
+
+                // Find the position after the imports but before any other content
+                $importLines = [
+                    "@import \"tailwindcss\" theme(static);",
+                    "@source \"../views/\";",
+                    "@source \"../../app/\";"
+                ];
+                
+                $lastImportPos = 0;
+                foreach ($importLines as $importLine) {
+                    if (str_contains($appCss, $importLine)) {
+                        $pos = strpos($appCss, $importLine) + strlen($importLine);
+                        $lastImportPos = max($lastImportPos, $pos);
+                    }
+                }
+                
+                if ($lastImportPos > 0) {
+                    // Insert after the last import
+                    $appCss = substr_replace($appCss, $tailwind4Css, $lastImportPos, 0);
+                } else {
+                    // If imports not found, append to the end
+                    $appCss .= $tailwind4Css;
+                }
+                
+                $this->files->put($appCssPath, $appCss);
+                $this->info('Updated app.css with Tailwind 4 configuration');
+            } else {
+                $this->info('app.css already contains Tailwind 4 configuration');
+            }
+        } else {
+            $this->warn('app.css not found in resources/css directory');
+            $this->info('Creating resources/css/app.css with Tailwind 4 configuration');
+            
+            // Create the directory if it doesn't exist
+            if (!$this->files->isDirectory(base_path('resources/css'))) {
+                $this->files->makeDirectory(base_path('resources/css'), 0755, true);
+            }
+            
+            // Create a basic app.css file with the Tailwind 4 configuration
+            $basicAppCss = <<<CSS
+@import "tailwindcss" theme(static);
+@source "../views/";
+@source "../../app/";
+
+@theme {
+    --color-midnight-950: #060614;
+}
+
 @layer base {
     :root {
         --background: 255 255 255;
@@ -694,44 +722,7 @@ TS;
 }
 CSS;
             
-            // Ensure directory exists
-            $dir = dirname($bonsaiCssPath);
-            if (!$this->files->isDirectory($dir)) {
-                $this->files->makeDirectory($dir, 0755, true);
-            }
-
-            $this->files->put($bonsaiCssPath, $bonsaiCssContent);
-            $this->info('Created bonsai.css');
-        }
-
-        // Update app.css to import bonsai.css
-        $appCssPath = base_path('resources/styles/app.css');
-        if ($this->files->exists($appCssPath)) {
-            $appCss = $this->files->get($appCssPath);
-            
-            // Check if bonsai.css is already imported
-            if (!str_contains($appCss, "@import 'bonsai.css';")) {
-                // Add import after utilities
-                if (str_contains($appCss, "@import 'tailwindcss/utilities';")) {
-                    $appCss = str_replace(
-                        "@import 'tailwindcss/utilities';",
-                        "@import 'tailwindcss/utilities';\n\n@import 'bonsai.css';",
-                        $appCss
-                    );
-                    
-                    $this->files->put($appCssPath, $appCss);
-                    $this->info('Updated app.css to import bonsai.css');
-                } else {
-                    // If utilities import not found, append to the end
-                    $appCss .= "\n\n@import 'bonsai.css';";
-                    $this->files->put($appCssPath, $appCss);
-                    $this->info('Appended bonsai.css import to app.css');
-                }
-            } else {
-                $this->info('app.css already imports bonsai.css');
-            }
-        } else {
-            $this->warn('app.css not found');
+            $this->files->put($appCssPath, $basicAppCss);
         }
     }
 

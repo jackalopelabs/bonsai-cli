@@ -298,7 +298,11 @@ wordpress:
 
 # Asset compilation settings
 assets:
+  images:
+    - bonsai_hero_01.webp
+    - bonsai_hero_03.webp
   styles:
-    - resources/styles/bonsai.scss
+    - resources/css/bonsai.scss
   scripts:
     - resources/scripts/bonsai.js
+    - resources/scripts/alpine.js

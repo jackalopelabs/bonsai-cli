@@ -17,8 +17,6 @@ class CleanupCommand extends Command
         'app/View/Components/Bonsai',
         'resources/views/template-components.blade.php',
         'scripts/bonsai.sh',
-        'bonsai.config.ts',
-        'resources/styles/bonsai.css',
         'resources/scripts/pixel-matrix.ts',
     ];
 
@@ -224,24 +222,17 @@ class CleanupCommand extends Command
     {
         $this->info('Cleaning up app.css...');
         
-        $appCssPath = base_path('resources/styles/app.css');
-        
+        $appCssPath = base_path('resources/css/app.css');
         if (File::exists($appCssPath)) {
-            try {
-                $content = File::get($appCssPath);
-                
-                // Remove bonsai.css import and any resulting empty lines
-                $updatedContent = preg_replace("/@import\s+['\"]bonsai\.css['\"];?\n*/", '', $content);
-                
-                // Clean up multiple empty lines
-                $updatedContent = preg_replace("/\n{2,}/", "\n", $updatedContent);
-                
-                if ($content !== $updatedContent) {
-                    File::put($appCssPath, $updatedContent);
-                    $this->line("- Removed bonsai.css import from app.css");
-                }
-            } catch (\Exception $e) {
-                $this->error("Failed to update app.css: " . $e->getMessage());
+            $appCss = File::get($appCssPath);
+            
+            // Remove Tailwind 4 CSS added by Bonsai
+            $pattern = "/@theme\s*{[^}]*}.*?@layer\s+base\s*{.*?body\s*{.*?}.*?}/s";
+            $cleanedCss = preg_replace($pattern, '', $appCss);
+            
+            if ($cleanedCss !== $appCss) {
+                File::put($appCssPath, $cleanedCss);
+                $this->line("- Removed Tailwind 4 CSS from app.css");
             }
         }
     }

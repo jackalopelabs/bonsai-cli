@@ -187,6 +187,6 @@ wordpress:
 
 assets:
   styles:
-    - resources/styles/example.scss
+    - resources/css/example.scss
   scripts:
     - resources/scripts/example.js 

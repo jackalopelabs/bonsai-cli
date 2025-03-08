@@ -241,6 +241,6 @@ wordpress:
 
 assets:
   styles:
-    - resources/styles/hydrofera.scss
+    - resources/css/hydrofera.scss
   scripts:
     - resources/scripts/hydrofera.js
