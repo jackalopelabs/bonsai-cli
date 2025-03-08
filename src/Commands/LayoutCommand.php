@@ -170,7 +170,7 @@ BLADE;
         @include('utils.styles')
     </head>
 
-    <body @php(body_class('transition-colors duration-200 p-0 m-0 bg-transparent'))>
+    <body @php(body_class('transition-colors duration-200 p-0 m-0 relative h-screen'))>
         @php(wp_body_open())
         <div id="app" class="relative z-10">
             <a class="sr-only focus:not-sr-only" href="#main">
