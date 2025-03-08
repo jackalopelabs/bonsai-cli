@@ -16,6 +16,11 @@
             "Jackalopelabs\\BonsaiCli\\": "src/"
         }
     },
+    "config": {
+        "allow-plugins": {
+            "jackalopelabs/bonsai-cli": true
+        }
+    },
     "extra": {
         "class": "Jackalopelabs\\BonsaiCli\\Composer\\BonsaiInstallerPlugin",
         "acorn": {
