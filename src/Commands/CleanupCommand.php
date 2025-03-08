@@ -246,17 +246,26 @@ class CleanupCommand extends Command
         if (File::exists($appJsPath)) {
             try {
                 $content = File::get($appJsPath);
+                $modified = false;
                 
-                // Remove the import statement and the PixelMatrix initialization code
-                $pattern = "/import\s+PixelMatrix\s+from\s+['\"]\.\\/pixel-matrix['\"].*?(?:\/\/\s*Initialize\s+PixelMatrix\s+on\s+pricing\s+boxes\s*document\.addEventListener\(['\"]DOMContentLoaded['\"]\s*,\s*\(\)\s*=>\s*{\s*const\s+pricingBoxes\s*=\s*document\.querySelectorAll\(['\"]\.pricing-box['\"]\)\s*pricingBoxes\.forEach\(box\s*=>\s*new\s+PixelMatrix\(box\)\)\s*}\))/s";
+                // Remove the PixelMatrix import
+                if (str_contains($content, "import PixelMatrix from './pixel-matrix'")) {
+                    $content = preg_replace("/import\s+PixelMatrix\s+from\s+['\"]\.\\/pixel-matrix['\"];?\n?/", '', $content);
+                    $modified = true;
+                }
                 
-                $updatedContent = preg_replace($pattern, '', $content);
+                // Remove the PixelMatrix initialization code
+                if (str_contains($content, "// Initialize PixelMatrix on pricing boxes")) {
+                    $pattern = "/\/\/\s*Initialize\s+PixelMatrix\s+on\s+pricing\s+boxes\s*document\.addEventListener\(['\"]DOMContentLoaded['\"]\s*,\s*\(\)\s*=>\s*{\s*const\s+pricingBoxes\s*=\s*document\.querySelectorAll\(['\"]\.pricing-box['\"]\)\s*pricingBoxes\.forEach\(box\s*=>\s*new\s+PixelMatrix\(box\)\)\s*}\);?\n?/s";
+                    $content = preg_replace($pattern, '', $content);
+                    $modified = true;
+                }
                 
-                // Remove extra newlines at the end of the file while preserving existing spacing
-                $updatedContent = rtrim($updatedContent) . "\n";
+                // Clean up any double newlines
+                $content = preg_replace("/\n{3,}/", "\n\n", $content);
                 
-                if ($content !== $updatedContent) {
-                    File::put($appJsPath, $updatedContent);
+                if ($modified) {
+                    File::put($appJsPath, $content);
                     $this->line("- Removed PixelMatrix code from app.js");
                 }
             } catch (\Exception $e) {

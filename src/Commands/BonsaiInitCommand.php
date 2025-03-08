@@ -773,15 +773,17 @@ CSS;
             } else {
                 // Create a basic app.js file
                 $basicAppJs = <<<JS
-// Main application JavaScript file
-import 'alpinejs'
-import PixelMatrix from './pixel-matrix'
+import.meta.glob(["../images/**", "../fonts/**"]);
+import alpine from "alpinejs";
+import PixelMatrix from './pixel-matrix';
 
 // Initialize PixelMatrix on pricing boxes
 document.addEventListener('DOMContentLoaded', () => {
     const pricingBoxes = document.querySelectorAll('.pricing-box')
     pricingBoxes.forEach(box => new PixelMatrix(box))
-})
+});
+
+Object.assign(window, { Alpine: alpine }).Alpine.start();
 JS;
                 $this->files->put($appJsPath, $basicAppJs);
                 $this->info('Created basic app.js file');
@@ -792,7 +794,7 @@ JS;
 
             // Add PixelMatrix import if it doesn't exist
             if (!str_contains($appJs, "import PixelMatrix")) {
-                // Find the last import statement
+                // Find the position after the last import statement
                 $lastImportPos = strrpos($appJs, "import");
                 if ($lastImportPos !== false) {
                     $endOfLine = strpos($appJs, "\n", $lastImportPos);
@@ -813,11 +815,16 @@ JS;
                 $initCode .= "document.addEventListener('DOMContentLoaded', () => {\n";
                 $initCode .= "    const pricingBoxes = document.querySelectorAll('.pricing-box')\n";
                 $initCode .= "    pricingBoxes.forEach(box => new PixelMatrix(box))\n";
-                $initCode .= "})\n";
+                $initCode .= "})\n\n";
 
-                // Find the right position to insert (before webpack hot accept if it exists)
-                $insertPos = strrpos($appJs, "if (import.meta.webpackHot)");
-                if ($insertPos === false) {
+                // Find the right position to insert - before Alpine initialization if it exists
+                $alpineInitPos = strpos($appJs, "Object.assign(window, { Alpine:");
+                
+                if ($alpineInitPos !== false) {
+                    // Insert before Alpine initialization
+                    $insertPos = $alpineInitPos;
+                } else {
+                    // Insert at the end of the file
                     $insertPos = strlen($appJs);
                 }
 
