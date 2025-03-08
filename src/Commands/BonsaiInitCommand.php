@@ -655,6 +655,15 @@ PHP;
     body {
         @apply text-gray-900 dark:text-white bg-white dark:bg-midnight-950;
     }
+
+    a {
+        @apply no-underline;
+        text-decoration: none !important;
+    }
+    
+    a:hover {
+        text-decoration: none !important;
+    }
 }
 CSS;
 
