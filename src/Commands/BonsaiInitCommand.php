@@ -962,7 +962,32 @@ document.addEventListener('DOMContentLoaded', () => {
     pricingBoxes.forEach(box => new PixelMatrix(box))
 });
 
-Object.assign(window, { Alpine: alpine }).Alpine.start();
+document.addEventListener('alpine:init', () => {
+    // Add dark mode store with simple state management
+    alpine.store('darkMode', {
+        on: true, // Default to dark mode
+        
+        init() {
+            // Apply initial dark mode state to body
+            document.body.classList.toggle('dark', this.on);
+        },
+        
+        toggle() {
+            this.on = !this.on;
+            document.body.classList.toggle('dark', this.on);
+        }
+    });
+
+    // Make darkMode accessible in Alpine components
+    alpine.data('globalData', () => ({
+        get darkMode() {
+            return this.$store.darkMode.on;
+        }
+    }));
+});
+
+// Start Alpine
+alpine.start();
 JS;
                 $this->files->put($appJsPath, $basicAppJs);
                 $this->info('Created basic app.js file');
@@ -1011,11 +1036,65 @@ JS;
                 $modified = true;
             }
 
+            // Add dark mode functionality if it doesn't exist
+            if (!str_contains($appJs, "alpine.store('darkMode'")) {
+                $darkModeCode = "\ndocument.addEventListener('alpine:init', () => {\n";
+                $darkModeCode .= "    // Add dark mode store with simple state management\n";
+                $darkModeCode .= "    alpine.store('darkMode', {\n";
+                $darkModeCode .= "        on: true, // Default to dark mode\n";
+                $darkModeCode .= "        \n";
+                $darkModeCode .= "        init() {\n";
+                $darkModeCode .= "            // Apply initial dark mode state to body\n";
+                $darkModeCode .= "            document.body.classList.toggle('dark', this.on);\n";
+                $darkModeCode .= "        },\n";
+                $darkModeCode .= "        \n";
+                $darkModeCode .= "        toggle() {\n";
+                $darkModeCode .= "            this.on = !this.on;\n";
+                $darkModeCode .= "            document.body.classList.toggle('dark', this.on);\n";
+                $darkModeCode .= "        }\n";
+                $darkModeCode .= "    });\n";
+                $darkModeCode .= "\n";
+                $darkModeCode .= "    // Make darkMode accessible in Alpine components\n";
+                $darkModeCode .= "    alpine.data('globalData', () => ({\n";
+                $darkModeCode .= "        get darkMode() {\n";
+                $darkModeCode .= "            return this.\$store.darkMode.on;\n";
+                $darkModeCode .= "        }\n";
+                $darkModeCode .= "    }));\n";
+                $darkModeCode .= "});\n\n";
+
+                // Find the right position to insert
+                // If there's an Alpine start line, replace it with our code + alpine.start()
+                $alpineStartPos = strpos($appJs, "Object.assign(window, { Alpine: alpine }).Alpine.start()");
+                $alpineStartPos2 = strpos($appJs, "alpine.start()");
+                
+                if ($alpineStartPos !== false) {
+                    // Replace the Alpine start line
+                    $appJs = str_replace(
+                        "Object.assign(window, { Alpine: alpine }).Alpine.start()",
+                        $darkModeCode . "// Start Alpine\nalpine.start()",
+                        $appJs
+                    );
+                    $modified = true;
+                } elseif ($alpineStartPos2 !== false) {
+                    // Insert before alpine.start()
+                    $appJs = str_replace(
+                        "alpine.start()",
+                        $darkModeCode . "// Start Alpine\nalpine.start()",
+                        $appJs
+                    );
+                    $modified = true;
+                } else {
+                    // Add at the end of the file
+                    $appJs .= $darkModeCode . "// Start Alpine\nalpine.start();\n";
+                    $modified = true;
+                }
+            }
+
             if ($modified) {
                 $this->files->put($appJsPath, $appJs);
-                $this->info('Updated app.js with PixelMatrix integration');
+                $this->info('Updated app.js with PixelMatrix integration and dark mode functionality');
             } else {
-                $this->info('app.js already contains PixelMatrix integration');
+                $this->info('app.js already contains PixelMatrix integration and dark mode functionality');
             }
         }
     }
