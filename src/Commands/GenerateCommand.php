@@ -486,7 +486,7 @@ BLADE;
 
             $layoutContent = <<<BLADE
 <!doctype html>
-<html @php(language_attributes()) class='dark relative h-screen' x-data='{ darkMode: localStorage.getItem("darkMode") === null ? true : localStorage.getItem("darkMode") === "true" }' x-init='@{{ \$watch }}("darkMode", val => localStorage.setItem("darkMode", val))' :class='{ "dark": darkMode }'>
+<html @php(language_attributes()) x-data="globalData" class="relative h-screen">
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
         <img src="{{ Vite::asset('resources/images/bonsai_hero_03.webp') }}" 
@@ -506,7 +506,8 @@ BLADE;
         @php(wp_head())
         @includeIf('utils.styles')
     </head>
-    <body @php(body_class('transition-colors duration-200 p-0 m-0 bg-transparent'))>
+    <body @php(body_class('transition-colors duration-200 p-0 m-0 relative h-screen')) 
+          x-bind:style="darkMode ? 'background-color: #060614 !important; color: white !important;' : 'background-color: white !important; color: #1e293b !important;'">
         @php(wp_body_open())
         <div id="app" class="relative z-10">
             <a class="sr-only focus:not-sr-only" href="#main">
