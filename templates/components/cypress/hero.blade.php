@@ -24,8 +24,8 @@
 <div class="container mx-auto px-4 mb-12 mt-0 md:mt-24" x-data="{}">
     <div class="flex flex-col items-center text-center max-w-3xl mx-auto">
         @if($product)
-            <div class="bg-white bg-opacity-50 px-3 py-1 text-sm inline-block">
-                {{ $product }} 
+            <div class="px-3 py-1 text-sm inline-block" x-bind:style="darkMode ? 'background-color: rgba(6, 6, 20, 0.5);' : 'background-color: rgba(255, 255, 255, 0.5);'">
+                <span x-bind:style="darkMode ? 'color: white;' : 'color: #111827;'">{{ $product }}</span>
                 @if($dropdownIcon)
                     <x-dynamic-component :component="$iconMappings['dropdownIcon']" class="w-4 h-4 ml-2 inline-block align-middle" />
                 @endif
@@ -33,19 +33,19 @@
         @endif
 
         @if($title)
-            <h1 class="{{ $titleClass }} text-gray-900 dark:text-white" style="line-height: normal;" x-bind:style="!darkMode && 'text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.4);'">
+            <h1 class="{{ $titleClass }}" style="line-height: normal;" x-bind:style="darkMode ? 'color: white; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.4);' : 'color: #111827;'">
                 {!! $title !!}
             </h1>
         @endif
 
         @if($subtitle)
-            <p class="font-bold my-4 text-gray-800 dark:text-white" x-bind:style="!darkMode && 'text-shadow: 0 0 8px rgba(255,255,255,0.8), 0 0 16px rgba(255,255,255,0.4);'">
+            <p class="font-bold my-4" x-bind:style="darkMode ? 'color: white; text-shadow: 0 0 8px rgba(255,255,255,0.8), 0 0 16px rgba(255,255,255,0.4);' : 'color: #1f2937;'">
                 {{ $subtitle }}
             </p>
         @endif
 
         @if($description)
-            <p class="text-gray-100 dark:text-gray-200 mb-4 max-w-2xl" x-bind:style="!darkMode && 'text-shadow: 0 1px 3px rgba(0,0,0,0.6);'">
+            <p class="mb-4 max-w-2xl" x-bind:style="darkMode ? 'color: #e5e7eb; text-shadow: 0 1px 3px rgba(0,0,0,0.6);' : 'color: #4b5563;'">
                 {{ $description }}
             </p>
         @endif
@@ -61,7 +61,7 @@
             @endif
 
             @if($secondaryText && $secondaryLink)
-                <a href="{{ $secondaryLink }}" target="_blank" class="text-sm bg-transparent px-4 py-1 backdrop-blur-md shadow-lg rounded-lg inline-flex items-center justify-center dark:border border-0 dark:border-gray-100 text-gray-900 dark:text-white group">
+                <a href="{{ $secondaryLink }}" target="_blank" class="text-sm bg-transparent px-4 py-1 backdrop-blur-md shadow-lg rounded-lg inline-flex items-center justify-center group" x-bind:style="darkMode ? 'color: white; border: 1px solid rgba(255, 255, 255, 0.3);' : 'color: #111827; border: 0;'">
                     {{ $secondaryText }}
                     @if($secondaryIcon)
                         <x-dynamic-component :component="$iconMappings['secondaryIcon']" class="{{ $secondaryIconClasses }}" />

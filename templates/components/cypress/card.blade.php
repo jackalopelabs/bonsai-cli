@@ -11,8 +11,9 @@
 <section id="{{ $sectionId }}" class="py-12">
     <div class="max-w-4xl mx-auto px-6">
         <!-- Navigation Links -->
-        <div class="flex flex-col sm:flex-row flex-wrap items-start mb-6 justify-center md:justify-center" x-data="scrollHandler">
-            <h2 class="text-lg text-gray-800 dark:text-gray-200 bg-white/50 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg p-3 rounded-lg mr-4 mb-4 sm:mb-0">
+        <div class="flex flex-col sm:flex-row flex-wrap items-start mb-6 justify-center md:justify-center">
+            <h2 class="text-lg text-gray-800 bg-white/50 backdrop-blur-md shadow-lg p-3 rounded-lg mr-4 mb-4 sm:mb-0"
+                x-bind:style="darkMode ? 'color: #e5e7eb; background-color: rgba(6, 6, 20, 0.2);' : 'color: #1f2937; background-color: rgba(255, 255, 255, 0.5);'">
                 {!! $sectionTitle !!}
                 <svg class="w-4 h-4 ml-2 inline-block align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -29,7 +30,8 @@
         </div>
 
         <!-- Card Content -->
-        <div class="bg-white bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg grid md:grid-cols-2 gap-8 rounded-3xl p-3">
+        <div class="backdrop-blur-md shadow-lg grid md:grid-cols-2 gap-8 rounded-3xl p-3"
+             x-bind:style="darkMode ? 'background-color: rgba(6, 6, 20, 0.2);' : 'background-color: rgba(255, 255, 255, 0.1);'">
             <!-- Image or Icon Column -->
             <div class="md:w-1/2 mx-auto">
                 @if ($image)
@@ -43,7 +45,8 @@
             <!-- Features Column -->
             <div class="md:w-2/2 space-y-6">
                 @foreach ($featureItems as $item)
-                    <div class="flex items-start space-x-4 bg-white dark:bg-midnight-950 rounded-xl p-3">
+                    <div class="flex items-start space-x-4 rounded-xl p-3"
+                         x-bind:style="darkMode ? 'background-color: #060614;' : 'background-color: white;'">
                         <div class="shrink-0">
                             @if(isset($item['icon']))
                                 @php
@@ -69,8 +72,8 @@
                             @endif
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold">{{ $item['title'] }}</h3>
-                            <p class="text-sm text-gray-500">{{ $item['description'] }}</p>
+                            <h3 class="text-lg font-semibold" x-bind:style="darkMode ? 'color: white;' : 'color: #1f2937;'">{{ $item['title'] }}</h3>
+                            <p class="text-sm" x-bind:style="darkMode ? 'color: #9ca3af;' : 'color: #6b7280;'">{{ $item['description'] }}</p>
                         </div>
                     </div>
                 @endforeach

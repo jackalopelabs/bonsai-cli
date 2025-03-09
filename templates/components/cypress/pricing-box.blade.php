@@ -24,7 +24,7 @@ function getCTAData($box) {
     $defaultCTA = [
         'url' => '#',
         'text' => 'Get Started',
-        'classes' => 'inline-block py-3 px-8 rounded-full border border-gray-300 dark:border-gray-800 text-gray-800 dark:text-gray-300 hover:bg-gradient-to-r hover:text-white hover:border-transparent hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1'
+        'classes' => 'inline-block py-3 px-8 rounded-full border hover:bg-gradient-to-r hover:text-white hover:border-transparent hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1'
     ];
 
     if (!isset($box['cta']) && !isset($box['ctaLink'])) {
@@ -50,14 +50,14 @@ function getCTAData($box) {
 <div id="pricing" class="container mx-auto px-4 py-12">
     <!-- Pricing Section Header -->
     <div class="mx-auto px-4 text-center">
-        <h2 class="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4 pt-4">{{ $title }}</h2>
-        <p class="text-gray-500 dark:text-gray-400 mb-8">{{ $subtitle }}</p>
-        <div class="inline-flex items-center gap-2 rounded-md bg-white dark:bg-midnight-950 text-sm px-3 py-1 text-center mb-8">
-            <svg class="h-6 w-6 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon">
+        <h2 class="text-5xl font-bold mb-4 pt-4" x-bind:style="darkMode ? 'color: #f3f4f6;' : 'color: #111827;'">{{ $title }}</h2>
+        <p class="mb-8" x-bind:style="darkMode ? 'color: #9ca3af;' : 'color: #6b7280;'">{{ $subtitle }}</p>
+        <div class="inline-flex items-center gap-2 rounded-md text-sm px-3 py-1 text-center mb-8" x-bind:style="darkMode ? 'background-color: #060614;' : 'background-color: white;'">
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon" x-bind:style="darkMode ? 'color: #6b7280;' : 'color: #9ca3af;'">
                 <path d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.75 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM12.75 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM14.25 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM15 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"></path>
                 <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd"></path>
             </svg>               
-            <span class="text-gray-400 dark:text-gray-500">{{ $description }}</span>
+            <span x-bind:style="darkMode ? 'color: #6b7280;' : 'color: #9ca3af;'">{{ $description }}</span>
         </div>
     </div>
     
@@ -69,7 +69,8 @@ function getCTAData($box) {
                 $ctaData = getCTAData($box);
             @endphp
             <div class="md:w-1/3 flex">
-                <div class="{{ $box['containerClasses'] ?? 'pricing-box bg-white dark:bg-midnight-950 bg-opacity-50 dark:bg-opacity-10 rounded-xl shadow-lg overflow-hidden w-full text-center transition-transform transform hover:scale-105 border border-gray-100 dark:border-gray-800 h-full flex flex-col' }}">
+                <div class="{{ $box['containerClasses'] ?? 'pricing-box rounded-xl shadow-lg overflow-hidden w-full text-center transition-transform transform hover:scale-105 h-full flex flex-col' }}"
+                     x-bind:style="darkMode ? 'background-color: rgba(6, 6, 20, 0.1); border: 1px solid #1f2937;' : 'background-color: rgba(255, 255, 255, 0.5); border: 1px solid #f3f4f6;'">
                     <div class="p-6 flex-grow flex flex-col">
                         <!-- Icon -->
                         <div class="flex justify-center items-center mb-4">
@@ -86,14 +87,14 @@ function getCTAData($box) {
 
                         <!-- Plan Type -->
                         <div class="text-center">
-                            <h3 class="text-gray-400 dark:text-gray-500">{{ $box['planType'] ?? 'Plan' }}</h3>
-                            <p class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-8">{{ $box['price'] ?? '$0' }}</p>
+                            <h3 x-bind:style="darkMode ? 'color: #6b7280;' : 'color: #9ca3af;'">{{ $box['planType'] ?? 'Plan' }}</h3>
+                            <p class="text-4xl font-bold mb-8" x-bind:style="darkMode ? 'color: #f3f4f6;' : 'color: #111827;'">{{ $box['price'] ?? '$0' }}</p>
                         </div>
 
                         <!-- Features -->
                         <ul class="my-4 text-left space-y-3 flex-grow">
                             @foreach ($box['features'] ?? [] as $index => $feature)
-                                <li class="flex items-center justify-start text-gray-500 dark:text-gray-400">
+                                <li class="flex items-center justify-start" x-bind:style="darkMode ? 'color: #9ca3af;' : 'color: #6b7280;'">
                                     <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <defs>
                                             <linearGradient id="checkGradient{{ $index }}{{ $box['planType'] ?? 'default' }}" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -113,7 +114,8 @@ function getCTAData($box) {
                             <a href="{{ $ctaData['url'] }}" 
                                class="{{ $ctaData['classes'] }}"
                                target="_blank" 
-                               rel="noopener">
+                               rel="noopener"
+                               x-bind:style="darkMode ? 'color: #d1d5db; border-color: #374151;' : 'color: #374151; border-color: #d1d5db;'">
                                 {{ $ctaData['text'] }}
                                 <svg class="inline-block h-4 w-4 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <defs>

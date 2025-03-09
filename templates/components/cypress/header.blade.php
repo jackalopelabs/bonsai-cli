@@ -6,17 +6,17 @@
     $navLinks = $data['navLinks'] ?? [];
     $primaryLink = $data['primaryLink'] ?? '';
     $containerClasses = $data['containerClasses'] ?? 'px-6 flex justify-between items-center w-full';
-    $headerClass = $data['headerClass'] ?? 'mx-auto sticky top-0 bg-white/10 dark:bg-midnight-950/20 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
+    $headerClass = $data['headerClass'] ?? 'mx-auto sticky top-0 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
     $buttonText = $data['buttonText'] ?? '';
     $buttonPrefix = $data['buttonPrefix'] ?? '';
-    $showDarkModeToggle = $data['showDarkModeToggle'] ?? false;
-    $darkModeToggleClass = $data['darkModeToggleClass'] ?? 'p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200';
+    $showDarkModeToggle = $data['showDarkModeToggle'] ?? true;
+    $darkModeToggleClass = $data['darkModeToggleClass'] ?? 'p-2 rounded-lg transition-colors duration-200';
     $chevronSvg = $data['chevronSvg'] ?? '';
 @endphp
 
-<header class="{{ $headerClass }}" x-data="scrollHandler">
+<header class="{{ $headerClass }}" x-bind:style="darkMode ? 'background-color: rgba(6, 6, 20, 0.2);' : 'background-color: rgba(255, 255, 255, 0.1);'">
     <div class="{{ $containerClasses }}">
-        <a class="py-3 font-bold text-lg block text-gray-900 dark:text-white" href="https://bonsai.so/">
+        <a class="py-3 font-bold text-lg block" href="https://bonsai.so/" x-bind:style="darkMode ? 'color: white;' : 'color: #111827;'">
             <div class="flex items-center">
                 {!! $iconSvg !!}
                 {{ $siteName }}
@@ -25,7 +25,7 @@
 
         <ul class="hidden sm:flex items-center justify-center flex-1 mx-6 space-x-8">
             @foreach($navLinks as $link)
-            <a href="{{ $link['url'] }}" class="text-gray-900 dark:text-white">
+            <a href="{{ $link['url'] }}" x-bind:style="darkMode ? 'color: white;' : 'color: #111827;'">
                     <li>{{ $link['label'] }}</li>
                 </a>
             @endforeach
@@ -37,8 +37,10 @@
             </a>
             @if($showDarkModeToggle)
             <button
-                x-on:click="darkMode = !darkMode"
-                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 text-gray-900 dark:text-white"
+                type="button"
+                @click="$store.darkMode.toggle()"
+                class="{{ $darkModeToggleClass }}"
+                x-bind:style="darkMode ? 'color: white; background-color: rgba(55, 65, 81, 0.3);' : 'color: #111827; background-color: rgba(243, 244, 246, 0.3);'"
                 aria-label="{{ __('Toggle dark mode', 'radicle') }}"
             >
                 <svg x-show="!darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

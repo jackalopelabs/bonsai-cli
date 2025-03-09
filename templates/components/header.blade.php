@@ -1,68 +1,58 @@
-@props([
-    'siteName' => '',
-    'iconComponent' => '',
-    'navLinks' => [],
-    'primaryLink' => '',
-    'containerClasses' => '',
-    'containerInnerClasses' => '',
-    'headerClass' => '',
-    'iconClasses' => '',
-    'chevronClasses' => '',
-    'buttonText' => '',
-    'buttonPrefix' => '',
-    'showDarkModeToggle' => false,
-    'darkModeToggleClass' => ''
-])
+@props(['data' => []])
 
-<header class="{{ $headerClass }}">
+@php
+    $siteName = $data['siteName'] ?? '';
+    $iconSvg = $data['iconSvg'] ?? '';
+    $navLinks = $data['navLinks'] ?? [];
+    $primaryLink = $data['primaryLink'] ?? '';
+    $containerClasses = $data['containerClasses'] ?? 'px-6 flex justify-between items-center w-full';
+    $headerClass = $data['headerClass'] ?? 'mx-auto sticky top-0 backdrop-blur-md shadow-lg border border-transparent rounded-full mx-auto p-1 my-4';
+    $buttonText = $data['buttonText'] ?? '';
+    $buttonPrefix = $data['buttonPrefix'] ?? '';
+    $showDarkModeToggle = $data['showDarkModeToggle'] ?? true;
+    $darkModeToggleClass = $data['darkModeToggleClass'] ?? 'p-2 rounded-lg transition-colors duration-200';
+    $chevronSvg = $data['chevronSvg'] ?? '';
+@endphp
+
+<header class="{{ $headerClass }}" x-bind:style="darkMode ? 'background-color: rgba(6, 6, 20, 0.2);' : 'background-color: rgba(255, 255, 255, 0.1);'">
     <div class="{{ $containerClasses }}">
-        <div class="{{ $containerInnerClasses }}">
-            <nav class="flex items-center justify-between">
-                <!-- Logo/Site Name -->
-                <a href="{{ home_url('/') }}" class="flex items-center">
-                    @if($iconComponent)
-                        <x-dynamic-component :component="$iconComponent" class="{{ $iconClasses }}" />
-                    @endif
-                    <span class="text-gray-900 dark:text-white">{{ $siteName }}</span>
-                </a>
-
-                <!-- Navigation Links -->
-                <div class="hidden md:flex items-center space-x-4">
-                    @foreach($navLinks as $link)
-                        <a href="{{ $link['url'] }}" class="text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300">
-                            {{ $link['label'] }}
-                        </a>
-                    @endforeach
-
-                    @if($primaryLink)
-                        <a href="{{ $primaryLink }}" class="text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300">
-                            @if($buttonPrefix)
-                                <span class="opacity-75">{{ $buttonPrefix }}</span>
-                            @endif
-                            {{ $buttonText }}
-                        </a>
-                    @endif
-
-                    @if($showDarkModeToggle)
-                        <button x-data @click="darkMode = !darkMode" class="{{ $darkModeToggleClass }} p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                            <span class="sr-only">Toggle dark mode</span>
-                            <svg class="w-6 h-6 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                            </svg>
-                            <svg class="w-6 h-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                            </svg>
-                        </button>
-                    @endif
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <button class="md:hidden text-gray-900 dark:text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
+        <a class="py-3 font-bold text-lg block" href="https://bonsai.so/" x-bind:style="darkMode ? 'color: white;' : 'color: #111827;'">
+            <div class="flex items-center">
+                {!! $iconSvg !!}
+                {{ $siteName }}
             </div>
-        </nav>
+        </a>
+
+        <ul class="hidden sm:flex items-center justify-center flex-1 mx-6 space-x-8">
+            @foreach($navLinks as $link)
+            <a href="{{ $link['url'] }}" x-bind:style="darkMode ? 'color: white;' : 'color: #111827;'">
+                    <li>{{ $link['label'] }}</li>
+                </a>
+            @endforeach
+        </ul>
+
+        <div class="flex space-x-4 items-center">
+            <a href="{{ $primaryLink }}" class="btn bg-indigo-500 py-2 px-4 border border-transparent rounded-full backdrop-blur-md shadow-lg text-white">
+                <span class="hidden sm:inline">{{ $buttonPrefix }}</span> {{ $buttonText }} {!! $chevronSvg !!}
+            </a>
+            @if($showDarkModeToggle)
+            <button
+                type="button"
+                @click="$store.darkMode.toggle()"
+                class="{{ $darkModeToggleClass }}"
+                x-bind:style="darkMode ? 'color: white; background-color: rgba(55, 65, 81, 0.3);' : 'color: #111827; background-color: rgba(243, 244, 246, 0.3);'"
+                aria-label="{{ __('Toggle dark mode', 'radicle') }}"
+            >
+                <svg x-show="!darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <!-- Sun icon -->
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                </svg>
+                <svg x-show="darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <!-- Moon icon -->
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                </svg>
+            </button> 
+            @endif
+        </div>
     </div>
-</header>
+</header> 
