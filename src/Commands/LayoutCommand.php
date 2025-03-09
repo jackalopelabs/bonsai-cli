@@ -148,16 +148,20 @@ BLADE;
 
         return <<<BLADE
 <!doctype html>
-<html @php(language_attributes()) class="{$htmlClass}" x-data="{$xData}" x-init="{$xInit}" :class="{$xBindClass}">
+<html @php(language_attributes()) x-data="globalData" class="relative h-screen">
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
         <img src="{{ Vite::asset('resources/images/bonsai_hero_03.webp') }}"
-                alt="Background Light" 
-                class="w-full h-full object-cover object-top opacity-100 block dark:hidden"
+                alt="Background Light"
+                class="w-full h-full object-cover object-top opacity-100"
+                style="display: none;"
+                x-bind:style="!darkMode ? 'display: block;' : 'display: none;'"
         />
         <img src="{{ Vite::asset('resources/images/bonsai_hero_01.webp') }}" 
                 alt="Background Dark" 
-                class="w-full h-full object-cover object-top opacity-100 hidden dark:block"
+                class="w-full h-full object-cover object-top opacity-100"
+                style="display: block;"
+                x-bind:style="darkMode ? 'display: block;' : 'display: none;'"
         />
     </div>
 
@@ -170,7 +174,8 @@ BLADE;
         @include('utils.styles')
     </head>
 
-    <body @php(body_class('transition-colors duration-200 p-0 m-0 relative h-screen'))>
+    <body @php(body_class('transition-colors duration-200 p-0 m-0 relative h-screen')) 
+          x-bind:style="darkMode ? 'background-color: #060614 !important; color: white !important;' : 'background-color: white !important; color: #1e293b !important;'">
         @php(wp_body_open())
         <div id="app" class="relative z-10">
             <a class="sr-only focus:not-sr-only" href="#main">
