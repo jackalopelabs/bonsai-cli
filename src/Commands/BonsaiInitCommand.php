@@ -53,6 +53,9 @@ class BonsaiInitCommand extends Command
             // Configure CSS
             $this->configureCSS();
 
+            // Configure Vite
+            $this->configureVite();
+
             // Configure Scripts
             $this->configureScripts();
 
@@ -733,6 +736,173 @@ CSS;
             
             $this->files->put($appCssPath, $basicAppCss);
         }
+    }
+
+    protected function configureVite()
+    {
+        $this->info('Configuring Vite for Tailwind...');
+
+        // Determine the project structure and find the vite.config.js file
+        $projectRoot = getcwd(); // Current working directory
+        
+        // Possible locations for vite.config.js
+        $possibleLocations = [
+            $projectRoot . '/vite.config.js',                           // Radicle (project root)
+            $projectRoot . '/vite.config.ts',                           // Radicle with TypeScript
+            $projectRoot . '/web/app/themes/sage/vite.config.js',       // Sage 11 in Bedrock
+            $projectRoot . '/web/app/themes/sage/vite.config.ts',       // Sage 11 in Bedrock with TypeScript
+        ];
+        
+        // Try to find theme name if in a Bedrock structure
+        $themesDir = $projectRoot . '/web/app/themes';
+        if (is_dir($themesDir)) {
+            $themes = array_filter(scandir($themesDir), function($item) use ($themesDir) {
+                return $item !== '.' && $item !== '..' && is_dir($themesDir . '/' . $item);
+            });
+            
+            foreach ($themes as $theme) {
+                $possibleLocations[] = $projectRoot . '/web/app/themes/' . $theme . '/vite.config.js';
+                $possibleLocations[] = $projectRoot . '/web/app/themes/' . $theme . '/vite.config.ts';
+            }
+        }
+        
+        // Find the first existing vite config file
+        $viteConfigPath = null;
+        foreach ($possibleLocations as $location) {
+            if (file_exists($location)) {
+                $viteConfigPath = $location;
+                break;
+            }
+        }
+        
+        if ($viteConfigPath) {
+            $this->info("Found Vite config at: {$viteConfigPath}");
+            $viteConfig = file_get_contents($viteConfigPath);
+            
+            // Check if the config already has the custom Tailwind configuration
+            if (str_contains($viteConfig, 'darkMode: \'class\'')) {
+                $this->info('Vite configuration already contains custom Tailwind settings');
+                return;
+            }
+            
+            // Try different patterns for tailwindcss() call
+            $patterns = [
+                '/tailwindcss\(\),/',                // tailwindcss(),
+                '/tailwindcss\(\s*\),/',             // tailwindcss( ),
+                '/tailwindcss\s*\(\s*\),/',          // tailwindcss ( ),
+                '/tailwindcss\s*\(\s*\)\s*,/',       // tailwindcss ( ) ,
+                '/tailwindcss\(\)/',                 // tailwindcss() without comma
+                '/tailwindcss\s*\(\s*\)/'            // tailwindcss ( ) without comma
+            ];
+            
+            $replacement = <<<'JS'
+tailwindcss({
+      config: {
+        darkMode: 'class',
+        content: [
+          "./resources/**/*.blade.php",
+          "./resources/**/*.js",
+          "./resources/**/*.vue",
+        ],
+        theme: {
+          extend: {
+            colors: {
+              'midnight-950': 'var(--color-midnight-950)',
+            },
+          },
+        },
+      },
+    }),
+JS;
+            
+            $modified = false;
+            
+            // Try each pattern
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $viteConfig)) {
+                    $viteConfig = preg_replace($pattern, $replacement, $viteConfig);
+                    file_put_contents($viteConfigPath, $viteConfig);
+                    $this->info('Updated Vite configuration with custom Tailwind settings');
+                    $modified = true;
+                    break;
+                }
+            }
+            
+            if (!$modified) {
+                $this->warn('Could not find tailwindcss() in the Vite configuration');
+                $this->info('Please manually update your Vite configuration with the custom Tailwind settings');
+                $this->line('Add the following configuration to your Vite config file:');
+                $this->line($replacement);
+            }
+        } else {
+            $this->warn('No vite.config.js or vite.config.ts found in standard Roots project locations');
+            $this->info('Please manually update your Vite configuration with the custom Tailwind settings');
+            
+            // Offer to create a basic vite.config.js file
+            if ($this->confirm('Would you like to create a basic vite.config.js file in the current directory?', true)) {
+                $this->createBasicViteConfig($projectRoot . '/vite.config.js');
+            } else {
+                $this->line('You can manually add the following configuration to your Vite config file:');
+                $this->line(<<<'JS'
+tailwindcss({
+      config: {
+        darkMode: 'class',
+        content: [
+          "./resources/**/*.blade.php",
+          "./resources/**/*.js",
+          "./resources/**/*.vue",
+        ],
+        theme: {
+          extend: {
+            colors: {
+              'midnight-950': 'var(--color-midnight-950)',
+            },
+          },
+        },
+      },
+    }),
+JS
+                );
+            }
+        }
+    }
+    
+    protected function createBasicViteConfig($path)
+    {
+        $basicViteConfig = <<<'JS'
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import tailwindcss from 'tailwindcss';
+
+export default defineConfig({
+  plugins: [
+    laravel({
+      input: ['resources/css/app.css', 'resources/js/app.js'],
+      refresh: true,
+    }),
+    tailwindcss({
+      config: {
+        darkMode: 'class',
+        content: [
+          "./resources/**/*.blade.php",
+          "./resources/**/*.js",
+          "./resources/**/*.vue",
+        ],
+        theme: {
+          extend: {
+            colors: {
+              'midnight-950': 'var(--color-midnight-950)',
+            },
+          },
+        },
+      },
+    }),
+  ],
+});
+JS;
+
+        file_put_contents($path, $basicViteConfig);
+        $this->info("Created basic vite.config.js at: {$path}");
     }
 
     protected function configureScripts()
