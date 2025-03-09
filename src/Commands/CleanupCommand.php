@@ -226,13 +226,13 @@ class CleanupCommand extends Command
         if (File::exists($appCssPath)) {
             $appCss = File::get($appCssPath);
             
-            // Remove Tailwind 4 CSS added by Bonsai
-            $pattern = "/@theme\s*{[^}]*}.*?@layer\s+base\s*{.*?body\s*{.*?}.*?}/s";
+            // Remove Tailwind CSS added by Bonsai, including theme, base layer, body and anchor styles
+            $pattern = "/@theme\s*{[^}]*}.*?@layer\s+base\s*{.*?a:hover\s*{.*?}\s*}/s";
             $cleanedCss = preg_replace($pattern, '', $appCss);
             
             if ($cleanedCss !== $appCss) {
                 File::put($appCssPath, $cleanedCss);
-                $this->line("- Removed Tailwind 4 CSS from app.css");
+                $this->line("- Removed Bonsai CSS from app.css (theme, base layer, body and anchor styles)");
             }
         }
     }
