@@ -510,22 +510,28 @@ BLADE;
         @php(wp_head())
         @includeIf('utils.styles')
     </head>
-    <body @php(body_class('transition-colors duration-200 p-0 m-0 relative h-screen')) 
+    <body @php(body_class('transition-colors duration-200 p-0 m-0 h-screen')) 
           x-bind:style="darkMode ? 'background-color: #060614 !important; color: white !important;' : 'background-color: white !important; color: #1e293b !important;'">
         @php(wp_body_open())
         <div id="app" class="relative z-10">
             <a class="sr-only focus:not-sr-only" href="#main">
                 {{ __('Skip to content', 'radicle') }}
             </a>
+
+            @includeIf('bonsai.sections.site_header')
+
             <main id="main" class="max-w-5xl mx-auto">
                 <div class="{{ \$containerInnerClasses ?? 'px-6' }}">
                     @yield('content')
                 </div>
             </main>
+
+            @includeIf('bonsai.sections.footer')
         </div>
+
         @php(do_action('get_footer'))
         @php(wp_footer())
-        @includeIf('utils.scripts')
+        @include('utils.scripts')
     </body>
 </html>
 BLADE;

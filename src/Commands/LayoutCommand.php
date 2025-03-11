@@ -174,8 +174,18 @@ BLADE;
         @include('utils.styles')
     </head>
 
-    <body @php(body_class('transition-colors duration-200 p-0 m-0 relative h-screen')) 
-          x-bind:style="darkMode ? 'background-color: #060614 !important; color: white !important;' : 'background-color: white !important; color: #1e293b !important;'">
+    <body @php(body_class('transition-colors duration-200 p-0 m-0 h-screen')) 
+          x-bind:class="darkMode ? 'dark-mode' : 'light-mode'">
+        <style>
+            body.dark-mode {
+                background-color: #060614 !important;
+                color: white !important;
+            }
+            body.light-mode {
+                background-color: white !important;
+                color: #1e293b !important;
+            }
+        </style>
         @php(wp_body_open())
         <div id="app" class="relative z-10">
             <a class="sr-only focus:not-sr-only" href="#main">
