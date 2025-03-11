@@ -8,7 +8,7 @@ use Symfony\Component\Yaml\Yaml;
 
 class LayoutCommand extends Command
 {
-    protected $signature = 'bonsai:layout {name} {--sections=} {--template=}';
+    protected $signature = 'bonsai:layout {name} {--sections=} {--template=} {--config=}';
     protected $description = 'Create a new layout with specified sections';
 
     protected $files;
@@ -146,18 +146,31 @@ BLADE;
         $xInit = $themeSettings['html']['x-init'] ?? '$watch(\'darkMode\', val => localStorage.setItem(\'darkMode\', val))';
         $xBindClass = $themeSettings['html']['x-bind:class'] ?? '{ \'dark\': darkMode }';
 
+        // Get background images from assets configuration
+        $template = $this->argument('template');
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
+        $backgroundImages = $config['assets']['images'] ?? [
+            'bonsai_hero_01.webp',
+            'bonsai_hero_03.webp'
+        ];
+
+        // First image is dark mode, second is light mode
+        $darkBgImage = 'resources/images/' . ($backgroundImages[0] ?? 'bonsai_hero_01.webp');
+        $lightBgImage = 'resources/images/' . ($backgroundImages[1] ?? 'bonsai_hero_03.webp');
+
         return <<<BLADE
 <!doctype html>
 <html @php(language_attributes()) x-data="globalData" class="relative h-screen">
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
-        <img src="{{ Vite::asset('resources/images/bonsai_hero_03.webp') }}"
+        <img src="{{ Vite::asset('{$lightBgImage}') }}"
                 alt="Background Light"
                 class="w-full h-full object-cover object-top opacity-100"
                 style="display: none;"
                 x-bind:style="!darkMode ? 'display: block;' : 'display: none;'"
         />
-        <img src="{{ Vite::asset('resources/images/bonsai_hero_01.webp') }}" 
+        <img src="{{ Vite::asset('{$darkBgImage}') }}" 
                 alt="Background Dark" 
                 class="w-full h-full object-cover object-top opacity-100"
                 style="display: block;"
@@ -227,5 +240,41 @@ BLADE;
         }
 
         return $sections;
+    }
+
+    protected function getConfigPath($template)
+    {
+        // Try multiple config paths in order of priority
+        $configPaths = [
+            base_path("config/bonsai/templates/{$template}.yml"),
+            base_path("config/bonsai/{$template}.yml"),
+            base_path("config/templates/{$template}.yml"),
+            __DIR__ . "/../../config/templates/{$template}.yml"
+        ];
+
+        foreach ($configPaths as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        throw new \Exception("Configuration file not found for template: {$template}");
+    }
+
+    protected function loadConfig($configPath)
+    {
+        if (!file_exists($configPath)) {
+            throw new \Exception("Configuration file not found: {$configPath}");
+        }
+
+        if (!is_readable($configPath)) {
+            throw new \Exception("Configuration file is not readable: {$configPath}");
+        }
+
+        try {
+            return Yaml::parseFile($configPath);
+        } catch (\Exception $e) {
+            throw new \Exception("Error parsing YAML configuration: " . $e->getMessage());
+        }
     }
 }

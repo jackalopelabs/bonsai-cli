@@ -451,6 +451,22 @@ BLADE;
         $template = $this->argument('template');
         $this->info("\n🎨 Generating layouts...");
         
+        // Get config for background images
+        $configPath = $this->option('config') ?? $this->getConfigPath($template);
+        $config = $this->loadConfig($configPath);
+        $backgroundImages = $config['assets']['images'] ?? [
+            'bonsai_hero_01.webp',
+            'bonsai_hero_03.webp'
+        ];
+        
+        // Create theme settings with background images
+        $themeSettings = [
+            'background' => [
+                'dark' => 'resources/images/' . ($backgroundImages[0] ?? 'bonsai_hero_01.webp'),
+                'light' => 'resources/images/' . ($backgroundImages[1] ?? 'bonsai_hero_03.webp')
+            ]
+        ];
+        
         // Check for existing bonsai layout first
         $bonsaiLayoutPath = resource_path("views/bonsai/layouts/{$template}.blade.php");
         
@@ -469,7 +485,7 @@ BLADE;
             $this->info("✓ Copied layout to: {$templateLayoutPath}");
             
             // Copy background images
-            $this->copyLayoutBackgroundImages($template);
+            $this->copyLayoutBackgroundImages($template, $backgroundImages);
             
             // Generate the site header section if it doesn't exist
             $this->generateSiteHeader($template);
@@ -511,7 +527,17 @@ BLADE;
         @includeIf('utils.styles')
     </head>
     <body @php(body_class('transition-colors duration-200 p-0 m-0 h-screen')) 
-          x-bind:style="darkMode ? 'background-color: #060614 !important; color: white !important;' : 'background-color: white !important; color: #1e293b !important;'">
+          x-bind:class="darkMode ? 'dark-mode' : 'light-mode'">
+        <style>
+            body.dark-mode {
+                background-color: #060614 !important;
+                color: white !important;
+            }
+            body.light-mode {
+                background-color: white !important;
+                color: #1e293b !important;
+            }
+        </style>
         @php(wp_body_open())
         <div id="app" class="relative z-10">
             <a class="sr-only focus:not-sr-only" href="#main">
@@ -539,19 +565,55 @@ BLADE;
             $this->files->put($layoutPath, $layoutContent);
             
             // Copy background images
-            $this->copyLayoutBackgroundImages($template);
+            $this->copyLayoutBackgroundImages($template, $backgroundImages);
             
             // Generate the site header section if it doesn't exist
             $this->generateSiteHeader($template);
         }
     }
 
-    protected function copyLayoutBackgroundImages($template)
+    protected function copyLayoutBackgroundImages($template, $backgroundImages = null)
     {
-        $sourceImages = [
-            __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_01.webp",
-            __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_03.webp"
-        ];
+        // If no background images provided, use default ones
+        if (!$backgroundImages) {
+            $backgroundImages = [
+                'bonsai_hero_01.webp',
+                'bonsai_hero_03.webp'
+            ];
+        }
+        
+        // If background images is provided as associative array, convert to indexed array
+        if (isset($backgroundImages['dark']) || isset($backgroundImages['light'])) {
+            $backgroundImages = [
+                $backgroundImages['dark'] ?? 'bonsai_hero_01.webp',
+                $backgroundImages['light'] ?? 'bonsai_hero_03.webp'
+            ];
+        }
+        
+        $sourceImages = [];
+        
+        // Check for each image in the template assets directory
+        foreach ($backgroundImages as $image) {
+            $sourcePaths = [
+                __DIR__ . "/../../templates/assets/{$template}/{$image}",
+                __DIR__ . "/../../templates/assets/{$image}"
+            ];
+            
+            foreach ($sourcePaths as $path) {
+                if (file_exists($path)) {
+                    $sourceImages[] = $path;
+                    break;
+                }
+            }
+        }
+        
+        // If no source images found, use default ones
+        if (empty($sourceImages)) {
+            $sourceImages = [
+                __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_01.webp",
+                __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_03.webp"
+            ];
+        }
         
         // Create resources/images directory if it doesn't exist
         $imagesDir = resource_path('images');

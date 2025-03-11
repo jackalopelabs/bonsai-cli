@@ -440,10 +440,11 @@ assets:
   images:
     - bonsai_hero_01.webp
     - bonsai_hero_03.webp
-  styles:
-    - resources/css/cypress.scss
-    - resources/css/editor.scss
-  scripts:
-    - resources/js/cypress.js
-    - resources/js/gutenberg.js
-    - resources/js/alpine.js
+# Styles and scripts aren't working yet
+  # styles:
+  #   - resources/css/cypress.scss
+  #   - resources/css/editor.scss
+  # scripts:
+  #   - resources/js/cypress.js
+  #   - resources/js/gutenberg.js
+  #   - resources/js/alpine.js
