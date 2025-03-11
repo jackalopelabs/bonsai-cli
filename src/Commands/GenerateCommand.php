@@ -449,46 +449,24 @@ BLADE;
     protected function generateLayouts($layouts)
     {
         $template = $this->argument('template');
-        $this->info("\n🎨 Generating layouts...");
-        
-        // Get config for background images
-        $configPath = $this->option('config') ?? $this->getConfigPath($template);
-        $config = $this->loadConfig($configPath);
+        $layoutsPath = resource_path("views/bonsai/{$template}/layouts");
+
+        // Get background images from assets configuration
+        $config = $this->loadConfig($this->getConfigPath($template));
         $backgroundImages = $config['assets']['images'] ?? [
             'bonsai_hero_01.webp',
             'bonsai_hero_03.webp'
         ];
-        
-        // Create theme settings with background images
-        $themeSettings = [
-            'background' => [
-                'dark' => 'resources/images/' . ($backgroundImages[0] ?? 'bonsai_hero_01.webp'),
-                'light' => 'resources/images/' . ($backgroundImages[1] ?? 'bonsai_hero_03.webp')
-            ]
-        ];
-        
-        // Check for existing bonsai layout first
-        $bonsaiLayoutPath = resource_path("views/bonsai/layouts/{$template}.blade.php");
-        
-        if (file_exists($bonsaiLayoutPath)) {
-            $this->info("✓ Found existing bonsai layout, using it as source");
-            
-            // Create template-specific directory if it doesn't exist
-            $templateLayoutDir = resource_path("views/bonsai/{$template}/layouts");
-            if (!$this->files->exists($templateLayoutDir)) {
-                $this->files->makeDirectory($templateLayoutDir, 0755, true);
-            }
-            
-            // Copy the bonsai layout to the template directory
-            $templateLayoutPath = "{$templateLayoutDir}/{$template}.blade.php";
-            $this->files->copy($bonsaiLayoutPath, $templateLayoutPath);
-            $this->info("✓ Copied layout to: {$templateLayoutPath}");
-            
-            // Copy background images
-            $this->copyLayoutBackgroundImages($template, $backgroundImages);
-            
-            // Generate the site header section if it doesn't exist
-            $this->generateSiteHeader($template);
+
+        // First image is dark mode, second is light mode
+        $darkBgImage = 'resources/images/' . ($backgroundImages[0] ?? 'bonsai_hero_01.webp');
+        $lightBgImage = 'resources/images/' . ($backgroundImages[1] ?? 'bonsai_hero_03.webp');
+
+        // Copy background images to the project
+        $this->copyLayoutBackgroundImages($template, $backgroundImages);
+
+        if ($this->files->exists($layoutsPath)) {
+            $this->info("ℹ Bonsai layouts directory already exists, skipping layout generation");
             return;
         }
 
@@ -505,13 +483,13 @@ BLADE;
 <html @php(language_attributes()) x-data="globalData" class="relative h-screen">
     <!-- Hero Background Images -->
     <div class="absolute inset-0 z-0">
-        <img src="{{ Vite::asset('resources/images/bonsai_hero_03.webp') }}"
+        <img src="{{ Vite::asset('{$lightBgImage}') }}"
                 alt="Background Light"
                 class="w-full h-full object-cover object-top opacity-100"
                 style="display: none;"
                 x-bind:style="!darkMode ? 'display: block;' : 'display: none;'"
         />
-        <img src="{{ Vite::asset('resources/images/bonsai_hero_01.webp') }}" 
+        <img src="{{ Vite::asset('{$darkBgImage}') }}" 
                 alt="Background Dark" 
                 class="w-full h-full object-cover object-top opacity-100"
                 style="display: block;"
@@ -524,8 +502,10 @@ BLADE;
         <meta name="viewport" content="width=device-width, initial-scale=1">
         @php(do_action('get_header'))
         @php(wp_head())
-        @includeIf('utils.styles')
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('utils.styles')
     </head>
+
     <body @php(body_class('transition-colors duration-200 p-0 m-0 h-screen')) 
           x-bind:class="darkMode ? 'dark-mode' : 'light-mode'">
         <style>
@@ -544,7 +524,7 @@ BLADE;
                 {{ __('Skip to content', 'radicle') }}
             </a>
 
-            @includeIf('bonsai.sections.site_header')
+            @includeIf('bonsai.{$template}.sections.site_header')
 
             <main id="main" class="max-w-5xl mx-auto">
                 <div class="{{ \$containerInnerClasses ?? 'px-6' }}">
@@ -552,7 +532,7 @@ BLADE;
                 </div>
             </main>
 
-            @includeIf('bonsai.sections.footer')
+            @includeIf('bonsai.{$template}.sections.site_footer')
         </div>
 
         @php(do_action('get_footer'))
@@ -563,162 +543,59 @@ BLADE;
 BLADE;
 
             $this->files->put($layoutPath, $layoutContent);
-            
-            // Copy background images
-            $this->copyLayoutBackgroundImages($template, $backgroundImages);
-            
-            // Generate the site header section if it doesn't exist
-            $this->generateSiteHeader($template);
+            $this->info("✓ Layout {$layout} created at {$layoutPath}");
         }
     }
 
     protected function copyLayoutBackgroundImages($template, $backgroundImages = null)
     {
-        // If no background images provided, use default ones
-        if (!$backgroundImages) {
-            $backgroundImages = [
-                'bonsai_hero_01.webp',
-                'bonsai_hero_03.webp'
-            ];
+        $packageRoot = $this->getPackageRoot();
+        $imagesPath = resource_path('images');
+        
+        if (!$this->files->exists($imagesPath)) {
+            $this->files->makeDirectory($imagesPath, 0755, true);
         }
-        
-        // If background images is provided as associative array, convert to indexed array
-        if (isset($backgroundImages['dark']) || isset($backgroundImages['light'])) {
-            $backgroundImages = [
-                $backgroundImages['dark'] ?? 'bonsai_hero_01.webp',
-                $backgroundImages['light'] ?? 'bonsai_hero_03.webp'
-            ];
-        }
-        
-        $sourceImages = [];
-        
-        // Check for each image in the template assets directory
-        foreach ($backgroundImages as $image) {
-            $sourcePaths = [
-                __DIR__ . "/../../templates/assets/{$template}/{$image}",
-                __DIR__ . "/../../templates/assets/{$image}"
-            ];
-            
-            foreach ($sourcePaths as $path) {
-                if (file_exists($path)) {
-                    $sourceImages[] = $path;
-                    break;
+
+        // If specific background images are provided, copy those
+        if ($backgroundImages && is_array($backgroundImages)) {
+            foreach ($backgroundImages as $image) {
+                $sourcePath = $packageRoot . "/resources/images/{$image}";
+                $destinationPath = resource_path("images/{$image}");
+                
+                // Check if the source image exists in the package
+                if ($this->files->exists($sourcePath)) {
+                    $this->files->copy($sourcePath, $destinationPath);
+                    $this->info("✓ Copied background image: {$image}");
+                } else {
+                    // If not in package, check if it exists in the project's template directory
+                    $templateSourcePath = base_path("resources/images/{$image}");
+                    if ($this->files->exists($templateSourcePath)) {
+                        $this->files->copy($templateSourcePath, $destinationPath);
+                        $this->info("✓ Copied background image from project: {$image}");
+                    } else {
+                        $this->warn("⚠ Background image not found: {$image}");
+                    }
                 }
             }
+            return;
         }
-        
-        // If no source images found, use default ones
-        if (empty($sourceImages)) {
-            $sourceImages = [
-                __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_01.webp",
-                __DIR__ . "/../../templates/assets/{$template}/bonsai_hero_03.webp"
-            ];
-        }
-        
-        // Create resources/images directory if it doesn't exist
-        $imagesDir = resource_path('images');
-        if (!$this->files->exists($imagesDir)) {
-            $this->files->makeDirectory($imagesDir, 0755, true);
-        }
-        
-        foreach ($sourceImages as $sourcePath) {
-            if (file_exists($sourcePath)) {
-                $filename = basename($sourcePath);
-                $targetPath = "{$imagesDir}/{$filename}";
-                
-                // Copy the image
-                $this->files->copy($sourcePath, $targetPath);
-                $this->info("✓ Copied background image: {$filename}");
+
+        // Default fallback images if none specified
+        $defaultImages = [
+            'bonsai_hero_01.webp',
+            'bonsai_hero_03.webp'
+        ];
+
+        foreach ($defaultImages as $image) {
+            $sourcePath = $packageRoot . "/resources/images/{$image}";
+            $destinationPath = resource_path("images/{$image}");
+            
+            if ($this->files->exists($sourcePath)) {
+                $this->files->copy($sourcePath, $destinationPath);
+                $this->info("✓ Copied default background image: {$image}");
             } else {
-                $this->warn("! Background image not found: {$sourcePath}");
+                $this->warn("⚠ Default background image not found: {$image}");
             }
-        }
-    }
-
-    protected function generateSiteHeader($template)
-    {
-        $headerPath = resource_path("views/bonsai/{$template}/sections/site_header.blade.php");
-        
-        if (!$this->files->exists(dirname($headerPath))) {
-            $this->files->makeDirectory(dirname($headerPath), 0755, true);
-        }
-        
-        if (!$this->files->exists($headerPath)) {
-            $headerContent = <<<BLADE
-@props([
-    'class' => ''
-])
-
-@php
-\$site_headerData = [
-    'logo' => [
-        'src' => get_theme_file_uri('resources/images/logo.svg'),
-        'alt' => get_bloginfo('name'),
-        'width' => 120,
-        'height' => 40
-    ],
-    'navigation' => [
-        ['label' => 'Features', 'url' => '#features'],
-        ['label' => 'Pricing', 'url' => '#pricing'],
-        ['label' => 'Documentation', 'url' => '#docs'],
-    ],
-    'cta' => [
-        'label' => 'Get Started',
-        'url' => '#get-started',
-        'class' => 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white px-4 py-2 rounded-full'
-    ]
-];
-@endphp
-
-<header class="fixed top-0 left-0 right-0 z-50 bg-white bg-opacity-50 backdrop-blur-lg shadow-sm dark:bg-gray-900 dark:bg-opacity-50">
-    <div class="container mx-auto px-4">
-        <div class="flex items-center justify-between h-16">
-            <a href="{{ home_url('/') }}" class="flex items-center">
-                @if(\$site_headerData['logo']['src'])
-                    <img src="{{ \$site_headerData['logo']['src'] }}" 
-                         alt="{{ \$site_headerData['logo']['alt'] }}"
-                         width="{{ \$site_headerData['logo']['width'] }}"
-                         height="{{ \$site_headerData['logo']['height'] }}"
-                         class="h-8 w-auto">
-                @else
-                    <span class="text-xl font-bold">{{ get_bloginfo('name') }}</span>
-                @endif
-            </a>
-            
-            <nav class="hidden md:flex space-x-8">
-                @foreach(\$site_headerData['navigation'] as \$item)
-                    <a href="{{ \$item['url'] }}" 
-                       class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
-                        {{ \$item['label'] }}
-                    </a>
-                @endforeach
-            </nav>
-            
-            @if(isset(\$site_headerData['cta']))
-                <a href="{{ \$site_headerData['cta']['url'] }}" 
-                   class="{{ \$site_headerData['cta']['class'] }}">
-                    {{ \$site_headerData['cta']['label'] }}
-                </a>
-            @endif
-            
-            <button x-data
-                    @click="darkMode = !darkMode"
-                    class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                <span class="sr-only">Toggle dark mode</span>
-                <svg class="w-6 h-6 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                </svg>
-                <svg class="w-6 h-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-</header>
-BLADE;
-            
-            $this->files->put($headerPath, $headerContent);
-            $this->info("✓ Generated site header at: {$headerPath}");
         }
     }
 
