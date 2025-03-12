@@ -135,7 +135,64 @@ check_kanban_in_config() {
 install_kanban_deps() {
     echo -e "${GREEN}📦 Installing Kanban Board dependencies...${NC}"
     
-    # Determine the theme directory
+    # For Radicle/Sage projects, we can install directly in the current directory
+    if [ -f "package.json" ] && [ -d "resources" ]; then
+        echo -e "${GREEN}✅ Detected Radicle/Sage theme structure in current directory${NC}"
+        
+        # Install SortableJS
+        echo -e "${GREEN}📦 Installing SortableJS...${NC}"
+        if command -v yarn &> /dev/null; then
+            yarn add sortablejs
+        else
+            npm install sortablejs --save
+        fi
+        
+        # Check if we need to install Alpine.js sort plugin
+        if grep -q "@alpinejs/sort" "package.json"; then
+            echo -e "${GREEN}✅ @alpinejs/sort is already installed.${NC}"
+        else
+            echo -e "${GREEN}📦 Installing @alpinejs/sort...${NC}"
+            if command -v yarn &> /dev/null; then
+                yarn add @alpinejs/sort
+            else
+                npm install @alpinejs/sort --save
+            fi
+        fi
+        
+        echo -e "${GREEN}✅ Kanban dependencies installed successfully!${NC}"
+        echo -e "${YELLOW}⚠️ Don't forget to import and register the Alpine.js sort plugin in your main JS file:${NC}"
+        echo -e "${YELLOW}
+import Alpine from 'alpinejs'
+import sort from '@alpinejs/sort'
+
+// Register the plugin
+Alpine.plugin(sort)
+${NC}"
+        
+        # Check if resources/js/app.js exists and offer to add the import
+        if [ -f "resources/js/app.js" ]; then
+            echo -e "${GREEN}✅ Found resources/js/app.js${NC}"
+            echo -e "${YELLOW}Would you like to automatically add the Alpine.js sort plugin import to your app.js? [y/N]${NC}"
+            read -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                # Check if Alpine is already imported
+                if grep -q "import Alpine from 'alpinejs'" "resources/js/app.js"; then
+                    # Add sort import after Alpine import
+                    sed -i.bak '/import Alpine from/a import sort from '"'"'@alpinejs/sort'"'"'' "resources/js/app.js"
+                    # Add plugin registration after Alpine import
+                    sed -i.bak '/Alpine.start/i Alpine.plugin(sort)' "resources/js/app.js"
+                    echo -e "${GREEN}✅ Added Alpine.js sort plugin to app.js${NC}"
+                else
+                    echo -e "${YELLOW}⚠️ Could not find Alpine.js import in app.js. Please add the import manually.${NC}"
+                fi
+            fi
+        fi
+        
+        return 0
+    fi
+    
+    # If we're not in a Radicle/Sage theme, try to find the theme directory
     THEME_DIR=""
     if [ -d "web/app/themes" ]; then
         # Bedrock structure
@@ -144,7 +201,7 @@ install_kanban_deps() {
         # Standard WordPress structure
         THEME_DIR="wp-content/themes"
     else
-        echo -e "${YELLOW}⚠️ Could not find themes directory. Skipping kanban dependencies.${NC}"
+        echo -e "${YELLOW}⚠️ Could not find themes directory. Make sure you're in a Roots project.${NC}"
         return 0
     fi
     
@@ -174,14 +231,22 @@ install_kanban_deps() {
     # Install SortableJS
     echo -e "${GREEN}📦 Installing SortableJS...${NC}"
     cd "$THEME_PATH"
-    npm install sortablejs --save || yarn add sortablejs
+    if command -v yarn &> /dev/null; then
+        yarn add sortablejs
+    else
+        npm install sortablejs --save
+    fi
     
     # Check if we need to install Alpine.js sort plugin
     if grep -q "@alpinejs/sort" "package.json"; then
         echo -e "${GREEN}✅ @alpinejs/sort is already installed.${NC}"
     else
         echo -e "${GREEN}📦 Installing @alpinejs/sort...${NC}"
-        npm install @alpinejs/sort --save || yarn add @alpinejs/sort
+        if command -v yarn &> /dev/null; then
+            yarn add @alpinejs/sort
+        else
+            npm install @alpinejs/sort --save
+        fi
     fi
     
     echo -e "${GREEN}✅ Kanban dependencies installed successfully!${NC}"
