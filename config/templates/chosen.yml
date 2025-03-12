@@ -170,7 +170,7 @@ sections:
           cta:
             title: "Challenge Types"
             link: "/challenges"
-            imagePath: "/images/challenge-types.jpg"
+            imagePath: "https://bonsai.so/dist/images/template-system_v01.adb3a1.png"
             buttonText: "Learn more"
           description: "Choose from various challenge types to match your goals:"
           listItems:
@@ -190,7 +190,7 @@ sections:
           cta:
             title: "Accountability Partners"
             link: "/accountability"
-            imagePath: "/images/accountability.jpg"
+            imagePath: "https://bonsai.so/dist/images/component-generation_v01.92fb24.png"
             buttonText: "Learn more"
           description: "Stay on track with accountability features:"
           listItems:
@@ -213,7 +213,7 @@ sections:
           cta:
             title: "Challenge Stakes"
             link: "/stakes"
-            imagePath: "/images/stakes.jpg"
+            imagePath: "https://bonsai.so/dist/images/section-builder_v01.143d17.png"
             buttonText: "Learn more"
           description: "Add stakes to your challenges for extra motivation:"
           listItems:
@@ -233,7 +233,7 @@ sections:
           cta:
             title: "Content Groups"
             link: "/groups"
-            imagePath: "/images/content-groups.jpg"
+            imagePath: "https://bonsai.so/dist/images/documentation_v01.dfc82e.png"
             buttonText: "Learn more"
           description: "Streamline your content creation process:"
           listItems:
