@@ -25,6 +25,23 @@ Note: This package requires the Roots Stack (Sage, Bedrock, or Radicle) to be in
 - 🎨 Section builder with dynamic data
 - 📐 Layout management
 - 🧹 Cleanup utilities
+- 📋 Kanban board with drag-and-drop functionality
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Features](#features)
+- [Commands](#commands)
+- [Scion: Reverse Engineer a Template](#scion-reverse-engineer-a-template)
+- [Project Structure](#project-structure)
+- [Detailed Examples](#detailed-examples)
+- [Troubleshooting](#troubleshooting)
+- [Configuration](#configuration)
+- [Best Practices](#best-practices)
+- [Compatibility](#compatibility)
+- [Components](#components)
+  - [Kanban Board Component](#kanban-board-component)
+- [License](#license)
 
 ## Commands
 
@@ -76,6 +93,7 @@ Available components:
 - list-item
 - pricing-box
 - widget
+- kanban_board (requires SortableJS and @alpinejs/sort - see [Kanban Board Component](#kanban-board-component))
 
 ### Create Sections
 
@@ -455,6 +473,13 @@ You can also use the shorthand:
 - `--staging`
 - `--production`
 
+### Additional Flags
+
+- `--fresh` - Perform a fresh installation
+- `--template=name` - Specify a template to use
+- `--force` - Skip confirmation prompts
+- `--install-kanban` - Install Kanban component dependencies (SortableJS and @alpinejs/sort)
+
 ### Examples
 
 ```bash
@@ -466,6 +491,12 @@ You can also use the shorthand:
 
 # Clean up Bonsai files in production
 ./scripts/bonsai.sh acorn bonsai:cleanup --env=production
+
+# Install Kanban component dependencies
+./scripts/bonsai.sh --install-kanban
+
+# Install Kanban dependencies for a specific template
+./scripts/bonsai.sh --install-kanban --template=custom
 ```
 
 ### Asset Building
@@ -713,4 +744,110 @@ wp acorn bonsai:generate custom
 
 # Use a package template
 wp acorn bonsai:generate cypress
+```
+
+## Components
+
+### Kanban Board Component
+
+The Kanban Board component provides a drag-and-drop task management interface with support for multiple columns and cards.
+
+#### Dependencies
+
+The Kanban Board component requires additional JavaScript libraries:
+- SortableJS - For drag-and-drop functionality
+- @alpinejs/sort - Alpine.js plugin for sorting
+
+These dependencies are automatically installed when:
+1. Generating a template that includes the kanban_board component
+2. Running a fresh installation with a template that includes the kanban_board component
+3. Explicitly installing with the `--install-kanban` flag
+
+#### Manual Installation
+
+To manually install the Kanban dependencies:
+
+```bash
+./scripts/bonsai.sh --install-kanban
+```
+
+Or for a specific template:
+
+```bash
+./scripts/bonsai.sh --install-kanban --template=chosen
+```
+
+#### JavaScript Integration
+
+After installing the dependencies, you need to register the Alpine.js sort plugin in your main JavaScript file:
+
+```javascript
+import Alpine from 'alpinejs'
+import sort from '@alpinejs/sort'
+
+// Register the plugin
+Alpine.plugin(sort)
+
+// Initialize Alpine
+window.Alpine = Alpine
+Alpine.start()
+```
+
+#### Example Configuration
+
+Add the kanban_board component to your template's YAML configuration:
+
+```yaml
+components:
+  - hero
+  - header
+  - kanban_board
+  # other components...
+
+sections:
+  kanban_board:
+    component: chosen.kanban_board
+    data:
+      sectionId: "kanban"
+      sectionTitle: "Challenge Tracker"
+      navLinks:
+        - url: "#challenges"
+          label: "Challenges"
+      darkModeSupport: true
+      columns:
+        - id: "todo"
+          title: "To Do"
+          cards:
+            - id: "card1"
+              title: "Task 1"
+              description: "Description of task 1"
+              labels: ["feature", "frontend"]
+              dueDate: "Today"
+              assignee: "User"
+        - id: "in-progress"
+          title: "In Progress"
+          cards:
+            - id: "card2"
+              title: "Task 2"
+              description: "Description of task 2"
+              labels: ["bug"]
+              dueDate: "Tomorrow"
+              assignee: "User"
+        - id: "completed"
+          title: "Completed"
+          cards:
+            - id: "card3"
+              title: "Task 3"
+              description: "Description of task 3"
+              labels: ["documentation"]
+              dueDate: "Yesterday"
+              assignee: "User"
+
+layouts:
+  main:
+    sections:
+      - site_header
+      - home_hero
+      - kanban_board
+      # other sections...
 ```
