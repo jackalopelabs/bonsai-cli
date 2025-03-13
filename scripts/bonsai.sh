@@ -176,13 +176,25 @@ ${NC}"
             read -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
-                # Check if Alpine is already imported
-                if grep -q "import Alpine from 'alpinejs'" "resources/js/app.js"; then
-                    # Add sort import after Alpine import
-                    sed -i.bak '/import Alpine from/a import sort from '"'"'@alpinejs/sort'"'"'' "resources/js/app.js"
-                    # Add plugin registration after Alpine import
-                    sed -i.bak '/Alpine.start/i Alpine.plugin(sort)' "resources/js/app.js"
-                    echo -e "${GREEN}✅ Added Alpine.js sort plugin to app.js${NC}"
+                # Check if Alpine is already imported (both uppercase and lowercase)
+                if grep -q "import [Aa]lpine from ['\"]alpinejs['\"]" "resources/js/app.js" || grep -q "import sort from ['\"]@alpinejs/sort['\"]" "resources/js/app.js"; then
+                    # If sort is already imported, just notify the user
+                    if grep -q "import sort from ['\"]@alpinejs/sort['\"]" "resources/js/app.js"; then
+                        echo -e "${GREEN}✅ Alpine.js sort plugin is already imported in app.js${NC}"
+                    else
+                        # Add sort import after Alpine import
+                        sed -i.bak '/import [Aa]lpine from/a import sort from '"'"'@alpinejs/sort'"'"'' "resources/js/app.js"
+                        echo -e "${GREEN}✅ Added Alpine.js sort import to app.js${NC}"
+                    fi
+                    
+                    # If plugin is already registered, just notify the user
+                    if grep -q "[Aa]lpine.plugin(sort)" "resources/js/app.js"; then
+                        echo -e "${GREEN}✅ Alpine.js sort plugin is already registered in app.js${NC}"
+                    else
+                        # Add plugin registration before Alpine.start()
+                        sed -i.bak '/[Aa]lpine.start/i Alpine.plugin(sort)' "resources/js/app.js"
+                        echo -e "${GREEN}✅ Added Alpine.js sort plugin registration to app.js${NC}"
+                    fi
                 else
                     echo -e "${YELLOW}⚠️ Could not find Alpine.js import in app.js. Please add the import manually.${NC}"
                 fi
