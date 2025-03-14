@@ -184,23 +184,52 @@ class CleanupCommand extends Command
     {
         $this->info('Cleaning up Tailwind configuration...');
         
-        $configPath = base_path('tailwind.config.ts');
-        if (!File::exists($configPath)) {
-            $this->warn('tailwind.config.ts not found');
+        // Check for both .ts and .js versions of the config
+        $configPaths = [
+            base_path('tailwind.config.ts'),
+            base_path('tailwind.config.js')
+        ];
+        
+        $configPath = null;
+        foreach ($configPaths as $path) {
+            if (File::exists($path)) {
+                $configPath = $path;
+                break;
+            }
+        }
+        
+        if (!$configPath) {
+            $this->warn('No tailwind.config.ts or tailwind.config.js found');
             return;
         }
 
         try {
             $content = File::get($configPath);
+            $modified = false;
 
             // Remove the bonsaiConfig import statement
-            $content = preg_replace("/import\s+bonsaiConfig\s+from\s+['\"]\.\\/bonsai\.config['\"]\s*;?\n?/", '', $content);
+            if (preg_match("/import\s+bonsaiConfig\s+from\s+['\"]\.\\/bonsai\.config['\"]\s*;?\n?/", $content)) {
+                $content = preg_replace("/import\s+bonsaiConfig\s+from\s+['\"]\.\\/bonsai\.config['\"]\s*;?\n?/", '', $content);
+                $modified = true;
+            }
 
             // Remove the ...bonsaiConfig.colors spread without affecting the closing brace
-            $content = preg_replace("/,?\s*\.\.\.bonsaiConfig\.colors(?=\s*[,}])/", "", $content);
+            if (preg_match("/,?\s*\.\.\.bonsaiConfig\.colors(?=\s*[,}])/", $content)) {
+                $content = preg_replace("/,?\s*\.\.\.bonsaiConfig\.colors(?=\s*[,}])/", "", $content);
+                $modified = true;
+            }
 
             // Remove or replace darkMode: 'class' configuration
-            $content = preg_replace("/darkMode:\s*['\"](class|media)['\"],?(\r?\n)?/", "", $content);
+            if (preg_match("/darkMode:\s*['\"](class|media)['\"],?(\r?\n)?/", $content)) {
+                $content = preg_replace("/darkMode:\s*['\"](class|media)['\"],?(\r?\n)?/", "", $content);
+                $modified = true;
+            }
+            
+            // Remove midnight color if it was added by Bonsai
+            if (preg_match("/midnight:\s*{[^}]*950:\s*['\"]#060614['\"][^}]*},?/s", $content)) {
+                $content = preg_replace("/,?\s*midnight:\s*{[^}]*950:\s*['\"]#060614['\"][^}]*},?/s", "", $content);
+                $modified = true;
+            }
 
             // Clean up any potential double braces
             $content = preg_replace('/}{2,}/', '}', $content);
@@ -217,10 +246,12 @@ class CleanupCommand extends Command
             // Clean up multiple empty lines
             $content = preg_replace("/\n{3,}/", "\n\n", $content);
 
-            File::put($configPath, $content);
-            $this->line("- Cleaned up Tailwind configuration");
+            if ($modified) {
+                File::put($configPath, $content);
+                $this->line("- Cleaned up Tailwind configuration in " . basename($configPath));
+            }
         } catch (\Exception $e) {
-            $this->error("Failed to update tailwind.config.ts: " . $e->getMessage());
+            $this->error("Failed to update " . basename($configPath) . ": " . $e->getMessage());
         }
     }
 
@@ -230,15 +261,67 @@ class CleanupCommand extends Command
         
         $appCssPath = base_path('resources/css/app.css');
         if (File::exists($appCssPath)) {
-            $appCss = File::get($appCssPath);
-            
-            // Remove Tailwind CSS added by Bonsai, including theme, base layer, body and anchor styles
-            $pattern = "/@theme\s*{[^}]*}.*?@layer\s+base\s*{.*?a:hover\s*{.*?}\s*}/s";
-            $cleanedCss = preg_replace($pattern, '', $appCss);
-            
-            if ($cleanedCss !== $appCss) {
-                File::put($appCssPath, $cleanedCss);
-                $this->line("- Removed Bonsai CSS from app.css (theme, base layer, body and anchor styles)");
+            try {
+                $appCss = File::get($appCssPath);
+                $modified = false;
+                
+                // Detect if this is a Sage 11 style app.css
+                $isSage11Format = preg_match('/@import\s+["\']tailwindcss["\']/', $appCss);
+                
+                // Remove @theme block
+                if (preg_match('/@theme\s*{[^}]*}/', $appCss)) {
+                    $appCss = preg_replace('/@theme\s*{[^}]*}\s*\n?/', '', $appCss);
+                    $modified = true;
+                }
+                
+                // Remove the entire @layer base block
+                if (preg_match('/@layer\s+base\s*{.*?}$/ms', $appCss)) {
+                    $appCss = preg_replace('/@layer\s+base\s*{.*?}$/ms', '', $appCss);
+                    $modified = true;
+                }
+                
+                // For Sage 11, we need to be more careful to preserve the imports
+                if ($isSage11Format) {
+                    // Keep the imports but remove our custom additions
+                    $importLines = [];
+                    if (preg_match('/@import\s+["\']tailwindcss["\']\s+theme\(static\);/', $appCss, $matches)) {
+                        $importLines[] = $matches[0];
+                    }
+                    if (preg_match('/@source\s+["\']\.\.\\/views\\/["\']\s*;/', $appCss, $matches)) {
+                        $importLines[] = $matches[0];
+                    }
+                    if (preg_match('/@source\s+["\']\.\.\\/\.\.\\/app\\/["\']\s*;/', $appCss, $matches)) {
+                        $importLines[] = $matches[0];
+                    }
+                    
+                    // If we found the imports, replace the entire file with just those
+                    if (!empty($importLines)) {
+                        $newAppCss = implode("\n", $importLines);
+                        if ($appCss !== $newAppCss) {
+                            $appCss = $newAppCss;
+                            $modified = true;
+                        }
+                    }
+                } else {
+                    // For Radicle, use the original pattern
+                    $pattern = "/@theme\s*{[^}]*}.*?@layer\s+base\s*{.*?a:hover\s*{.*?}\s*}/s";
+                    $cleanedCss = preg_replace($pattern, '', $appCss);
+                    
+                    if ($cleanedCss !== $appCss) {
+                        $appCss = $cleanedCss;
+                        $modified = true;
+                    }
+                }
+                
+                // Clean up multiple empty lines
+                $appCss = preg_replace("/\n{3,}/", "\n\n", $appCss);
+                
+                if ($modified) {
+                    File::put($appCssPath, $appCss);
+                    $this->line("- Cleaned up Bonsai CSS from app.css");
+                }
+            } catch (\Exception $e) {
+                $this->error("Failed to update app.css: " . $e->getMessage());
             }
         }
     }
