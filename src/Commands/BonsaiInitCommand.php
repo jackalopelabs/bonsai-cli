@@ -535,6 +535,13 @@ PHP;
                 throw new \Exception("Source script not found: {$sourcePath}");
             }
 
+            // Ensure scripts directory exists
+            $scriptsDir = dirname($targetPath);
+            if (!$this->files->isDirectory($scriptsDir)) {
+                $this->files->makeDirectory($scriptsDir, 0755, true);
+                $this->info("Created directory: {$scriptsDir}");
+            }
+
             $this->files->copy($sourcePath, $targetPath);
 
             // Make it executable
