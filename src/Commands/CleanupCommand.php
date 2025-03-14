@@ -41,6 +41,7 @@ class CleanupCommand extends Command
         $this->cleanupAppCss();
         $this->cleanupAppJs();
         $this->cleanupBonsaiImages();
+        $this->cleanupAlpineReferences();
         
         $this->info('Cleanup completed successfully!');
     }
@@ -335,53 +336,51 @@ class CleanupCommand extends Command
         if (File::exists($appJsPath)) {
             try {
                 $content = File::get($appJsPath);
-                $modified = false;
+                $originalContent = $content;
                 
                 // Detect if this is a Sage 11 style app.js
                 $isSage11Format = preg_match('/import\.meta\.glob\(\s*\[\s*[\'"]\.\.\/images\/\*\*[\'"]/', $content);
                 
-                // Remove the PixelMatrix import
-                if (str_contains($content, "import PixelMatrix from './pixel-matrix'")) {
-                    $content = preg_replace("/import\s+PixelMatrix\s+from\s+['\"]\.\\/pixel-matrix['\"];?\n?/", '', $content);
-                    $modified = true;
-                }
-                
-                // Remove the PixelMatrix initialization code
-                if (str_contains($content, "// Initialize PixelMatrix on pricing boxes")) {
-                    $pattern = "/\/\/\s*Initialize\s+PixelMatrix\s+on\s+pricing\s+boxes\s*document\.addEventListener\(['\"]DOMContentLoaded['\"]\s*,\s*\(\)\s*=>\s*{\s*const\s+pricingBoxes\s*=\s*document\.querySelectorAll\(['\"]\.pricing-box['\"]\)\s*pricingBoxes\.forEach\(box\s*=>\s*new\s+PixelMatrix\(box\)\)\s*}\);?\n?/s";
-                    $content = preg_replace($pattern, '', $content);
-                    $modified = true;
-                }
-                
-                // Remove Alpine.js import if it was added by Bonsai
-                if (str_contains($content, "import alpine from 'alpinejs'")) {
-                    // Only remove if it's likely added by Bonsai (near the PixelMatrix import or after the glob imports)
-                    if ($isSage11Format || 
-                        preg_match("/import\s+alpine\s+from\s+['\"](alpinejs|@alpinejs\/core)['\"];?\s*(\n|$)/", $content)) {
-                        $content = preg_replace("/import\s+alpine\s+from\s+['\"](alpinejs|@alpinejs\/core)['\"];?\n?/", '', $content);
-                        $modified = true;
+                if ($isSage11Format) {
+                    // For Sage 11, preserve only the import.meta.glob section
+                    if (preg_match('/import\.meta\.glob\(\s*\[\s*.*?\]\s*\);/s', $content, $matches)) {
+                        // Keep only the import.meta.glob part
+                        $content = $matches[0];
                     }
-                }
-                
-                // Remove the Alpine.js dark mode store and initialization
-                if (str_contains($content, "alpine.store('darkMode'")) {
-                    $pattern = "/document\.addEventListener\(['\"]alpine:init['\"]\s*,\s*\(\)\s*=>\s*{\s*\/\/\s*Add\s+dark\s+mode\s+store.*?}\);?\n?/s";
-                    $content = preg_replace($pattern, '', $content);
-                    $modified = true;
-                }
-                
-                // Remove the Alpine.js start call if it was added by Bonsai
-                if (str_contains($content, "// Start Alpine") && str_contains($content, "alpine.start()")) {
+                } else {
+                    // For Radicle, we need to be more careful with the cleanup
+                    
+                    // Remove the PixelMatrix import
+                    $content = preg_replace("/import\s+PixelMatrix\s+from\s+['\"]\.\\/pixel-matrix['\"];?\n?/", '', $content);
+                    
+                    // Remove the Alpine.js import if it was added by Bonsai
+                    $content = preg_replace("/import\s+alpine\s+from\s+['\"](alpinejs|@alpinejs\/core)['\"];?\n?/", '', $content);
+                    
+                    // Remove the PixelMatrix initialization code
+                    $content = preg_replace("/\/\/\s*Initialize\s+PixelMatrix\s+on\s+pricing\s+boxes\s*document\.addEventListener\(['\"]DOMContentLoaded['\"]\s*,\s*\(\)\s*=>\s*{\s*const\s+pricingBoxes\s*=\s*document\.querySelectorAll\(['\"]\.pricing-box['\"]\)\s*pricingBoxes\.forEach\(box\s*=>\s*new\s+PixelMatrix\(box\)\)\s*}\);?\n?/s", '', $content);
+                    
+                    // Remove the Alpine.js dark mode store and initialization
+                    $content = preg_replace("/document\.addEventListener\(['\"]alpine:init['\"]\s*,\s*\(\)\s*=>\s*{.*?}\);?\n?/s", '', $content);
+                    
+                    // Remove the Alpine.js start call
                     $content = preg_replace("/\/\/\s*Start\s+Alpine\s*\n\s*alpine\.start\(\);?\n?/", '', $content);
-                    $modified = true;
                 }
                 
-                // Clean up any double newlines
-                $content = preg_replace("/\n{3,}/", "\n\n", $content);
+                // Remove any remaining Alpine.js references
+                $content = preg_replace("/alpine\.data\(['\"]globalData['\"]\s*,\s*\(\)\s*=>\s*\(\{.*?\}\)\);?\n?/s", '', $content);
+                $content = preg_replace("/return\s+this\.\\\$store\.darkMode\.on;?\n?/s", '', $content);
                 
-                if ($modified) {
+                // Remove any remaining PixelMatrix references
+                $content = preg_replace("/new\s+PixelMatrix\(.*?\);?\n?/s", '', $content);
+                
+                // Clean up any double newlines and trailing whitespace
+                $content = preg_replace("/\n{3,}/", "\n\n", $content);
+                $content = trim($content) . "\n";
+                
+                // Check if we actually made changes
+                if ($content !== $originalContent) {
                     File::put($appJsPath, $content);
-                    $this->line("- Removed Bonsai code from app.js (PixelMatrix, Alpine.js dark mode)");
+                    $this->line("- Cleaned up Bonsai code from app.js");
                 }
             } catch (\Exception $e) {
                 $this->error("Failed to update app.js: " . $e->getMessage());
@@ -422,6 +421,58 @@ class CleanupCommand extends Command
             }
         } catch (\Exception $e) {
             $this->error("Failed to clean up Bonsai images: " . $e->getMessage());
+        }
+    }
+
+    protected function cleanupAlpineReferences()
+    {
+        $this->info('Cleaning up Alpine.js references in templates...');
+        
+        // Check for Alpine.js references in app.blade.php
+        $appBladePath = resource_path('views/layouts/app.blade.php');
+        if (File::exists($appBladePath)) {
+            try {
+                $content = File::get($appBladePath);
+                $originalContent = $content;
+                
+                // Remove x-data="globalData" from html tag
+                $content = preg_replace('/<html[^>]*\s+x-data=["\']globalData["\']\s*[^>]*>/', '<html @php(language_attributes())>', $content);
+                
+                // Remove dark mode class bindings
+                $content = preg_replace('/\s+x-bind:class=["\']darkMode \? [\'"]dark-mode[\'"] : [\'"]light-mode[\'"]["\']/', '', $content);
+                $content = preg_replace('/\s+x-bind:class=["\']!darkMode \? [\'"]light-mode[\'"] : [\'"]dark-mode[\'"]["\']/', '', $content);
+                $content = preg_replace('/\s+x-bind:class=["\']darkMode \? [\'"]dark[\'"] : [\'"][\'"]["\']/', '', $content);
+                
+                // Remove x-bind:style attributes for dark mode
+                $content = preg_replace('/\s+x-bind:style=["\']darkMode \? [\'"]display: block;[\'"] : [\'"]display: none;[\'"]["\']/', '', $content);
+                $content = preg_replace('/\s+x-bind:style=["\']!darkMode \? [\'"]display: block;[\'"] : [\'"]display: none;[\'"]["\']/', '', $content);
+                
+                if ($content !== $originalContent) {
+                    File::put($appBladePath, $content);
+                    $this->line("- Removed Alpine.js references from app.blade.php");
+                }
+            } catch (\Exception $e) {
+                $this->error("Failed to update app.blade.php: " . $e->getMessage());
+            }
+        }
+        
+        // Check for Alpine.js references in header.blade.php
+        $headerBladePath = resource_path('views/partials/header.blade.php');
+        if (File::exists($headerBladePath)) {
+            try {
+                $content = File::get($headerBladePath);
+                $originalContent = $content;
+                
+                // Remove dark mode toggle button
+                $content = preg_replace('/<button[^>]*\s+@click=["\'].*?darkMode\.toggle\(\).*?["\']\s*[^>]*>.*?<\/button>/s', '', $content);
+                
+                if ($content !== $originalContent) {
+                    File::put($headerBladePath, $content);
+                    $this->line("- Removed Alpine.js references from header.blade.php");
+                }
+            } catch (\Exception $e) {
+                $this->error("Failed to update header.blade.php: " . $e->getMessage());
+            }
         }
     }
 }
