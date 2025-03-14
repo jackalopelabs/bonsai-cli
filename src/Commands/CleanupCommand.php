@@ -18,6 +18,12 @@ class CleanupCommand extends Command
         'resources/views/template-components.blade.php',
         'scripts/bonsai.sh',
         'resources/js/pixel-matrix.js',
+        'resources/views/bonsai/components',
+        'resources/views/bonsai/sections',
+        'resources/views/bonsai/layouts',
+        'resources/views/templates',
+        'resources/images/bonsai_hero_01.webp',
+        'resources/images/bonsai_hero_03.webp',
     ];
 
     public function handle()
@@ -248,6 +254,9 @@ class CleanupCommand extends Command
                 $content = File::get($appJsPath);
                 $modified = false;
                 
+                // Detect if this is a Sage 11 style app.js
+                $isSage11Format = preg_match('/import\.meta\.glob\(\s*\[\s*[\'"]\.\.\/images\/\*\*[\'"]/', $content);
+                
                 // Remove the PixelMatrix import
                 if (str_contains($content, "import PixelMatrix from './pixel-matrix'")) {
                     $content = preg_replace("/import\s+PixelMatrix\s+from\s+['\"]\.\\/pixel-matrix['\"];?\n?/", '', $content);
@@ -261,12 +270,35 @@ class CleanupCommand extends Command
                     $modified = true;
                 }
                 
+                // Remove Alpine.js import if it was added by Bonsai
+                if (str_contains($content, "import alpine from 'alpinejs'")) {
+                    // Only remove if it's likely added by Bonsai (near the PixelMatrix import or after the glob imports)
+                    if ($isSage11Format || 
+                        preg_match("/import\s+alpine\s+from\s+['\"](alpinejs|@alpinejs\/core)['\"];?\s*(\n|$)/", $content)) {
+                        $content = preg_replace("/import\s+alpine\s+from\s+['\"](alpinejs|@alpinejs\/core)['\"];?\n?/", '', $content);
+                        $modified = true;
+                    }
+                }
+                
+                // Remove the Alpine.js dark mode store and initialization
+                if (str_contains($content, "alpine.store('darkMode'")) {
+                    $pattern = "/document\.addEventListener\(['\"]alpine:init['\"]\s*,\s*\(\)\s*=>\s*{\s*\/\/\s*Add\s+dark\s+mode\s+store.*?}\);?\n?/s";
+                    $content = preg_replace($pattern, '', $content);
+                    $modified = true;
+                }
+                
+                // Remove the Alpine.js start call if it was added by Bonsai
+                if (str_contains($content, "// Start Alpine") && str_contains($content, "alpine.start()")) {
+                    $content = preg_replace("/\/\/\s*Start\s+Alpine\s*\n\s*alpine\.start\(\);?\n?/", '', $content);
+                    $modified = true;
+                }
+                
                 // Clean up any double newlines
                 $content = preg_replace("/\n{3,}/", "\n\n", $content);
                 
                 if ($modified) {
                     File::put($appJsPath, $content);
-                    $this->line("- Removed PixelMatrix code from app.js");
+                    $this->line("- Removed Bonsai code from app.js (PixelMatrix, Alpine.js dark mode)");
                 }
             } catch (\Exception $e) {
                 $this->error("Failed to update app.js: " . $e->getMessage());
@@ -284,10 +316,26 @@ class CleanupCommand extends Command
         }
 
         try {
-            $files = File::glob($imagesDir . '/bonsai_*.webp');
-            foreach ($files as $file) {
+            // Clean up all bonsai_ prefixed images
+            $bonsaiImages = File::glob($imagesDir . '/bonsai_*.{webp,jpg,png,svg,gif}', GLOB_BRACE);
+            foreach ($bonsaiImages as $file) {
                 File::delete($file);
                 $this->line("- Removed: " . basename($file));
+            }
+            
+            // Also clean up specific known images that might not have the bonsai_ prefix
+            $knownImages = [
+                'hero_bg_dark.webp',
+                'hero_bg_light.webp',
+                'pixel-matrix-bg.svg',
+            ];
+            
+            foreach ($knownImages as $imageName) {
+                $imagePath = $imagesDir . '/' . $imageName;
+                if (File::exists($imagePath)) {
+                    File::delete($imagePath);
+                    $this->line("- Removed: " . $imageName);
+                }
             }
         } catch (\Exception $e) {
             $this->error("Failed to clean up Bonsai images: " . $e->getMessage());
