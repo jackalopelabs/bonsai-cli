@@ -847,7 +847,6 @@ BLADE;
         @php(do_action('get_header'))
         @php(wp_head())
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @include('utils.styles')
     </head>
 
     <body @php(body_class('transition-colors duration-200 p-0 m-0 h-screen')) 
@@ -881,7 +880,6 @@ BLADE;
 
         @php(do_action('get_footer'))
         @php(wp_footer())
-        @include('utils.scripts')
     </body>
 </html>
 BLADE;

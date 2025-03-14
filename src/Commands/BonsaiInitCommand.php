@@ -39,62 +39,128 @@ class BonsaiInitCommand extends Command
     public function handle()
     {
         $this->info('Starting Bonsai initialization...');
+        $hasErrors = false;
     
+        // Create directories
         try {
-            // Create directories
             $this->createDirectories();
-    
-            // Install bonsai.sh script
-            $this->installBonsaiScript();
-    
-            // Configure Tailwind
-            $this->configureTailwind();
-    
-            // Configure CSS
-            $this->configureCSS();
-
-            // Configure Vite
-            $this->configureVite();
-
-            // Configure Scripts
-            $this->configureScripts();
-
-            // Configure Composer
-            $this->configureComposer();
-    
-            // Ask about configuration preference upfront
-            $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
-    
-            // Step 1: Setup component namespace and base class
-            $this->setupComponentNamespace();
-    
-            // Step 2: Install all components
-            $this->installComponents($useDefault);
-    
-            // Step 3: Create sections for components
-            $this->createSections($useDefault);
-    
-            // Step 4: Create layout
-            $this->createLayout();
-    
-            // Step 5: Create the Components page
-            $this->createComponentsPage();
-    
-            // Step 6: Setup local config directory with templates subdirectory
-            $this->createConfigDirectory();
-    
-            $this->info('🌳 Bonsai initialization completed successfully!');
-            $this->info("\nNext steps:");
-            $this->line(" 1. Create your site configuration in config/bonsai/templates/");
-            $this->line(" 2. Run 'wp acorn bonsai:generate [template]' to generate your site");
-            $this->line(" 3. Available templates: cypress, jackalope (or create your own)");
-    
         } catch (\Exception $e) {
-            $this->error("Initialization failed: " . $e->getMessage());
-            return 1;
+            $this->warn("Error creating directories: " . $e->getMessage());
+            $hasErrors = true;
         }
     
-        return 0;
+        // Install bonsai.sh script
+        try {
+            $this->installBonsaiScript();
+        } catch (\Exception $e) {
+            $this->warn("Error installing bonsai.sh script: " . $e->getMessage());
+            $hasErrors = true;
+        }
+    
+        // Configure Tailwind
+        try {
+            $this->configureTailwind();
+        } catch (\Exception $e) {
+            $this->warn("Error configuring Tailwind: " . $e->getMessage());
+            $hasErrors = true;
+        }
+    
+        // Configure CSS
+        try {
+            $this->configureCSS();
+        } catch (\Exception $e) {
+            $this->warn("Error configuring CSS: " . $e->getMessage());
+            $hasErrors = true;
+        }
+
+        // Configure Vite
+        try {
+            $this->configureVite();
+        } catch (\Exception $e) {
+            $this->warn("Error configuring Vite: " . $e->getMessage());
+            $hasErrors = true;
+        }
+
+        // Configure Scripts
+        try {
+            $this->configureScripts();
+        } catch (\Exception $e) {
+            $this->warn("Error configuring scripts: " . $e->getMessage());
+            $hasErrors = true;
+        }
+
+        // Configure Composer
+        try {
+            $this->configureComposer();
+        } catch (\Exception $e) {
+            $this->warn("Error configuring composer: " . $e->getMessage());
+            $hasErrors = true;
+        }
+
+        // Ask about configuration preference upfront
+        $useDefault = !$this->confirm('Would you like to customize component configurations? (Default: No)', false);
+    
+        // Step 1: Setup component namespace and base class
+        try {
+            $this->setupComponentNamespace();
+        } catch (\Exception $e) {
+            $this->warn("Error setting up component namespace: " . $e->getMessage());
+            $hasErrors = true;
+        }
+    
+        // Step 2: Install all components
+        try {
+            $this->installComponents($useDefault);
+        } catch (\Exception $e) {
+            $this->warn("Error installing components: " . $e->getMessage());
+            $hasErrors = true;
+        }
+    
+        // Step 3: Create sections for components
+        try {
+            $this->createSections($useDefault);
+        } catch (\Exception $e) {
+            $this->warn("Error creating sections: " . $e->getMessage());
+            $hasErrors = true;
+        }
+    
+        // Step 4: Create layout
+        try {
+            $this->createLayout();
+        } catch (\Exception $e) {
+            $this->warn("Error creating layout: " . $e->getMessage());
+            $hasErrors = true;
+        }
+    
+        // Step 5: Create the Components page
+        try {
+            $this->createComponentsPage();
+        } catch (\Exception $e) {
+            $this->warn("Error creating components page: " . $e->getMessage());
+            $hasErrors = true;
+        }
+    
+        // Step 6: Setup local config directory with templates subdirectory
+        try {
+            $this->createConfigDirectory();
+        } catch (\Exception $e) {
+            $this->warn("Error creating config directory: " . $e->getMessage());
+            $hasErrors = true;
+        }
+    
+        if ($hasErrors) {
+            $this->info('🌳 Bonsai initialization completed with some warnings.');
+            $this->info('Some steps may have been skipped. Check the warnings above for details.');
+        } else {
+            $this->info('🌳 Bonsai initialization completed successfully!');
+        }
+        
+        $this->info("\nNext steps:");
+        $this->line(" 1. Create your site configuration in config/bonsai/templates/");
+        $this->line(" 2. Run 'wp acorn bonsai:generate [template]' to generate your site");
+        $this->line(" 3. Available templates: cypress, jackalope (or create your own)");
+    
+        return $hasErrors ? 1 : 0;
     }
 
     protected function createDirectories()
@@ -530,30 +596,44 @@ PHP;
         $targetPath = base_path('scripts/bonsai.sh');
 
         try {
-            // Copy the script
+            // Check if source script exists
             if (!$this->files->exists($sourcePath)) {
-                throw new \Exception("Source script not found: {$sourcePath}");
+                $this->warn("Source script not found at: {$sourcePath}");
+                $this->info("Skipping bonsai.sh script installation");
+                return;
             }
 
             // Ensure scripts directory exists
             $scriptsDir = dirname($targetPath);
             if (!$this->files->isDirectory($scriptsDir)) {
-                $this->files->makeDirectory($scriptsDir, 0755, true);
-                $this->info("Created directory: {$scriptsDir}");
+                try {
+                    $this->files->makeDirectory($scriptsDir, 0755, true);
+                    $this->info("Created directory: {$scriptsDir}");
+                } catch (\Exception $e) {
+                    $this->warn("Could not create scripts directory: {$e->getMessage()}");
+                    $this->info("Skipping bonsai.sh script installation");
+                    return;
+                }
             }
 
-            $this->files->copy($sourcePath, $targetPath);
-
-            // Make it executable
-            chmod($targetPath, 0755);
-
-            $this->info("✓ Installed bonsai.sh script");
-            $this->info("  Location: scripts/bonsai.sh");
-            $this->info("  Permissions: 755 (executable)");
-
+            // Copy the script
+            try {
+                $this->files->copy($sourcePath, $targetPath);
+                
+                // Make it executable
+                chmod($targetPath, 0755);
+                
+                $this->info("✓ Installed bonsai.sh script");
+                $this->info("  Location: scripts/bonsai.sh");
+                $this->info("  Permissions: 755 (executable)");
+            } catch (\Exception $e) {
+                $this->warn("Could not copy bonsai.sh script: {$e->getMessage()}");
+                $this->info("Skipping bonsai.sh script installation");
+            }
         } catch (\Exception $e) {
-            $this->error("Failed to install bonsai.sh script: " . $e->getMessage());
-            throw $e;
+            $this->warn("Failed to install bonsai.sh script: {$e->getMessage()}");
+            $this->info("Continuing with initialization...");
+            // Don't throw the exception, just log it and continue
         }
     }
 
@@ -940,7 +1020,7 @@ JS;
                 $this->files->put($pixelMatrixTarget, $jsContent);
                 $this->info('Created pixel-matrix.js (converted from TS)');
             } else {
-                $this->error('Pixel matrix template not found');
+                $this->warn('Pixel matrix template not found, skipping');
                 return;
             }
         }
@@ -988,7 +1068,7 @@ document.addEventListener('alpine:init', () => {
     // Make darkMode accessible in Alpine components
     alpine.data('globalData', () => ({
         get darkMode() {
-            return this.$store.darkMode.on;
+            return this.\$store.darkMode.on;
         }
     }));
 });
@@ -1003,109 +1083,174 @@ JS;
             $appJs = $this->files->get($appJsPath);
             $modified = false;
 
-            // Add PixelMatrix import if it doesn't exist
-            if (!str_contains($appJs, "import PixelMatrix")) {
-                // Find the position after the last import statement
-                $lastImportPos = strrpos($appJs, "import");
-                if ($lastImportPos !== false) {
-                    $endOfLine = strpos($appJs, "\n", $lastImportPos);
-                    if ($endOfLine !== false) {
-                        $appJs = substr_replace($appJs, "\nimport PixelMatrix from './pixel-matrix'", $endOfLine, 0);
+            // Detect if this is a Sage 11 style app.js
+            $isSage11Format = preg_match('/import\.meta\.glob\(\s*\[\s*[\'"]\.\.\/images\/\*\*[\'"]/', $appJs);
+            
+            if ($isSage11Format) {
+                $this->info('Detected Sage 11 app.js format');
+                
+                // For Sage 11, we'll add our code in a way that preserves the existing structure
+                // First, check if Alpine.js is already imported
+                $hasAlpine = strpos($appJs, 'alpinejs') !== false || strpos($appJs, 'alpine') !== false;
+                $hasPixelMatrix = strpos($appJs, 'PixelMatrix') !== false;
+                
+                if (!$hasAlpine || !$hasPixelMatrix) {
+                    // Find the end of the import.meta.glob section
+                    $globEndPos = strpos($appJs, ']);');
+                    if ($globEndPos !== false) {
+                        $insertPos = $globEndPos + 3; // After the ']);'
+                        
+                        $additionalCode = "\n\n";
+                        
+                        if (!$hasAlpine) {
+                            $additionalCode .= "import alpine from 'alpinejs';\n";
+                        }
+                        
+                        if (!$hasPixelMatrix) {
+                            $additionalCode .= "import PixelMatrix from './pixel-matrix';\n";
+                        }
+                        
+                        $additionalCode .= "\n// Initialize PixelMatrix on pricing boxes\n";
+                        $additionalCode .= "document.addEventListener('DOMContentLoaded', () => {\n";
+                        $additionalCode .= "  const pricingBoxes = document.querySelectorAll('.pricing-box');\n";
+                        $additionalCode .= "  pricingBoxes.forEach(box => new PixelMatrix(box));\n";
+                        $additionalCode .= "});\n\n";
+                        
+                        if (!$hasAlpine) {
+                            $additionalCode .= "document.addEventListener('alpine:init', () => {\n";
+                            $additionalCode .= "  // Add dark mode store with simple state management\n";
+                            $additionalCode .= "  alpine.store('darkMode', {\n";
+                            $additionalCode .= "    on: true, // Default to dark mode\n";
+                            $additionalCode .= "    \n";
+                            $additionalCode .= "    init() {\n";
+                            $additionalCode .= "      // Apply initial dark mode state to body\n";
+                            $additionalCode .= "      document.body.classList.toggle('dark', this.on);\n";
+                            $additionalCode .= "    },\n";
+                            $additionalCode .= "    \n";
+                            $additionalCode .= "    toggle() {\n";
+                            $additionalCode .= "      this.on = !this.on;\n";
+                            $additionalCode .= "      document.body.classList.toggle('dark', this.on);\n";
+                            $additionalCode .= "    }\n";
+                            $additionalCode .= "  });\n\n";
+                            $additionalCode .= "  // Make darkMode accessible in Alpine components\n";
+                            $additionalCode .= "  alpine.data('globalData', () => ({\n";
+                            $additionalCode .= "    get darkMode() {\n";
+                            $additionalCode .= "      return this.\$store.darkMode.on;\n";
+                            $additionalCode .= "    }\n";
+                            $additionalCode .= "  }));\n";
+                            $additionalCode .= "});\n\n";
+                            $additionalCode .= "// Start Alpine\n";
+                            $additionalCode .= "alpine.start();\n";
+                        }
+                        
+                        $appJs = substr_replace($appJs, $additionalCode, $insertPos, 0);
+                        $this->files->put($appJsPath, $appJs);
+                        $this->info('Updated app.js with Bonsai functionality while preserving Sage 11 structure');
                         $modified = true;
                     }
-                } else {
-                    // No imports found, add at the beginning
-                    $appJs = "import PixelMatrix from './pixel-matrix'\n" . $appJs;
-                    $modified = true;
                 }
-            }
-
-            // Add PixelMatrix initialization if it doesn't exist
-            if (!str_contains($appJs, "new PixelMatrix")) {
-                $initCode = "\n// Initialize PixelMatrix on pricing boxes\n";
-                $initCode .= "document.addEventListener('DOMContentLoaded', () => {\n";
-                $initCode .= "    const pricingBoxes = document.querySelectorAll('.pricing-box')\n";
-                $initCode .= "    pricingBoxes.forEach(box => new PixelMatrix(box))\n";
-                $initCode .= "})\n\n";
-
-                // Find the right position to insert - before Alpine initialization if it exists
-                $alpineInitPos = strpos($appJs, "Object.assign(window, { Alpine:");
-                
-                if ($alpineInitPos !== false) {
-                    // Insert before Alpine initialization
-                    $insertPos = $alpineInitPos;
-                } else {
-                    // Insert at the end of the file
-                    $insertPos = strlen($appJs);
-                }
-
-                $appJs = substr_replace($appJs, $initCode, $insertPos, 0);
-                $modified = true;
-            }
-
-            // Add dark mode functionality if it doesn't exist
-            if (!str_contains($appJs, "alpine.store('darkMode'")) {
-                $darkModeCode = "\ndocument.addEventListener('alpine:init', () => {\n";
-                $darkModeCode .= "    // Add dark mode store with simple state management\n";
-                $darkModeCode .= "    alpine.store('darkMode', {\n";
-                $darkModeCode .= "        on: true, // Default to dark mode\n";
-                $darkModeCode .= "        \n";
-                $darkModeCode .= "        init() {\n";
-                $darkModeCode .= "            // Apply initial dark mode state to body\n";
-                $darkModeCode .= "            document.body.classList.toggle('dark', this.on);\n";
-                $darkModeCode .= "            document.body.classList.toggle('dark-mode', this.on);\n";
-                $darkModeCode .= "            document.body.classList.toggle('light-mode', !this.on);\n";
-                $darkModeCode .= "        },\n";
-                $darkModeCode .= "        \n";
-                $darkModeCode .= "        toggle() {\n";
-                $darkModeCode .= "            this.on = !this.on;\n";
-                $darkModeCode .= "            document.body.classList.toggle('dark', this.on);\n";
-                $darkModeCode .= "            document.body.classList.toggle('dark-mode', this.on);\n";
-                $darkModeCode .= "            document.body.classList.toggle('light-mode', !this.on);\n";
-                $darkModeCode .= "        }\n";
-                $darkModeCode .= "    });\n";
-                $darkModeCode .= "\n";
-                $darkModeCode .= "    // Make darkMode accessible in Alpine components\n";
-                $darkModeCode .= "    alpine.data('globalData', () => ({\n";
-                $darkModeCode .= "        get darkMode() {\n";
-                $darkModeCode .= "            return this.\$store.darkMode.on;\n";
-                $darkModeCode .= "        }\n";
-                $darkModeCode .= "    }));\n";
-                $darkModeCode .= "});\n\n";
-
-                // Find the right position to insert
-                // If there's an Alpine start line, replace it with our code + alpine.start()
-                $alpineStartPos = strpos($appJs, "Object.assign(window, { Alpine: alpine }).Alpine.start()");
-                $alpineStartPos2 = strpos($appJs, "alpine.start()");
-                
-                if ($alpineStartPos !== false) {
-                    // Replace the Alpine start line
-                    $appJs = str_replace(
-                        "Object.assign(window, { Alpine: alpine }).Alpine.start()",
-                        $darkModeCode . "// Start Alpine\nalpine.start()",
-                        $appJs
-                    );
-                    $modified = true;
-                } elseif ($alpineStartPos2 !== false) {
-                    // Insert before alpine.start()
-                    $appJs = str_replace(
-                        "alpine.start()",
-                        $darkModeCode . "// Start Alpine\nalpine.start()",
-                        $appJs
-                    );
-                    $modified = true;
-                } else {
-                    // Add at the end of the file
-                    $appJs .= $darkModeCode . "// Start Alpine\nalpine.start();\n";
-                    $modified = true;
-                }
-            }
-
-            if ($modified) {
-                $this->files->put($appJsPath, $appJs);
-                $this->info('Updated app.js with PixelMatrix integration and dark mode functionality');
             } else {
-                $this->info('app.js already contains PixelMatrix integration and dark mode functionality');
+                // Original code for non-Sage 11 app.js
+                // Add PixelMatrix import if it doesn't exist
+                if (!str_contains($appJs, "import PixelMatrix")) {
+                    // Find the position after the last import statement
+                    $lastImportPos = strrpos($appJs, "import");
+                    if ($lastImportPos !== false) {
+                        $endOfLine = strpos($appJs, "\n", $lastImportPos);
+                        if ($endOfLine !== false) {
+                            $appJs = substr_replace($appJs, "\nimport PixelMatrix from './pixel-matrix'", $endOfLine, 0);
+                            $modified = true;
+                        }
+                    } else {
+                        // No imports found, add at the beginning
+                        $appJs = "import PixelMatrix from './pixel-matrix'\n" . $appJs;
+                        $modified = true;
+                    }
+                }
+
+                // Add PixelMatrix initialization if it doesn't exist
+                if (!str_contains($appJs, "new PixelMatrix")) {
+                    $initCode = "\n// Initialize PixelMatrix on pricing boxes\n";
+                    $initCode .= "document.addEventListener('DOMContentLoaded', () => {\n";
+                    $initCode .= "    const pricingBoxes = document.querySelectorAll('.pricing-box')\n";
+                    $initCode .= "    pricingBoxes.forEach(box => new PixelMatrix(box))\n";
+                    $initCode .= "})\n\n";
+
+                    // Find the right position to insert - before Alpine initialization if it exists
+                    $alpineInitPos = strpos($appJs, "Object.assign(window, { Alpine:");
+                    
+                    if ($alpineInitPos !== false) {
+                        // Insert before Alpine initialization
+                        $insertPos = $alpineInitPos;
+                    } else {
+                        // Insert at the end of the file
+                        $insertPos = strlen($appJs);
+                    }
+
+                    $appJs = substr_replace($appJs, $initCode, $insertPos, 0);
+                    $modified = true;
+                }
+
+                // Add dark mode functionality if it doesn't exist
+                if (!str_contains($appJs, "alpine.store('darkMode'")) {
+                    $darkModeCode = "\ndocument.addEventListener('alpine:init', () => {\n";
+                    $darkModeCode .= "    // Add dark mode store with simple state management\n";
+                    $darkModeCode .= "    alpine.store('darkMode', {\n";
+                    $darkModeCode .= "        on: true, // Default to dark mode\n";
+                    $darkModeCode .= "        \n";
+                    $darkModeCode .= "        init() {\n";
+                    $darkModeCode .= "            // Apply initial dark mode state to body\n";
+                    $darkModeCode .= "            document.body.classList.toggle('dark', this.on);\n";
+                    $darkModeCode .= "        },\n";
+                    $darkModeCode .= "        \n";
+                    $darkModeCode .= "        toggle() {\n";
+                    $darkModeCode .= "            this.on = !this.on;\n";
+                    $darkModeCode .= "            document.body.classList.toggle('dark', this.on);\n";
+                    $darkModeCode .= "        }\n";
+                    $darkModeCode .= "    });\n";
+                    $darkModeCode .= "\n";
+                    $darkModeCode .= "    // Make darkMode accessible in Alpine components\n";
+                    $darkModeCode .= "    alpine.data('globalData', () => ({\n";
+                    $darkModeCode .= "        get darkMode() {\n";
+                    $darkModeCode .= "            return this.\$store.darkMode.on;\n";
+                    $darkModeCode .= "        }\n";
+                    $darkModeCode .= "    }));\n";
+                    $darkModeCode .= "});\n\n";
+
+                    // Find the right position to insert
+                    // If there's an Alpine start line, replace it with our code + alpine.start()
+                    $alpineStartPos = strpos($appJs, "Object.assign(window, { Alpine: alpine }).Alpine.start()");
+                    $alpineStartPos2 = strpos($appJs, "alpine.start()");
+                    
+                    if ($alpineStartPos !== false) {
+                        // Replace the Alpine start line
+                        $appJs = str_replace(
+                            "Object.assign(window, { Alpine: alpine }).Alpine.start()",
+                            $darkModeCode . "// Start Alpine\nalpine.start()",
+                            $appJs
+                        );
+                        $modified = true;
+                    } elseif ($alpineStartPos2 !== false) {
+                        // Insert before alpine.start()
+                        $appJs = str_replace(
+                            "alpine.start()",
+                            $darkModeCode . "// Start Alpine\nalpine.start()",
+                            $appJs
+                        );
+                        $modified = true;
+                    } else {
+                        // Add at the end of the file
+                        $appJs .= $darkModeCode . "// Start Alpine\nalpine.start();\n";
+                        $modified = true;
+                    }
+                }
+
+                if ($modified) {
+                    $this->files->put($appJsPath, $appJs);
+                    $this->info('Updated app.js with PixelMatrix integration and dark mode functionality');
+                } else {
+                    $this->info('app.js already contains PixelMatrix integration and dark mode functionality');
+                }
             }
         }
     }
