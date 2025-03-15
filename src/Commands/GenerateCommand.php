@@ -889,7 +889,7 @@ BLADE;
         }
     }
 
-    protected function copyLayoutBackgroundImages($template, $backgroundImages = null)
+    protected function copyLayoutBackgroundImages($template, $backgroundImages)
     {
         $packageRoot = $this->getPackageRoot();
         $imagesPath = resource_path('images');
@@ -902,20 +902,31 @@ BLADE;
         if ($backgroundImages && is_array($backgroundImages)) {
             foreach ($backgroundImages as $image) {
                 $sourcePath = $packageRoot . "/resources/images/{$image}";
+                $templateAssetsPath = $packageRoot . "/templates/assets/{$template}/{$image}";
                 $destinationPath = resource_path("images/{$image}");
                 
-                // Check if the source image exists in the package
+                // Check if the source image exists in the package resources
                 if ($this->files->exists($sourcePath)) {
                     $this->files->copy($sourcePath, $destinationPath);
-                    $this->info("✓ Copied background image: {$image}");
-                } else {
-                    // If not in package, check if it exists in the project's template directory
+                    $this->info("✓ Copied background image from resources: {$image}");
+                } 
+                // Check if the source image exists in the template assets directory
+                else if ($this->files->exists($templateAssetsPath)) {
+                    $this->files->copy($templateAssetsPath, $destinationPath);
+                    $this->info("✓ Copied background image from template assets: {$image}");
+                }
+                // If not in package, check if it exists in the project's template directory
+                else {
                     $templateSourcePath = base_path("resources/images/{$image}");
                     if ($this->files->exists($templateSourcePath)) {
                         $this->files->copy($templateSourcePath, $destinationPath);
                         $this->info("✓ Copied background image from project: {$image}");
                     } else {
                         $this->warn("⚠ Background image not found: {$image}");
+                        $this->info("  Checked paths:");
+                        $this->info("  - {$sourcePath}");
+                        $this->info("  - {$templateAssetsPath}");
+                        $this->info("  - {$templateSourcePath}");
                     }
                 }
             }
@@ -930,13 +941,22 @@ BLADE;
 
         foreach ($defaultImages as $image) {
             $sourcePath = $packageRoot . "/resources/images/{$image}";
+            $templateAssetsPath = $packageRoot . "/templates/assets/{$template}/{$image}";
             $destinationPath = resource_path("images/{$image}");
             
             if ($this->files->exists($sourcePath)) {
                 $this->files->copy($sourcePath, $destinationPath);
-                $this->info("✓ Copied default background image: {$image}");
-            } else {
+                $this->info("✓ Copied default background image from resources: {$image}");
+            } 
+            else if ($this->files->exists($templateAssetsPath)) {
+                $this->files->copy($templateAssetsPath, $destinationPath);
+                $this->info("✓ Copied default background image from template assets: {$image}");
+            }
+            else {
                 $this->warn("⚠ Default background image not found: {$image}");
+                $this->info("  Checked paths:");
+                $this->info("  - {$sourcePath}");
+                $this->info("  - {$templateAssetsPath}");
             }
         }
     }
@@ -1155,13 +1175,13 @@ BLADE;
             $this->getBasePath() . "/templates/assets/{$template}"
         ];
 
-        $assetDir = $this->getAssetDirectory();
-        $targetDir = $this->getBasePath() . "/{$assetDir}/images";
+        // Only copy to resources/images directory
+        $resourcesImagesDir = resource_path('images');
 
         // Create images directory if it doesn't exist
-        if (!$this->files->isDirectory($targetDir)) {
-            $this->files->makeDirectory($targetDir, 0755, true);
-            $this->info("Created directory: {$targetDir}");
+        if (!$this->files->isDirectory($resourcesImagesDir)) {
+            $this->files->makeDirectory($resourcesImagesDir, 0755, true);
+            $this->info("Created directory: {$resourcesImagesDir}");
         }
 
         $assetsFound = false;
@@ -1171,13 +1191,14 @@ BLADE;
                 // Copy all files from the template assets directory
                 foreach ($this->files->files($sourceDir) as $file) {
                     $filename = $file->getFilename();
-                    $targetPath = $targetDir . '/' . $filename;
+                    $resourcesPath = $resourcesImagesDir . '/' . $filename;
                     
-                    if ($this->files->copy($file->getPathname(), $targetPath)) {
-                        $this->info("✓ Copied asset: {$filename} to {$assetDir}/images/");
+                    // Copy to resources/images
+                    if ($this->files->copy($file->getPathname(), $resourcesPath)) {
+                        $this->info("✓ Copied asset: {$filename} to resources/images/");
                         $assetsFound = true;
                     } else {
-                        $this->warn("! Failed to copy asset: {$filename}");
+                        $this->warn("! Failed to copy asset: {$filename} to resources/images/");
                     }
                 }
             }
